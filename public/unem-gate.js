@@ -37,38 +37,40 @@
 
   var T = {
     ar: {
-      title: 'تسجيل الدخول إلى المنصة', sub: 'أدخل اسمك الكامل ورقم تسجيلك للتحقق من حسابك.',
-      name: 'الاسم الكامل', namePh: 'مثال: محمد أحمد سالم', reg: 'رقم التسجيل', regPh: 'رقم التسجيل الجامعي',
+      title: 'تسجيل الدخول إلى المنصة', sub: 'أدخل اسمك الكامل بالفرنسية، ورقم تسجيلك، ثم اختر تخصصك ومستواك.',
+      name: 'الاسم الكامل (بالفرنسية)', namePh: 'Ex. : Mohamed Ahmed Salem', reg: 'رقم التسجيل', regPh: 'رقم التسجيل الجامعي', spec:'التخصص', level:'المستوى', specPh:'اختر التخصص', levelPh:'اختر المستوى',
       go: 'دخول', checking: 'جاري التحقق...', note: 'تُحفظ بياناتك على هذا الجهاز، فلن يُطلب منك ذلك مرة أخرى.',
       staff: 'دخول المشرفين', lang: 'Français',
       pendingT: 'طلبك قيد المراجعة', pendingD: 'لم نجد اسمك في اللائحة، فتم إرسال حسابك إلى المشرف للموافقة عليه. سيتم إدخالك تلقائياً بعد الموافقة.',
       check: 'تحقق الآن', other: 'استخدام حساب آخر', waiting: 'بانتظار موافقة المشرف...',
       rejected: 'تم رفض هذا الحساب من طرف المشرف. يرجى التسجيل بحساب صالح (اسم كامل ورقم تسجيل صحيحين).',
-      bad_name: 'اكتب اسمك الكامل (3 أحرف على الأقل).', bad_reg: 'اكتب رقم التسجيل بشكل صحيح.',
+      bad_name: 'اكتب اسمك الكامل (3 أحرف على الأقل).', bad_reg: 'اكتب رقم التسجيل بشكل صحيح.', bad_scope:'اختر التخصص والمستوى الصحيحين.', scope_mismatch:'التخصص أو المستوى لا يطابق بيانات حسابك.',
       name_mismatch: 'الاسم لا يطابق رقم التسجيل هذا. تأكد من كتابة اسمك الكامل كما هو مسجّل.',
       busy: 'عدد الطلبات كبير حالياً، حاول بعد قليل.', offline: 'تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة.',
       setup: 'نظام التسجيل قيد التفعيل. يرجى المحاولة لاحقاً.',
-      hello: 'مرحباً بك في المنصة', helloSub: 'تم تسجيل دخولك بنجاح', start: 'ابدأ', back: 'مرحباً'
+      hello: 'مرحباً بك في مجتمع UNEM ISCAE', helloSub: 'الاتحاد الوطني لطلبة موريتانيا — المعهد العالي للمحاسبة وإدارة المؤسسات', start: 'ابدأ', back: 'مرحباً'
     },
     fr: {
       title: 'Connexion à la plateforme', sub: 'Saisissez votre nom complet et votre numéro d’inscription pour vérifier votre compte.',
-      name: 'Nom complet', namePh: 'Ex. : Mohamed Ahmed Salem', reg: 'Numéro d’inscription', regPh: 'Numéro d’inscription universitaire',
+      name: 'Nom complet (en français)', namePh: 'Ex. : Mohamed Ahmed Salem', reg: 'Numéro d’inscription', regPh: 'Numéro d’inscription universitaire', spec:'Filière', level:'Niveau', specPh:'Choisissez une filière', levelPh:'Choisissez un niveau',
       go: 'Entrer', checking: 'Vérification...', note: 'Vos informations sont enregistrées sur cet appareil : elles ne seront plus demandées.',
       staff: 'Espace administrateur', lang: 'العربية',
       pendingT: 'Votre demande est en cours d’examen', pendingD: 'Votre nom ne figure pas dans la liste : votre compte a été envoyé à l’administrateur pour validation. Vous entrerez automatiquement après son approbation.',
       check: 'Vérifier maintenant', other: 'Utiliser un autre compte', waiting: 'En attente de l’approbation de l’administrateur...',
       rejected: 'Ce compte a été refusé par l’administrateur. Veuillez vous inscrire avec un compte valide (nom complet et numéro d’inscription corrects).',
-      bad_name: 'Saisissez votre nom complet (3 caractères minimum).', bad_reg: 'Saisissez correctement le numéro d’inscription.',
+      bad_name: 'Saisissez votre nom complet (3 caractères minimum).', bad_reg: 'Saisissez correctement le numéro d’inscription.', bad_scope:'Choisissez une filière et un niveau valides.', scope_mismatch:'La filière ou le niveau ne correspond pas à votre compte.',
       name_mismatch: 'Le nom ne correspond pas à ce numéro d’inscription. Vérifiez votre nom complet tel qu’il est enregistré.',
       busy: 'Trop de demandes pour le moment, réessayez dans un instant.', offline: 'Connexion au serveur impossible. Vérifiez Internet puis réessayez.',
       setup: 'Le système d’inscription est en cours d’activation. Réessayez plus tard.',
-      hello: 'Bienvenue sur la plateforme', helloSub: 'Connexion réussie', start: 'Commencer', back: 'Bienvenue'
+      hello: 'Bienvenue dans la communauté UNEM ISCAE', helloSub: 'Union Nationale des Étudiants de Mauritanie — ISCAE', start: 'Commencer', back: 'Bienvenue'
     }
   };
   function t(k) { return T[lang()][k] || k; }
 
   /* ---------- الاتصال بقاعدة البيانات (بدون مكتبات) ---------- */
+  function sessionId() { var id; try { id=sessionStorage.getItem('unem_student_session_id'); if(!id){id=uuid();sessionStorage.setItem('unem_student_session_id',id)} } catch(e) { id=uuid(); } return id; }
   function rpc(action, args) {
+    args=args||{}; if(['login','status','logout','end_session'].indexOf(action)>=0) args.session_id=sessionId();
     return fetch(SB_URL + '/rest/v1/rpc/student_gate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY },
@@ -163,15 +165,23 @@
     var v = {};
     var n = document.getElementById('ug-name'), r = document.getElementById('ug-reg');
     if (n) v.n = n.value; if (r) v.r = r.value;
+    var scopes=[['BA','BA'],['FC','FC'],['TCM','TCM'],['GRH','GRH'],['SAE','SAE'],['IG','IG'],['MASTER_FC','Master FC'],['MASTER_IG','Master IG']];
+    var specValue=ls('unem_student_spec')||'BA', levelValue=ls('unem_student_level')||'L1';
+    var scopeOpts=scopes.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===specValue?' selected':'')+'>'+x[1]+'</option>'}).join('');
+    var levelList=/^MASTER_/.test(specValue)?['M1','M2']:['L1','L2','L3'];
     root.innerHTML = '<div class="g-card">' + head('title', 'sub') +
       '<form id="ug-form" autocomplete="on" novalidate>' +
       '<label for="ug-name">' + esc(t('name')) + '</label><input id="ug-name" name="name" autocomplete="name" maxlength="80" placeholder="' + esc(t('namePh')) + '">' +
       '<label for="ug-reg">' + esc(t('reg')) + '</label><input id="ug-reg" name="reg" inputmode="text" autocomplete="off" maxlength="30" placeholder="' + esc(t('regPh')) + '" dir="ltr" style="text-align:start">' +
+      '<label for="ug-spec">'+esc(t('spec'))+'</label><select id="ug-spec" style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">'+scopeOpts+'</select>'+
+      '<label for="ug-level">'+esc(t('level'))+'</label><select id="ug-level" style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">'+levelList.map(function(x){return '<option'+(x===levelValue?' selected':'')+'>'+x+'</option'}).join('')+'</select>'+
       '<div class="g-err" id="ug-err" style="display:' + (lastMsg ? 'block' : 'none') + '">' + esc(lastMsg) + '</div>' +
       '<button class="g-btn" id="ug-go" type="submit">' + esc(t('go')) + '</button></form>' +
       '<div class="g-note">' + esc(t('note')) + '</div>' + topBar() + '</div>';
     if (v.n) document.getElementById('ug-name').value = v.n;
     if (v.r) document.getElementById('ug-reg').value = v.r;
+    document.getElementById('ug-spec').onchange=function(){var s=this.value,lsv=/^MASTER_/.test(s)?['M1','M2']:['L1','L2','L3'],sel=document.getElementById('ug-level');sel.innerHTML=lsv.map(function(x){return '<option>'+x+'</option>'}).join('');ls('unem_student_spec',s);ls('unem_student_level',sel.value)};
+    document.getElementById('ug-level').onchange=function(){ls('unem_student_level',this.value)};
     document.getElementById('ug-form').onsubmit = function (e) { e.preventDefault(); submit(); };
     bindTop();
   }
@@ -184,11 +194,13 @@
     if (busy) return;
     var name = (document.getElementById('ug-name').value || '').replace(/\s+/g, ' ').trim();
     var reg = (document.getElementById('ug-reg').value || '').trim();
+    var spec=document.getElementById('ug-spec').value, level=document.getElementById('ug-level').value;
+    ls('unem_student_spec',spec);ls('unem_student_level',level);
     if (name.length < 3) return showErr('bad_name');
     if (reg.length < 2) return showErr('bad_reg');
     busy = true; showErr('');
     var b = document.getElementById('ug-go'); b.disabled = true; b.textContent = t('checking');
-    rpc('login', { name: name, reg: reg }).then(function (d) {
+    rpc('login', { name: name, reg: reg, spec:spec, level:level }).then(function (d) {
       busy = false; handle(d);
     }).catch(function (e) {
       busy = false; render(); showErr(isSetupError(e) ? 'setup' : 'offline');
@@ -242,7 +254,7 @@
     function ready() {
       var old = document.getElementById('unem-welcome'); if (old) old.remove();
       var w = document.createElement('div'); w.id = 'unem-welcome'; w.dir = lang() === 'ar' ? 'rtl' : 'ltr';
-      w.innerHTML = '<div class="w"><div class="e">🎓</div><h3>' + esc(t('hello')) + '</h3><h2></h2><p>' + esc(t('helloSub')) + '</p><button type="button">' + esc(t('start')) + '</button></div>';
+      w.innerHTML = '<div class="w"><div class="e">🎓</div><div style="font-size:.78rem;letter-spacing:.1em;font-weight:900;color:#a7f3d0">UNEM ISCAE</div><h3>' + esc(t('hello')) + '</h3><h2></h2><p>' + esc(t('helloSub')) + '</p><button type="button">' + esc(t('start')) + '</button></div>';
       w.querySelector('h2').textContent = s.name;
       var close = function () { if (w.parentNode) w.parentNode.removeChild(w); };
       w.querySelector('button').onclick = close; w.onclick = function (e) { if (e.target === w) close(); };
@@ -330,5 +342,13 @@
       else if (d && d.status === 'rejected') { lastMsg = t('rejected'); render(); }
     }).catch(function (e) { if (isSetupError(e)) { lastMsg = t('setup'); render(); } });
   }
+  var sessionEnded=false;
+  window.addEventListener('pagehide',function(){
+    if(sessionEnded)return;sessionEnded=true;
+    try{fetch(SB_URL+'/rest/v1/rpc/student_gate',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY},body:JSON.stringify({p_token:token(),p_action:'end_session',p_args:{session_id:sessionId()}})});}catch(e){}
+    try{sessionStorage.removeItem('unem_student_session_id')}catch(e){}
+  });
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&passed)rpc('status').catch(function(){});});
+  setInterval(function(){if(passed&&!document.hidden)rpc('status').catch(function(){})},60000);
   start();
 })();
