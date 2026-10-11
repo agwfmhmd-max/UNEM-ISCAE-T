@@ -10085,7 +10085,7 @@ function specOpts(sel){return SPECS.map(function(s){return '<option value="'+s[0
 function lvlOpts(spec,sel){var l=lvls(spec);return l.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+x+'</option>'}).join('')}
 function rpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function sessionRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_session_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
-function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ملفات ترحيل الطلاب بالترتيب، وآخرها db/20261014090000_community_admin_and_device_limits.sql في Supabase.';if(/forbidden/.test(m))return 'هذه الصفحة للمشرف الرئيسي فقط.';return m}
+function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ملفات ترحيل الطلاب بالترتيب، وآخرها db/20261015090000_community_admin_reports_rooms_avatars.sql في Supabase.';if(/forbidden/.test(m))return 'هذه الصفحة للمشرف الرئيسي فقط.';return m}
 function $(id){return document.getElementById(id)}
 function fmt(d){try{return new Date(d).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
 
