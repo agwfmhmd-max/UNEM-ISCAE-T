@@ -58,7 +58,7 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:var(--s
 <nav class="tabs" id="tabs"></nav>
 <main class="wrap" id="main"></main>
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
-<div id="chat"><div class="ch"><button onclick="closeChat()" type="button"><i class="fas fa-arrow-right ic-flip"></i></button><div><b id="chT"></b><small id="chS"></small></div></div><div id="msgs"></div>
+<div id="chat"><div class="ch"><button onclick="closeChat()" type="button"><i class="fas fa-arrow-right ic-flip"></i></button><div style="flex:1"><b id="chT"></b><small id="chS"></small></div><button id="chClear" type="button" hidden title="مسح المحادثة"><i class="fas fa-trash"></i></button></div><div id="msgs"></div>
 <div class="sb"><input id="chIn" data-tp="msgPh" maxlength="1000"><button onclick="sendMsg()" type="button"><i class="fas fa-paper-plane"></i></button></div></div>
 <div id="toast"></div>
 <footer class="main-footer">
@@ -71,7 +71,7 @@ const SPECS={BA:'BA',FC:'FC',TCM:'TCM',GRH:'GRH',SAE:'SAE',IG:'IG',MASTER_FC:'Ma
 /* ===== الترجمة: العربية / الفرنسية (تتبع اللغة المختارة في المنصة: unem_lang) ===== */
 const I18N={
 ar:{home:'الرئيسية',me:'ملفي',title:'مجتمع الطلاب | UNEM ISCAE',h1:'مجتمع <b>الطلاب</b>',sub:'نقاش، أسئلة، مجموعات دراسة ورسائل — نص فقط، والرسائل تختفي بعد 24 ساعة.',
- hello:n=>'👋 مرحباً بك '+n,msgPh:'اكتب رسالتك...',copyright:'جميع الحقوق محفوظة © 2026 - UNEM ISCAE',langBtn:'Français',
+ hello:n=>'👋 مرحباً بك '+n,adminBadge:'أنت تتصفح بصلاحيات المشرف',adminRooms:'كل الغرف والمحادثات',adminComments:'التعليقات',adminOpenRoom:'فتح المحادثة',adminClearRoom:'حذف كل رسائل هذه المحادثة',adminMsgDelete:'حذف الرسالة',msgPh:'اكتب رسالتك...',copyright:'جميع الحقوق محفوظة © 2026 - UNEM ISCAE',langBtn:'Français',
  question:'سؤال دراسي',help:'مساعدة',discussion:'نقاش',announcement:'إعلان طلابي',
  e_rate:'تمهّل قليلاً قبل المحاولة من جديد',e_banned:'تم تقييد حسابك في المجتمع',e_full:'المجموعة ممتلئة',e_empty:'اكتب نصاً أولاً',e_not_member:'انضم للمجموعة أولاً',
  e_setup:'المجتمع قيد التفعيل — يلزم تنفيذ ملف SQL في Supabase',e_conn:'تعذّر الاتصال، حاول مجدداً',
@@ -88,10 +88,10 @@ ar:{home:'الرئيسية',me:'ملفي',title:'مجتمع الطلاب | UNEM 
  pFind:'ابحث عن زميل دراسة',pSubjPh:'المادة (مثال: Analyse)',pBodyPh:'ماذا تريد أن تراجع؟ مثال: أبحث عن طالب لمراجعة Analyse غداً',pPost:'نشر الطلب',pPosted:'تم نشر طلبك',pHint:'لا تظهر أرقام الهواتف — التواصل عبر الرسائل الخاصة فقط. الطلب والمنشورات متاحة لمدة 7 أيام.',noPartner:'لا توجد طلبات حالياً',failLoad:'تعذّر التحميل',
  noDms:'لا توجد رسائل. ابدأ محادثة من «زميل دراسة» أو بالضغط على اسم طالب في غرفة.',dmNote:'الرسائل الخاصة تختفي بعد 24 ساعة.',itsYou:'هذا أنت 🙂',dmSub:'رسالة خاصة · تختفي بعد 24 ساعة',
  needLoginT:'يلزم تسجيل الدخول',needLoginD:'للدخول إلى المجتمع، سجّل دخولك بالاسم الكامل ورقم التسجيل.',needLoginB:'تسجيل الدخول',
- setupFail:'مجتمع الطلاب قيد التفعيل.<br>يلزم تنفيذ ملف db/20261013090000_student_community_enhancements.sql في Supabase.',connFail:'تعذّر الاتصال بالخادم. تحقق من الإنترنت وأعد المحاولة.',
+ setupFail:'مجتمع الطلاب قيد التفعيل.<br>يلزم تنفيذ ملفات الترحيل حتى db/20261014090000_community_admin_and_device_limits.sql في Supabase.',connFail:'تعذّر الاتصال بالخادم. تحقق من الإنترنت وأعد المحاولة.',
  sign:'◆ Designed & developed by MDA — Mohamed Dah Agove'},
 fr:{home:'Accueil',me:'Mon profil',title:'Communauté étudiante | UNEM ISCAE',h1:'Communauté <b>étudiante</b>',sub:'Discussions, questions, groupes d’étude et messages — texte uniquement ; les messages disparaissent après 24 h.',
- hello:n=>'👋 Bienvenue '+n,msgPh:'Écrivez votre message...',copyright:'Tous droits réservés © 2026 - UNEM ISCAE',langBtn:'العربية',
+ hello:n=>'👋 Bienvenue '+n,adminBadge:'Vous êtes connecté en tant qu’administrateur',adminRooms:'Tous les salons et conversations',adminComments:'Commentaires',adminOpenRoom:'Ouvrir la conversation',adminClearRoom:'Supprimer tous les messages de cette conversation',adminMsgDelete:'Supprimer le message',msgPh:'Écrivez votre message...',copyright:'Tous droits réservés © 2026 - UNEM ISCAE',langBtn:'العربية',
  question:'Question d’étude',help:'Aide',discussion:'Discussion',announcement:'Annonce étudiante',
  e_rate:'Doucement, patientez un instant avant de réessayer',e_banned:'Votre compte est restreint dans la communauté',e_full:'Le groupe est complet',e_empty:'Écrivez d’abord un texte',e_not_member:'Rejoignez d’abord le groupe',
  e_setup:'La communauté est en cours d’activation — le fichier SQL doit être exécuté dans Supabase',e_conn:'Connexion impossible, réessayez',
@@ -108,7 +108,7 @@ fr:{home:'Accueil',me:'Mon profil',title:'Communauté étudiante | UNEM ISCAE',h
  pFind:'Trouver un binôme d’étude',pSubjPh:'Matière (ex. : Analyse)',pBodyPh:'Que voulez-vous réviser ? Ex. : Je cherche un étudiant pour réviser Analyse demain',pPost:'Publier la demande',pPosted:'Votre demande a été publiée',pHint:'Les numéros de téléphone ne sont pas affichés — échange par messages privés. La demande et les publications restent 7 jours.',noPartner:'Aucune demande pour le moment',failLoad:'Chargement impossible',
  noDms:'Aucun message. Démarrez une conversation depuis « Binôme d’étude » ou en appuyant sur le nom d’un étudiant dans un salon.',dmNote:'Les messages privés disparaissent après 24 h.',itsYou:'C’est vous 🙂',dmSub:'Message privé · disparaît après 24 h',
  needLoginT:'Connexion requise',needLoginD:'Pour accéder à la communauté, connectez-vous avec votre nom complet et votre numéro d’inscription.',needLoginB:'Se connecter',
- setupFail:'La communauté étudiante est en cours d’activation.<br>Exécutez les migrations des étudiants dans l’ordre, jusqu’à db/20261013090000_student_community_enhancements.sql.',connFail:'Connexion au serveur impossible. Vérifiez Internet puis réessayez.',
+ setupFail:'La communauté étudiante est en cours d’activation.<br>Exécutez les migrations dans l’ordre jusqu’à db/20261014090000_community_admin_and_device_limits.sql.',connFail:'Connexion au serveur impossible. Vérifiez Internet puis réessayez.',
  sign:'◆ Designed & developed by MDA — Mohamed Dah Agove'}
 };
 let LANG=localStorage.getItem('unem_lang')==='fr'?'fr':'ar';
@@ -136,7 +136,7 @@ function applyLang(){
   document.querySelectorAll('[data-t]').forEach(e=>{const k=e.dataset.t;if(k==='me'&&me&&me.name)return;e.textContent=t(k)});
   document.querySelectorAll('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
   $('#h1').innerHTML=t('h1');$('#copyright').textContent=t('copyright');$('#langBtn').textContent=t('langBtn');
-  $('#hello').textContent=me&&me.name?t('hello',me.name):'';
+  $('#hello').textContent=me&&me.name?(me.admin?t('adminBadge'):t('hello',me.name)):'';
   if(me&&me.name)$('#meName').textContent=me.name;
 }
 $('#langBtn').onclick=()=>{LANG=LANG==='ar'?'fr':'ar';localStorage.setItem('unem_lang',LANG);try{if(typeof window.setLanguage==='function')window.setLanguage(LANG)}catch(e){}applyLang();if(me&&me.name)render()};
@@ -156,8 +156,8 @@ function needLogin(){
   $('#main').innerHTML=`<div class="empty"><i class="fas fa-user-lock fa-2x"></i><h3>${t('needLoginT')}</h3><p>${t('needLoginD')}</p><button class="btn" style="max-width:260px" id="nlB" type="button">${t('needLoginB')}</button></div>`;
   $('#nlB').onclick=()=>{if(window.UNEM_GATE)window.UNEM_GATE.logout(true);else location.href='/'};
 }
-const TABS=[['posts','t_posts','fa-newspaper'],['rooms','t_rooms','fa-hashtag'],['groups','t_groups','fa-users'],['partner','t_partner','fa-handshake'],['dms','t_dms','fa-comments'],...(me&&me.admin?[['admin','t_admin','fa-shield-halved']]:[])];
-function render(){$('#tabs').innerHTML=TABS.map(x=>`<button class="${x[0]==tab?'on':''}" onclick="tab='${x[0]}';render()"><i class="fas ${x[2]}"></i> ${t(x[1])}</button>`).join('');$('#main').innerHTML='<div class="empty"><i class="fas fa-spinner fa-spin"></i></div>';({posts:vPosts,rooms:vRooms,groups:vGroups,partner:vPartner,dms:vDms,admin:vAdmin})[tab]()}
+const BASE_TABS=[['posts','t_posts','fa-newspaper'],['rooms','t_rooms','fa-hashtag'],['groups','t_groups','fa-users'],['partner','t_partner','fa-handshake'],['dms','t_dms','fa-comments']];
+function render(){const tabs=me&&me.admin?BASE_TABS.concat([['admin','t_admin','fa-shield-halved']]):BASE_TABS;$('#tabs').innerHTML=tabs.map(x=>`<button class="${x[0]==tab?'on':''}" onclick="tab='${x[0]}';render()"><i class="fas ${x[2]}"></i> ${t(x[1])}</button>`).join('');$('#main').innerHTML='<div class="empty"><i class="fas fa-spinner fa-spin"></i></div>';({posts:vPosts,rooms:vRooms,groups:vGroups,partner:vPartner,dms:vDms,admin:vAdmin})[tab]()}
 function postCard(p,partner){const sv=saved.includes(p.id),K=KINDS();return `<div class="card" id="p${p.id}"><div class="ph">${av(p.an,p.avatar)}<div style="flex:1"><b>${esc(p.an)}</b>${partner?'':`<span class="tag ${p.kind}">${K[p.kind]||''}</span>`}<small>${ago(p.t)} · ${SPECS[p.spec]||''} · ${p.level||''}${p.subject?' · '+esc(p.subject):''}</small></div>
 ${p.can_del?`<button class="btn sm alt" onclick="delPost('${p.id}')"><i class="fas fa-trash"></i></button>`:`<button class="btn sm alt" onclick="report('post','${p.id}')"><i class="fas fa-flag"></i></button>`}</div><div class="body">${esc(p.body)}</div>
 <div class="acts">${partner?`<button data-id="${esc(p.aid)}" data-name="${esc(p.an)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>`:`<button class="${p.liked?'on':''}" onclick="like('${p.id}')"><i class="fas fa-heart"></i> ${p.likes}</button><button onclick="cms('${p.id}')"><i class="fas fa-comment"></i> ${p.comments}</button><button class="${sv?'on':''}" onclick="save('${p.id}')" style="margin-inline-start:auto"><i class="fas fa-bookmark"></i></button>`}</div><div id="c${p.id}"></div></div>`}
@@ -193,17 +193,27 @@ $('#main').innerHTML=`<div class="card"><b><i class="fas fa-handshake"></i> ${t(
 <button class="btn" style="margin-top:8px" onclick="newPartner()">${t('pPost')}</button><p class="note">${t('pHint')}</p></div>
 <div style="height:10px"></div>${d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`}`}
 function newPartner(){const body=$('#qB').value.trim();if(!body)return toast(t('e_empty'));run('post',{kind:'partner',body,level:me.level,spec:me.spec,subject:$('#qSu').value},()=>{toast(t('pPosted'));render()})}
-async function vAdmin(){if(!me?.admin)return;const d=await run('admin_list');if(!d)return;const del=(type,id)=>`<button class="btn sm alt" onclick="adminDelete('${type}','${esc(id)}')"><i class="fas fa-trash"></i> ${t('del')}</button>`;const post=(d.posts||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(KINDS()[x.kind]||x.kind)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small><div class="body">${esc(x.body)}</div>${del('post',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;const groups=(d.groups||[]).map(x=>`<div class="card li"><div><b>${esc(x.name)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small></div>${del('group',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;const msgs=(d.messages||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(x.room)}</b><div class="body">${esc(x.body)}</div>${del('message',x.id)} <button class="btn sm alt" onclick="adminClearRoom('${esc(x.room)}')">${t('clearRoom')}</button></div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;const reports=(d.reports||[]).map(x=>`<div class="card"><b>${esc(x.kind||'')}</b> · ${esc(x.target||'')}<div class="body">${esc(x.reason||'')}</div>${del('report',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;$('#main').innerHTML=`<button class="btn" onclick="render()">${t('adminRefresh')}</button><h3>${t('adminPosts')}</h3>${post}<h3>${t('adminGroups')}</h3>${groups}<h3>${t('adminMessages')}</h3>${msgs}<h3>${t('adminReports')}</h3>${reports}`}
-window.adminDelete=(type,id)=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type,id},()=>render())};window.adminClearRoom=room=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type:'room',room},()=>render())};
+async function vAdmin(){if(!me?.admin)return;const d=await run('admin_list');if(!d)return;
+const del=(type,id)=>`<button class="btn sm alt" onclick="adminDelete('${type}','${esc(id)}')"><i class="fas fa-trash"></i> ${t('del')}</button>`;
+const post=(d.posts||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(KINDS()[x.kind]||x.kind)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small><div class="body">${esc(x.body)}</div>${del('post',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+const groups=(d.groups||[]).map(x=>`<div class="card li"><div><b>${esc(x.name)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small></div>${del('group',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+const msgs=(d.messages||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(x.room)}</b><div class="body">${esc(x.body)}</div>${del('message',x.id)} <button class="btn sm alt" onclick="adminClearRoom('${esc(x.room)}')">${t('clearRoom')}</button></div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+const comments=(d.comments||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${ago(x.t)}</b><div class="body">${esc(x.body)}</div>${del('comment',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+const reports=(d.reports||[]).map(x=>`<div class="card"><b>${esc(x.kind||'')}</b> · ${esc(x.target||'')}<div class="body">${esc(x.reason||'')}</div>${del('report',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+const rooms=(d.rooms||[]).map(x=>`<div class="card li"><div><b>${esc(x.room)}</b><small>${x.messages} · ${ago(x.last_t)}</small></div><button class="btn sm" onclick="openAdminRoom('${esc(x.room)}')">${t('adminOpenRoom')}</button> <button class="btn sm alt" onclick="adminClearRoom('${esc(x.room)}')">${t('clearRoom')}</button></div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+$('#main').innerHTML=`<button class="btn" onclick="render()">${t('adminRefresh')}</button><h3>${t('adminPosts')}</h3>${post}<h3>${t('adminGroups')}</h3>${groups}<h3>${t('adminMessages')}</h3>${msgs}<h3>${t('adminRooms')}</h3>${rooms}<h3>${t('adminComments')}</h3>${comments}<h3>${t('adminReports')}</h3>${reports}`}
+window.openAdminRoom=function(r){if(!me?.admin)return;openChat(r,r,'');const b=$('#chClear');if(b){b.hidden=false;b.onclick=()=>adminClearRoom(r)}};
+window.adminDelete=(type,id)=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type,id},()=>{if(type==='message'&&room){const el=document.querySelector('[data-message-id="'+CSS.escape(String(id))+'"]');if(el)el.remove();}else render()})};
+window.adminClearRoom=r=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type:'room',room:r},()=>{if(room===r)closeChat();render()})};
 async function vDms(){const d=await run('dms');if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;
 $('#main').innerHTML=d.length?d.map(x=>`<div class="card li" data-id="${esc(x.other)}" data-name="${esc(x.an)}" onclick="openDmEl(this)">${av(x.an,x.avatar)}<div><b>${esc(x.an)}</b><small>${esc(x.body.slice(0,60))} · ${ago(x.t)}</small></div></div>`).join('')+`<p class="note">${t('dmNote')}</p>`:`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`}
 function openDmEl(el){openDm(el.dataset.id,el.dataset.name)}
 function openDm(id,name){if(id===me.id)return toast(t('itsYou'));openChat('dm:'+[me.id,id].sort().join(':'),name,t('dmSub'))}
 function openChatEl(el){openChat(el.dataset.room,el.dataset.title,el.dataset.sub)}
-function openChat(r,ti,s){room=r;lastId=0;$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML='';$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
+function openChat(r,ti,s){room=r;lastId=0;$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML='';const cb=$('#chClear');cb.hidden=!(me&&me.admin);if(me&&me.admin)cb.onclick=()=>adminClearRoom(r);$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
 function closeChat(){$('#chat').classList.remove('open');clearInterval(timer);room=null;if(tab==='groups'||tab==='dms')render()}
 async function pull(){if(!room||document.hidden)return;const r=room,d=await api('msgs',{room:r,after:lastId}).catch(()=>null);if(!d||d.need_register||r!==room||!d.length)return;const box=$('#msgs'),down=box.scrollHeight-box.scrollTop-box.clientHeight<80||!lastId;
-d.forEach(m=>{lastId=Math.max(lastId,m.id);box.insertAdjacentHTML('beforeend',`<div class="m ${m.mine?'me':''}">${m.mine?'':`<b data-id="${esc(m.aid)}" data-name="${esc(m.an)}" onclick="openDmEl(this)">${esc(m.an)}</b>`}${esc(m.body)}</div>`)});if(down)box.scrollTop=box.scrollHeight}
+d.forEach(m=>{lastId=Math.max(lastId,m.id);box.insertAdjacentHTML('beforeend',`<div class="m ${m.mine?'me':''}" data-message-id="${m.id}">${m.mine?'':`<b data-id="${esc(m.aid)}" data-name="${esc(m.an)}" onclick="openDmEl(this)">${esc(m.an)}</b>`}${esc(m.body)}${me?.admin?`<button type="button" class="btn sm alt" onclick="adminDelete('message','${m.id}')" title="${t('adminMsgDelete')}"><i class="fas fa-trash"></i></button>`:''}</div>`)});if(down)box.scrollTop=box.scrollHeight}
 async function sendMsg(){const i=$('#chIn'),body=i.value.trim();if(!body||!room)return;i.value='';const d=await run('send',{room,body});if(d)pull();else i.value=body}
 $('#chIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 /* توقيع MDA: 3 نقرات سريعة تُظهر رسالة (مثل الصفحة الرئيسية) */
