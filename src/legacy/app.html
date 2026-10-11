@@ -2,6 +2,7 @@
 
 <html dir="rtl" lang="ar">
 <head>
+<script src="/unem-gate.js"></script>
 <!-- Developer: Mohamed Dah Agove | Master IG M2 and curriculum enhancements -->
 <meta charset="utf-8"/>
 <meta name="author" content="Mohamed Dah Agove"/>
@@ -2704,6 +2705,7 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
 <button class="admin-dash-card" onclick="adminDashOpen('announcements')"><b>📢 الإعلانات</b><span>إدارة شريط الإعلانات</span></button>
 <button class="admin-dash-card" onclick="adminDashOpen('notifications')"><b>🔔 الإشعارات</b><span>إرسال ومراجعة الإشعارات</span></button>
 <button class="admin-dash-card" onclick="adminDashOpen('types')"><b>🗂️ أنواع الملفات</b><span>تنظيم أنواع ملفات المواد</span></button>
+<button class="admin-dash-card" data-dash-key="students" onclick="adminDashOpen('students')"><b>🎓 تسجيلات الطلاب</b><span id="st-card-sub">لوائح الطلاب وطلبات الموافقة على الحسابات</span></button>
 <button class="admin-dash-card admin-schedules-card" data-dash-key="schedules" onclick="openSchedulesAdmin()"><b>📅 الجداول الدراسية</b><span>رفع وتحديث وإدارة الجداول الدراسية</span></button>
 </div>
 <div id="admin-dashboard-page" style="display:none;padding:22px;">
@@ -6790,7 +6792,8 @@ function escapeHtml(value){
                 notifications:'send_notifications',
                 types:'manage_document_types',
                 'top-files':'__admin_only__',
-                schedules:'__admin_only__'
+                schedules:'__admin_only__',
+                students:'__admin_only__'
             };
             document.querySelectorAll('#admin-dashboard-home .admin-dash-card').forEach(b=>{
                 const onclick=b.getAttribute('onclick')||'';
@@ -6814,7 +6817,7 @@ function escapeHtml(value){
                 types:'manage_document_types',
                 analytics:'view_analytics'
             }[page];
-            if((page==='permissions'||page==='top-files')&&!isAdmin()) return alert('❌ هذه الصفحة للمشرف الرئيسي فقط.');
+            if((page==='permissions'||page==='top-files'||page==='students')&&!isAdmin()) return alert('❌ هذه الصفحة للمشرف الرئيسي فقط.');
             if(required && !hasPermission(required)) return alert('❌ ليست لديك الصلاحية لهذا القسم.');
             currentAdminDashPage=page;
             if(page==='top-files'){ closeAdminDashboard(); openTopFilesPage(); return; }
@@ -6828,6 +6831,7 @@ function escapeHtml(value){
             const c=document.getElementById('admin-dashboard-page-content');
             if(page==='permissions'){renderPermissionsAdmin();return;}
             if(page==='whatsapp'){renderWhatsAppAdmin();return;}
+            if(page==='students'){renderStudentsAdmin();return;}
         }
 
         // توافق مع أزرار HTML المباشرة: ضمان توفر دوال الإدارة عالمياً حتى داخل WebView/PWA.
@@ -10065,6 +10069,180 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if (Date.now() - last > GAP) heal();
     });
   }
+})();
+</script>
+<script id="unem-students-admin">
+/* UNEM ISCAE — إدارة تسجيلات الطلاب (لائحة Excel + موافقة/رفض الحسابات) — للمشرف الرئيسي. Developer: MDA */
+(function(){'use strict';
+var SPECS=[['BA','BA'],['FC','FC'],['TCM','TCM'],['GRH','GRH'],['SAE','SAE'],['IG','IG'],['MASTER_FC','Master FC'],['MASTER_IG','Master IG']];
+var SL={};SPECS.forEach(function(s){SL[s[0]]=s[1]});
+var st={parsed:null,status:'pending',q:'',timer:null};
+function h(s){return typeof escapeHtml==='function'?escapeHtml(s):String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function lvls(spec){return /^MASTER_/.test(spec)?['M1','M2']:['L1','L2','L3']}
+function specOpts(sel){return SPECS.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===sel?' selected':'')+'>'+h(s[1])+'</option>'}).join('')}
+function lvlOpts(spec,sel){var l=lvls(spec);return l.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+x+'</option>'}).join('')}
+function rpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
+function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ملف db/20261012090000_student_accounts_gate.sql في Supabase أولاً.';if(/forbidden/.test(m))return 'هذه الصفحة للمشرف الرئيسي فقط.';return m}
+function $(id){return document.getElementById(id)}
+function fmt(d){try{return new Date(d).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
+
+window.renderStudentsAdmin=async function(){
+  var c=$('admin-dashboard-page-content');if(!c)return;
+  st.parsed=null;
+  c.innerHTML='<div class="admin-page-box" id="st-import"><h3>📥 رفع لائحة الطلاب (Excel)</h3>'+
+  '<p>اختر التخصص والمستوى ثم ارفع ملف Excel يحتوي على عمودين: <b>اسم الطالب</b> و<b>رقم التسجيل</b>. عند تكرار طالب في مستويين يُعتبر في المستوى الأعلى فقط. الطالب الموجود في اللائحة يدخل مباشرة، وغير الموجود يظهر لك كحساب جديد للموافقة عليه.</p>'+
+  '<div class="wa-admin-row" style="grid-template-columns:1fr"><div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
+  '<select id="st-spec" onchange="stSpecChange()">'+specOpts('BA')+'</select><select id="st-level">'+lvlOpts('BA','L1')+'</select>'+
+  '<input id="st-file" type="file" accept=".xlsx,.xls,.csv" onchange="stFile(this)"></div><div id="st-prev" style="margin-top:10px"></div></div></div>'+
+  '<div class="admin-page-box" style="margin-top:14px"><h3>📊 اللوائح المحفوظة</h3><div id="st-stats">⏳ جاري التحميل...</div></div>'+
+  '<div class="admin-page-box" style="margin-top:14px"><h3>👥 حسابات الطلاب</h3>'+
+  '<div id="st-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>'+
+  '<div class="wa-admin-row" style="grid-template-columns:1fr auto"><input id="st-q" placeholder="بحث بالاسم أو رقم التسجيل" onkeydown="if(event.key===\'Enter\')stSearch()"><button class="wa-save" onclick="stSearch()">بحث</button></div>'+
+  '<div id="st-list">⏳ جاري التحميل...</div></div>';
+  loadStats();loadList();
+};
+window.stSpecChange=function(){var s=$('st-spec').value;$('st-level').innerHTML=lvlOpts(s,'')};
+window.stRowSpec=function(id){var s=$('sp-'+id).value,l=$('lv-'+id);var cur=l.value;l.innerHTML=lvlOpts(s,cur)};
+
+/* ---------- قراءة ملف Excel ---------- */
+function loadXlsx(){
+  if(window.XLSX)return Promise.resolve();
+  return new Promise(function(res,rej){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=res;s.onerror=function(){rej(new Error('تعذّر تحميل مكتبة Excel. تحقق من الإنترنت.'))};document.head.appendChild(s)});
+}
+var NAME_RE=/(^|\s)(nom|name|pr[ée]nom|[ée]tudiant|etudiant|student|الاسم|اسم|طالب)/i,REG_STRONG=/(inscri|matric|\breg|apog|massar|code|تسجيل)/i,REG_WEAK=/(رقم|n°|num[ée]ro|\bn\s?°)/i,LETTER=/[A-Za-z\u00C0-\u024F\u0600-\u06FF]/;
+function detect(rows){
+  var nc=-1,rc=-1,hr=-1;
+  for(var i=0;i<Math.min(rows.length,8)&&hr<0;i++){
+    var r=rows[i],strong=-1,weak=-1,name=-1;
+    for(var j=0;j<r.length;j++){var v=String(r[j]||'').trim();if(!v)continue;
+      if(REG_STRONG.test(v)){if(strong<0)strong=j}
+      else if(NAME_RE.test(v)){if(name<0)name=j}
+      else if(REG_WEAK.test(v)){weak=j}}
+    var reg=strong>=0?strong:weak;
+    if(name>=0&&reg>=0&&name!==reg){nc=name;rc=reg;hr=i}
+  }
+  if(hr<0){ // بدون عناوين: استنتاج من محتوى الأعمدة
+    var sample=rows.slice(0,40),cols=0;sample.forEach(function(r){cols=Math.max(cols,r.length)});
+    var best={n:-1,ns:-1,r:-1,rs:-1};
+    for(var c=0;c<cols;c++){
+      var words=0,dig=0,tot=0;
+      sample.forEach(function(r){var v=String(r[c]||'').trim();if(!v)return;tot++;if(/\s/.test(v)&&LETTER.test(v))words++;if(!/\s/.test(v)&&/\d/.test(v)&&v.length>1)dig++});
+      if(!tot)continue;
+      if(words/tot>best.ns){best.ns=words/tot;best.n=c}
+      if(dig/tot>best.rs||(dig/tot===best.rs&&c!==best.n&&best.r===best.n)){best.rs=dig/tot;best.r=c}
+    }
+    if(best.n>=0&&best.r>=0&&best.n!==best.r){nc=best.n;rc=best.r}else{nc=0;rc=1}
+  }
+  return{nc:nc,rc:rc,hr:hr};
+}
+window.stFile=async function(inp){
+  var f=inp.files&&inp.files[0],box=$('st-prev');if(!f)return;
+  box.innerHTML='⏳ جاري قراءة الملف...';
+  try{
+    await loadXlsx();
+    var buf=await f.arrayBuffer();
+    var wb=XLSX.read(buf,{type:'array'});
+    var ws=wb.Sheets[wb.SheetNames[0]];
+    var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+    rows=rows.filter(function(r){return r.some(function(v){return String(v).trim()})});
+    if(!rows.length)throw new Error('الملف فارغ.');
+    var d=detect(rows),out=[];
+    for(var i=d.hr+1;i<rows.length;i++){
+      var n=String(rows[i][d.nc]==null?'':rows[i][d.nc]).replace(/\s+/g,' ').trim(),r=String(rows[i][d.rc]==null?'':rows[i][d.rc]).trim().replace(/\.0+$/,'');
+      if(n&&r)out.push({n:n,r:r});
+    }
+    if(!out.length)throw new Error('لم أجد صفوفاً صالحة (اسم + رقم تسجيل). تأكد أن العمود الأول للاسم والثاني لرقم التسجيل.');
+    st.parsed={rows:out,file:f.name};
+    previewParsed();
+  }catch(e){st.parsed=null;box.innerHTML='<div class="status-msg error">❌ '+h(errMsg(e))+'</div>'}
+};
+function previewParsed(){
+  var p=st.parsed,box=$('st-prev');if(!p)return;
+  box.innerHTML='<div style="font-weight:800;margin-bottom:6px">📄 '+h(p.file)+' — '+p.rows.length+' طالب</div>'+
+  '<div style="overflow:auto;max-height:190px;border:1px solid #e2e8f0;border-radius:10px"><table style="width:100%;border-collapse:collapse;font-size:.85rem"><tr style="background:#f1f5f9"><th style="padding:6px">الاسم</th><th style="padding:6px">رقم التسجيل</th></tr>'+
+  p.rows.slice(0,6).map(function(r){return '<tr><td style="padding:6px;border-top:1px solid #e2e8f0">'+h(r.n)+'</td><td style="padding:6px;border-top:1px solid #e2e8f0;direction:ltr">'+h(r.r)+'</td></tr>'}).join('')+'</table></div>'+
+  '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="wa-save" id="st-save" onclick="stSave()">✅ حفظ اللائحة ('+p.rows.length+')</button><button class="wa-save" style="background:#64748b" onclick="stSwap()">⇄ تبديل العمودين</button></div>'+
+  '<div id="st-res" style="margin-top:10px"></div>';
+}
+window.stSwap=function(){if(!st.parsed)return;st.parsed.rows=st.parsed.rows.map(function(r){return{n:r.r,r:r.n}});previewParsed()};
+window.stSave=async function(){
+  var p=st.parsed;if(!p)return;
+  var spec=$('st-spec').value,level=$('st-level').value,btn=$('st-save'),res=$('st-res');
+  if(!confirm('حفظ '+p.rows.length+' طالب في '+SL[spec]+' · '+level+' ؟'))return;
+  btn.disabled=true;var tot={added:0,upgraded:0,updated:0,skipped_higher:0,invalid:0,auto_approved:0};
+  try{
+    for(var i=0;i<p.rows.length;i+=400){
+      res.innerHTML='⏳ جاري الحفظ... '+Math.min(i+400,p.rows.length)+' / '+p.rows.length;
+      var d=await rpc('import',{spec:spec,level:level,rows:p.rows.slice(i,i+400)});
+      Object.keys(tot).forEach(function(k){tot[k]+=(d&&d[k])||0});
+    }
+    res.innerHTML='<div class="status-msg success" style="display:block">✅ تم الحفظ — جديد: <b>'+tot.added+'</b> · ترقية لمستوى أعلى: <b>'+tot.upgraded+'</b> · محدّث: <b>'+tot.updated+'</b> · متجاهَل (موجود في مستوى أعلى): <b>'+tot.skipped_higher+'</b> · غير صالح: <b>'+tot.invalid+'</b>'+(tot.auto_approved?' · حسابات اعتُمدت تلقائياً: <b>'+tot.auto_approved+'</b>':'')+'</div>';
+    st.parsed=null;$('st-file').value='';loadStats();loadList();
+  }catch(e){res.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>';btn.disabled=false}
+};
+
+/* ---------- الإحصائيات ---------- */
+async function loadStats(){
+  var el=$('st-stats');if(!el)return;
+  try{
+    var d=await rpc('stats'),acc=d.accounts||{};
+    var rows=(d.roster||[]).map(function(x){return '<tr><td style="padding:7px;border-top:1px solid #e2e8f0">'+h(SL[x.spec]||x.spec)+'</td><td style="padding:7px;border-top:1px solid #e2e8f0">'+h(x.level)+'</td><td style="padding:7px;border-top:1px solid #e2e8f0"><b>'+x.n+'</b></td><td style="padding:7px;border-top:1px solid #e2e8f0"><button class="wa-save" style="background:#dc2626;padding:5px 10px;font-size:.78rem" onclick="stClear(\''+x.spec+'\',\''+x.level+'\')">حذف اللائحة</button></td></tr>'}).join('');
+    el.innerHTML='<div style="margin-bottom:8px;font-weight:700">حسابات: بانتظار الموافقة <b>'+(acc.pending||0)+'</b> · معتمدة <b>'+(acc.approved||0)+'</b> · مرفوضة <b>'+(acc.rejected||0)+'</b></div>'+
+      (rows?'<table style="width:100%;border-collapse:collapse;font-size:.88rem"><tr style="background:#f1f5f9"><th style="padding:7px;text-align:start">التخصص</th><th style="padding:7px;text-align:start">المستوى</th><th style="padding:7px;text-align:start">عدد الطلاب</th><th></th></tr>'+rows+'</table>':'<div style="color:#64748b">لا توجد لوائح محفوظة بعد.</div>');
+    renderTabs(acc);
+  }catch(e){el.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>'}
+}
+window.stClear=async function(spec,level){
+  if(!confirm('حذف لائحة '+(SL[spec]||spec)+' · '+level+' بالكامل؟ (حسابات الطلاب المعتمدة لا تُحذف)'))return;
+  try{await rpc('roster_clear',{spec:spec,level:level});loadStats()}catch(e){alert('❌ '+errMsg(e))}
+};
+
+/* ---------- الحسابات ---------- */
+function renderTabs(acc){
+  var el=$('st-tabs');if(!el)return;acc=acc||{};
+  var T=[['pending','⏳ بانتظار الموافقة',acc.pending],['approved','✅ معتمدة',acc.approved],['rejected','⛔ مرفوضة',acc.rejected],['','الكل',null]];
+  el.innerHTML=T.map(function(t){var on=st.status===t[0];return '<button class="wa-save" style="'+(on?'':'background:#e2e8f0;color:#0f172a')+'" onclick="stTab(\''+t[0]+'\')">'+t[1]+(t[2]!=null?' ('+(t[2]||0)+')':'')+'</button>'}).join('');
+}
+window.stTab=function(s){st.status=s;renderTabs();loadList()};
+window.stSearch=function(){st.q=($('st-q').value||'').trim();loadList()};
+async function loadList(){
+  var el=$('st-list');if(!el)return;el.innerHTML='⏳ جاري التحميل...';
+  try{
+    var rows=await rpc('list',{status:st.status,q:st.q});
+    if(!rows||!rows.length){el.innerHTML='<div style="color:#64748b;padding:10px">لا توجد حسابات في هذه القائمة.</div>';return}
+    el.innerHTML=rows.map(function(a){
+      var sp=a.spec&&SL[a.spec]?a.spec:'BA',lv=a.level||lvls(sp)[0];
+      var badge=a.status==='pending'?'<span style="background:#fef3c7;color:#92400e;border-radius:8px;padding:2px 8px;font-size:.72rem;font-weight:800">بانتظار الموافقة</span>':a.status==='approved'?'<span style="background:#dcfce7;color:#166534;border-radius:8px;padding:2px 8px;font-size:.72rem;font-weight:800">معتمد'+(a.source==='roster'?' · من اللائحة':'')+'</span>':'<span style="background:#fee2e2;color:#991b1b;border-radius:8px;padding:2px 8px;font-size:.72rem;font-weight:800">مرفوض</span>';
+      return '<div class="wa-admin-row" style="grid-template-columns:1fr"><div><b>'+h(a.full_name)+'</b> '+badge+'<div style="font-size:.82rem;color:#64748b;margin-top:3px;direction:ltr;text-align:start">'+h(a.reg_no)+'</div>'+
+        (a.note?'<div style="font-size:.78rem;color:#b45309;margin-top:3px">⚠️ '+h(a.note)+'</div>':'')+
+        '<div style="font-size:.74rem;color:#94a3b8;margin-top:3px">'+h(fmt(a.created_at))+(a.status==='approved'?' · '+h(SL[a.spec]||'')+' · '+h(a.level||''):'')+'</div></div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+        (a.status!=='approved'?'<select id="sp-'+a.id+'" style="width:auto" onchange="stRowSpec(\''+a.id+'\')">'+specOpts(sp)+'</select><select id="lv-'+a.id+'" style="width:auto">'+lvlOpts(sp,lv)+'</select><button class="wa-save" onclick="stDecide(\''+a.id+'\',true)">✅ موافقة</button>':'')+
+        (a.status!=='rejected'?'<button class="wa-save" style="background:#ea580c" onclick="stDecide(\''+a.id+'\',false)">⛔ رفض</button>':'')+
+        '<button class="wa-save" style="background:#64748b" onclick="stDelete(\''+a.id+'\')">🗑 حذف</button></div></div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>'}
+}
+window.stDecide=async function(id,ok){
+  var args={id:id,approve:ok};
+  if(ok){args.spec=$('sp-'+id).value;args.level=$('lv-'+id).value}
+  else if(!confirm('رفض هذا الحساب؟ لن يتمكن الطالب من الدخول بهذا الحساب.'))return;
+  try{await rpc('decide',args);loadStats();loadList()}catch(e){alert('❌ '+errMsg(e))}
+};
+window.stDelete=async function(id){
+  if(!confirm('حذف هذا الحساب نهائياً؟ يستطيع الطالب التسجيل من جديد.'))return;
+  try{await rpc('delete',{id:id});loadStats();loadList()}catch(e){alert('❌ '+errMsg(e))}
+};
+
+/* ---------- شارة الطلبات المعلّقة على بطاقة اللوحة ---------- */
+function badge(){
+  try{
+    if(typeof isAdmin!=='function'||!isAdmin()||!supabaseClient)return;
+    rpc('stats').then(function(d){var n=(d.accounts||{}).pending||0,el=$('st-card-sub');if(el)el.textContent=n?('⏳ '+n+' حساب جديد بانتظار موافقتك'):'لوائح الطلاب وطلبات الموافقة على الحسابات'}).catch(function(){});
+  }catch(e){}
+}
+var _u=window.updateAdminDashboardCards;
+if(typeof _u==='function'&&!_u.__stWrapped){var w=function(){var r=_u.apply(this,arguments);badge();return r};w.__stWrapped=true;window.updateAdminDashboardCards=w}
 })();
 </script>
 </body>

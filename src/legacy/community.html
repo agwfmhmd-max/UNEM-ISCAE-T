@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<script src="/unem-gate.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>مجتمع الطلاب | UNEM ISCAE</title><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#0f5132">
+<meta name="author" content="Mohamed Dah Agove"><meta name="developer" content="MDA — Mohamed Dah Agove">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--g:#0f5132;--g2:#15803d;--gold:#f5b942;--bg:#f1f5f4;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--soft:#f8fafc;--mine:#fef3c7}
 body.dark-mode{--bg:#0f172a;--card:#1e293b;--ink:#f1f5f9;--mut:#94a3b8;--line:#334155;--soft:#0f172a;--mine:#5b4a12}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,sans-serif;padding-bottom:30px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,sans-serif;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}main.wrap{width:100%;flex:1;padding-bottom:24px}
 button,input,select,textarea{font:inherit;color:inherit}a{color:inherit;text-decoration:none}
 .hero{background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 18px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px}.top a,.top button{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:12px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:.85rem}
@@ -37,83 +39,174 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:var(--s
 #msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}.m{max-width:80%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:7px 11px;align-self:flex-start;word-break:break-word;white-space:pre-wrap}.m.me{background:var(--mine);align-self:flex-end}.m b{display:block;font-size:.7rem;color:var(--mut);cursor:pointer}
 .sb{display:flex;gap:8px;padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line)}.sb button{width:46px;border:0;border-radius:12px;background:var(--gold);cursor:pointer}
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;z-index:99;display:none;font-weight:700;max-width:90vw;text-align:center}
+
+.top .grp{display:flex;gap:6px;align-items:center}
+.hello{margin:10px 0 0!important;font-weight:800;font-size:.95rem!important;color:var(--gold)}
+[dir=ltr] .ic-flip{transform:scaleX(-1)}
+/* تذييل المجتمع + ختم MDA (نفس الصفحة الرئيسية) */
+.main-footer{background:#064e3b;color:#fff;padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px));text-align:center;border-radius:20px 20px 0 0;margin-top:auto;position:relative;overflow:hidden;box-shadow:0 -10px 25px rgba(0,0,0,.1);flex-shrink:0}
+.copyright{margin:4px 0 6px;font-size:.72rem;line-height:1.4;color:rgba(255,255,255,.7);font-weight:700}
+.mda-sign{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto;user-select:none;cursor:default;-webkit-user-select:none}
+.mda-sign::before,.mda-sign::after{content:"";flex:0 1 44px;height:1px;background:linear-gradient(90deg,transparent,rgba(245,185,66,.28))}
+.mda-sign::after{transform:scaleX(-1)}
+.mda-seal{width:22px;height:22px;display:block;flex:none;opacity:.42;filter:none;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .3s,filter .3s}
+.mda-sign:hover .mda-seal{transform:rotate(360deg);opacity:.9}
 </style></head><body>
-<header class="hero"><div class="wrap"><div class="top"><a href="/"><i class="fas fa-arrow-right"></i> الرئيسية</a><button id="meBtn"><i class="fas fa-user-pen"></i> <span id="meName">ملفي</span></button></div>
-<h1>مجتمع <b>الطلاب</b></h1><p>نقاش، أسئلة، مجموعات دراسة ورسائل — نص فقط، والرسائل تختفي بعد 24 ساعة.</p></div></header>
+<header class="hero"><div class="wrap"><div class="top"><a href="/"><i class="fas fa-arrow-right ic-flip" id="homeIc"></i> <span data-t="home">الرئيسية</span></a>
+<div class="grp"><button id="langBtn" type="button" aria-label="Langue / اللغة">Français</button><button id="meBtn" type="button"><i class="fas fa-user"></i> <span id="meName" data-t="me">ملفي</span></button></div></div>
+<h1 id="h1"></h1><p data-t="sub"></p><p class="hello" id="hello"></p></div></header>
 <nav class="tabs" id="tabs"></nav>
 <main class="wrap" id="main"></main>
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
-<div id="chat"><div class="ch"><button onclick="closeChat()"><i class="fas fa-arrow-right"></i></button><div><b id="chT"></b><small id="chS"></small></div></div><div id="msgs"></div>
-<div class="sb"><input id="chIn" placeholder="اكتب رسالتك..." maxlength="1000"><button onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button></div></div>
+<div id="chat"><div class="ch"><button onclick="closeChat()" type="button"><i class="fas fa-arrow-right ic-flip"></i></button><div><b id="chT"></b><small id="chS"></small></div></div><div id="msgs"></div>
+<div class="sb"><input id="chIn" data-tp="msgPh" maxlength="1000"><button onclick="sendMsg()" type="button"><i class="fas fa-paper-plane"></i></button></div></div>
 <div id="toast"></div>
+<footer class="main-footer">
+<p class="copyright" id="copyright"></p>
+<div class="mda-sign" title="MDA" aria-label="MDA — Mohamed Dah Agove"><svg class="mda-seal" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="rgba(0,0,0,.22)" stroke="#f5b942" stroke-width="3"/><circle cx="50" cy="50" r="43" fill="none" stroke="#f5b942" stroke-width=".9" stroke-dasharray="1.2 2.6"/><circle cx="50" cy="50" r="38.5" fill="none" stroke="#f5b942" stroke-width="1"/><path d="M50 21l2.6 4.2L50 29.4l-2.6-4.2z" fill="#f5b942"/><text x="50" y="61" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="27" font-weight="700" fill="#fff7e0" letter-spacing="-.5">MDA</text><path d="M30 70h40" stroke="#f5b942" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="77" r="1.7" fill="#f5b942"/></svg></div>
+</footer>
 <script>
 const SB_URL='https://cbaswqaufawdsvadizyi.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
 const SPECS={BA:'BA',FC:'FC',TCM:'TCM',GRH:'GRH',SAE:'SAE',IG:'IG',MASTER_FC:'Master FC',MASTER_IG:'Master IG'},LEVELS=['L1','L2','L3','M1','M2'];
-const KINDS={question:'سؤال دراسي',help:'مساعدة',discussion:'نقاش',announcement:'إعلان طلابي'};
+/* ===== الترجمة: العربية / الفرنسية (تتبع اللغة المختارة في المنصة: unem_lang) ===== */
+const I18N={
+ar:{home:'الرئيسية',me:'ملفي',title:'مجتمع الطلاب | UNEM ISCAE',h1:'مجتمع <b>الطلاب</b>',sub:'نقاش، أسئلة، مجموعات دراسة ورسائل — نص فقط، والرسائل تختفي بعد 24 ساعة.',
+ hello:n=>'👋 مرحباً بك '+n,msgPh:'اكتب رسالتك...',copyright:'جميع الحقوق محفوظة © 2026 - UNEM ISCAE',langBtn:'Français',
+ question:'سؤال دراسي',help:'مساعدة',discussion:'نقاش',announcement:'إعلان طلابي',
+ e_rate:'تمهّل قليلاً قبل المحاولة من جديد',e_banned:'تم تقييد حسابك في المجتمع',e_full:'المجموعة ممتلئة',e_empty:'اكتب نصاً أولاً',e_not_member:'انضم للمجموعة أولاً',
+ e_setup:'المجتمع قيد التفعيل — يلزم تنفيذ ملف SQL في Supabase',e_conn:'تعذّر الاتصال، حاول مجدداً',
+ t_posts:'المنشورات',t_rooms:'الغرف',t_groups:'مجموعات الدراسة',t_partner:'زميل دراسة',t_dms:'الرسائل',
+ ago_m:n=>'منذ '+n+' د',ago_h:n=>'منذ '+n+' س',ago_d:n=>'منذ '+n+' ي',
+ profile:'ملفي',pName:'الاسم الكامل',pReg:'رقم التسجيل',pSpec:'التخصص',pLevel:'المستوى',pNote:'الاسم والتخصص والمستوى مأخوذة من حسابك المسجّل في المنصة. لا تُعرض أرقام الهواتف، والتواصل يتم عبر الرسائل داخل المجتمع.',pClose:'إغلاق',pSwitch:'تغيير الحساب',pSwitchQ:'تسجيل الخروج من هذا الحساب على هذا الجهاز؟',
+ reply:'راسله',del:'حذف',reportQ:'سبب الإبلاغ (اختياري):',reportOk:'تم إرسال البلاغ للمشرفين',delPostQ:'حذف هذا المنشور؟',
+ share:'شارك زملاءك',shareSub:'نص فقط · حتى 3000 حرف',postPh:'اكتب سؤالك أو فكرتك أو إعلانك...',publish:'نشر',all:'الكل',noPosts:'لا توجد منشورات بعد. كن أول من يشارك!',failPosts:'تعذّر تحميل المنشورات',
+ cmPh:'اكتب تعليقاً...',
+ roomNote:'غرف نقاش عامة ومباشرة. الرسائل نصية فقط وتُحذف تلقائياً بعد 24 ساعة.',roomGen:'الغرفة العامة',roomGenD:'نقاش مفتوح لكل طلاب المعهد',roomX:v=>'غرفة '+v,roomXD:v=>'نقاش طلاب '+v,
+ allSpecs:'كل الشعب',allLevels:'كل المستويات',newGroup:'إنشاء مجموعة +',failGroups:'تعذّر تحميل المجموعات',noGroups:'لا توجد مجموعات دراسة بعد<br>أنشئ أول مجموعة وادعُ زملاءك للمراجعة معاً.',
+ membersOf:(a,b)=>a+' من '+b+' أعضاء',open:'فتح',join:'انضمام',
+ gTitle:'مجموعة دراسة جديدة',gName:'اسم المجموعة',gNamePh:'مثال: مراجعة Analyse 2',gSubj:'المادة',gSubjPh:'Analyse, Comptabilité...',gMax:'الحد الأقصى',gLevel:'المستوى',gSpec:'الشعبة',gDesc:'وصف (اختياري)',gDescPh:'ماذا ستراجعون؟ متى؟',gCreate:'إنشاء المجموعة',gNameErr:'اكتب اسم المجموعة',gStudy:'مجموعة دراسة',
+ pFind:'ابحث عن زميل دراسة',pSubjPh:'المادة (مثال: Analyse)',pBodyPh:'ماذا تريد أن تراجع؟ مثال: أبحث عن طالب لمراجعة Analyse غداً',pPost:'نشر الطلب',pPosted:'تم نشر طلبك',pHint:'لا تظهر أرقام الهواتف — التواصل عبر الرسائل الخاصة فقط. الطلب يبقى 14 يوماً.',noPartner:'لا توجد طلبات حالياً',failLoad:'تعذّر التحميل',
+ noDms:'لا توجد رسائل. ابدأ محادثة من «زميل دراسة» أو بالضغط على اسم طالب في غرفة.',dmNote:'الرسائل الخاصة تختفي بعد 24 ساعة.',itsYou:'هذا أنت 🙂',dmSub:'رسالة خاصة · تختفي بعد 24 ساعة',
+ needLoginT:'يلزم تسجيل الدخول',needLoginD:'للدخول إلى المجتمع، سجّل دخولك بالاسم الكامل ورقم التسجيل.',needLoginB:'تسجيل الدخول',
+ setupFail:'مجتمع الطلاب قيد التفعيل.<br>يلزم تنفيذ ملف db/20261012090000_student_accounts_gate.sql في Supabase.',connFail:'تعذّر الاتصال بالخادم. تحقق من الإنترنت وأعد المحاولة.',
+ sign:'◆ Designed & developed by MDA — Mohamed Dah Agove'},
+fr:{home:'Accueil',me:'Mon profil',title:'Communauté étudiante | UNEM ISCAE',h1:'Communauté <b>étudiante</b>',sub:'Discussions, questions, groupes d’étude et messages — texte uniquement ; les messages disparaissent après 24 h.',
+ hello:n=>'👋 Bienvenue '+n,msgPh:'Écrivez votre message...',copyright:'Tous droits réservés © 2026 - UNEM ISCAE',langBtn:'العربية',
+ question:'Question d’étude',help:'Aide',discussion:'Discussion',announcement:'Annonce étudiante',
+ e_rate:'Doucement, patientez un instant avant de réessayer',e_banned:'Votre compte est restreint dans la communauté',e_full:'Le groupe est complet',e_empty:'Écrivez d’abord un texte',e_not_member:'Rejoignez d’abord le groupe',
+ e_setup:'La communauté est en cours d’activation — le fichier SQL doit être exécuté dans Supabase',e_conn:'Connexion impossible, réessayez',
+ t_posts:'Publications',t_rooms:'Salons',t_groups:'Groupes d’étude',t_partner:'Binôme d’étude',t_dms:'Messages',
+ ago_m:n=>'il y a '+n+' min',ago_h:n=>'il y a '+n+' h',ago_d:n=>'il y a '+n+' j',
+ profile:'Mon profil',pName:'Nom complet',pReg:'Numéro d’inscription',pSpec:'Filière',pLevel:'Niveau',pNote:'Le nom, la filière et le niveau proviennent de votre compte enregistré sur la plateforme. Les numéros de téléphone ne sont pas affichés ; la communication se fait par messages dans la communauté.',pClose:'Fermer',pSwitch:'Changer de compte',pSwitchQ:'Se déconnecter de ce compte sur cet appareil ?',
+ reply:'Écrire',del:'Supprimer',reportQ:'Motif du signalement (facultatif) :',reportOk:'Signalement envoyé aux administrateurs',delPostQ:'Supprimer cette publication ?',
+ share:'Partagez avec vos camarades',shareSub:'Texte uniquement · 3000 caractères max',postPh:'Écrivez votre question, idée ou annonce...',publish:'Publier',all:'Tout',noPosts:'Aucune publication pour le moment. Soyez le premier à partager !',failPosts:'Impossible de charger les publications',
+ cmPh:'Écrire un commentaire...',
+ roomNote:'Salons de discussion publics et en direct. Messages en texte uniquement, supprimés automatiquement après 24 h.',roomGen:'Salon général',roomGenD:'Discussion ouverte à tous les étudiants de l’institut',roomX:v=>'Salon '+v,roomXD:v=>'Discussion des étudiants '+v,
+ allSpecs:'Toutes les filières',allLevels:'Tous les niveaux',newGroup:'Créer un groupe +',failGroups:'Impossible de charger les groupes',noGroups:'Aucun groupe d’étude pour le moment<br>Créez le premier groupe et invitez vos camarades à réviser ensemble.',
+ membersOf:(a,b)=>a+' sur '+b+' membres',open:'Ouvrir',join:'Rejoindre',
+ gTitle:'Nouveau groupe d’étude',gName:'Nom du groupe',gNamePh:'Ex. : Révision Analyse 2',gSubj:'Matière',gSubjPh:'Analyse, Comptabilité...',gMax:'Maximum',gLevel:'Niveau',gSpec:'Filière',gDesc:'Description (facultatif)',gDescPh:'Que réviserez-vous ? Quand ?',gCreate:'Créer le groupe',gNameErr:'Saisissez le nom du groupe',gStudy:'Groupe d’étude',
+ pFind:'Trouver un binôme d’étude',pSubjPh:'Matière (ex. : Analyse)',pBodyPh:'Que voulez-vous réviser ? Ex. : Je cherche un étudiant pour réviser Analyse demain',pPost:'Publier la demande',pPosted:'Votre demande a été publiée',pHint:'Les numéros de téléphone ne sont pas affichés — contact uniquement par messages privés. La demande reste 14 jours.',noPartner:'Aucune demande pour le moment',failLoad:'Chargement impossible',
+ noDms:'Aucun message. Démarrez une conversation depuis « Binôme d’étude » ou en appuyant sur le nom d’un étudiant dans un salon.',dmNote:'Les messages privés disparaissent après 24 h.',itsYou:'C’est vous 🙂',dmSub:'Message privé · disparaît après 24 h',
+ needLoginT:'Connexion requise',needLoginD:'Pour accéder à la communauté, connectez-vous avec votre nom complet et votre numéro d’inscription.',needLoginB:'Se connecter',
+ setupFail:'La communauté étudiante est en cours d’activation.<br>Le fichier db/20261012090000_student_accounts_gate.sql doit être exécuté dans Supabase.',connFail:'Connexion au serveur impossible. Vérifiez Internet puis réessayez.',
+ sign:'◆ Designed & developed by MDA — Mohamed Dah Agove'}
+};
+let LANG=localStorage.getItem('unem_lang')==='fr'?'fr':'ar';
+const t=(k,...a)=>{const v=(I18N[LANG][k]!==undefined?I18N[LANG][k]:I18N.ar[k]);return typeof v==='function'?v(...a):v};
+const KIND_KEYS=['question','help','discussion','announcement'];
+const KINDS=()=>Object.fromEntries(KIND_KEYS.map(k=>[k,t(k)]));
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 if(localStorage.getItem('unem_theme')==='dark')document.body.classList.add('dark-mode');
 let sb;try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
-let TK=localStorage.getItem('unem_community_token');if(!TK){TK=crypto.randomUUID()+crypto.randomUUID();localStorage.setItem('unem_community_token',TK)}
+let TK=localStorage.getItem('unem_community_token');if(!TK||TK.length<30){TK=crypto.randomUUID()+crypto.randomUUID();localStorage.setItem('unem_community_token',TK)}
 let me=null,tab='posts',fKind='',timer=null,room=null,lastId=0,saved=JSON.parse(localStorage.getItem('unem_community_saved')||'[]');
-const ERR={rate:'تمهّل قليلاً قبل المحاولة من جديد',banned:'تم تقييد حسابك في المجتمع',full:'المجموعة ممتلئة',empty:'اكتب نصاً أولاً',not_member:'انضم للمجموعة أولاً'};
-function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2800)}
+const ERR_KEYS=['rate','banned','full','empty','not_member'];
+function toast(m){const e=$('#toast');e.textContent=m;e.style.display='block';clearTimeout(e._h);e._h=setTimeout(()=>e.style.display='none',2800)}
 async function api(a,args={}){if(!sb)throw Error('offline');const{data,error}=await sb.rpc('community_api',{p_token:TK,p_action:a,p_args:args});if(error)throw error;return data}
-async function run(a,args,ok){try{const d=await api(a,args);if(ok)ok(d);return d}catch(e){const m=String(e.message||e);toast(ERR[Object.keys(ERR).find(k=>m.includes(k))]||(/community_api|PGRST202|schema cache/.test(m)?'المجتمع قيد التفعيل — يلزم تنفيذ ملف SQL في Supabase':'تعذّر الاتصال، حاول مجدداً'));return null}}
-const ago=t=>{const m=Math.max(1,Math.round((Date.now()-new Date(t))/6e4));return 'منذ '+(m<60?m+' د':m<1440?Math.round(m/60)+' س':Math.round(m/1440)+' ي')};
+async function run(a,args,ok){try{const d=await api(a,args);if(d&&d.need_register){setTimeout(needLogin,0);return null}if(ok)ok(d);return d}catch(e){const m=String(e.message||e),k=ERR_KEYS.find(k=>m.includes(k));toast(k?t('e_'+k):(/community_api|PGRST202|schema cache/.test(m)?t('e_setup'):t('e_conn')));return null}}
+const ago=x=>{const m=Math.max(1,Math.round((Date.now()-new Date(x))/6e4));return m<60?t('ago_m',m):m<1440?t('ago_h',Math.round(m/60)):t('ago_d',Math.round(m/1440))};
 const av=n=>`<div class="av" style="background:hsl(${[...String(n)].reduce((s,c)=>s+c.charCodeAt(0),0)*37%360} 45% 32%)">${esc(String(n||'?')[0])}</div>`;
 const opts=(o,sel,all)=>(all?`<option value="">${all}</option>`:'')+Object.entries(o).map(([k,v])=>`<option value="${k}"${k==sel?' selected':''}>${v}</option>`).join('');
 const lv=Object.fromEntries(LEVELS.map(l=>[l,l]));
-function sheet(h){$('#sheet').innerHTML=h;$('#ov').classList.add('open')}const shut=()=>$('#ov').classList.remove('open');$('#ov').onclick=e=>{if(e.target.id==='ov'&&me&&me.id)shut()};
-function profile(first){sheet(`<h3>${first?'مرحباً بك في مجتمع الطلاب 👋':'ملفي'}</h3><label>الاسم المستعار (يظهر للآخرين)</label><input id="pN" maxlength="24" value="${esc(me?.name||'')}" placeholder="مثال: أحمد">
-<div class="row"><div><label>التخصص</label><select id="pS">${opts(SPECS,me?.spec)}</select></div><div><label>المستوى</label><select id="pL">${opts(lv,me?.level)}</select></div></div>
-<p class="note">لا حاجة لاسمك الحقيقي. لا تُعرض أرقام الهواتف، والتواصل يتم عبر الرسائل داخل المجتمع.</p><button class="btn" id="pOk">حفظ ومتابعة</button>`);
-$('#pOk').onclick=()=>{const name=$('#pN').value.trim();if(name.length<2)return toast('الاسم يجب ألا يقل عن حرفين');run('register',{name,spec:$('#pS').value,level:$('#pL').value},d=>{me=d;$('#meName').textContent=me.name;shut();render()})}}
-$('#meBtn').onclick=()=>profile(false);
-const TABS=[['posts','المنشورات','fa-newspaper'],['rooms','الغرف','fa-hashtag'],['groups','مجموعات الدراسة','fa-users'],['partner','زميل دراسة','fa-handshake'],['dms','الرسائل','fa-comments']];
-function render(){$('#tabs').innerHTML=TABS.map(t=>`<button class="${t[0]==tab?'on':''}" onclick="tab='${t[0]}';render()"><i class="fas ${t[2]}"></i> ${t[1]}</button>`).join('');$('#main').innerHTML='<div class="empty"><i class="fas fa-spinner fa-spin"></i></div>';({posts:vPosts,rooms:vRooms,groups:vGroups,partner:vPartner,dms:vDms})[tab]()}
-function postCard(p,partner){const sv=saved.includes(p.id);return `<div class="card" id="p${p.id}"><div class="ph">${av(p.an)}<div style="flex:1"><b>${esc(p.an)}</b>${partner?'':`<span class="tag ${p.kind}">${KINDS[p.kind]||''}</span>`}<small>${ago(p.t)} · ${SPECS[p.spec]||''} · ${p.level||''}${p.subject?' · '+esc(p.subject):''}</small></div>
+const nxt=()=>LANG==='ar'?'fa-chevron-left':'fa-chevron-right';
+function sheet(h){$('#sheet').innerHTML=h;$('#ov').classList.add('open')}const shut=()=>$('#ov').classList.remove('open');$('#ov').onclick=e=>{if(e.target.id==='ov')shut()};
+/* ===== اللغة ===== */
+function applyLang(){
+  document.documentElement.lang=LANG;document.documentElement.dir=LANG==='ar'?'rtl':'ltr';document.title=t('title');
+  document.querySelectorAll('[data-t]').forEach(e=>{const k=e.dataset.t;if(k==='me'&&me&&me.name)return;e.textContent=t(k)});
+  document.querySelectorAll('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
+  $('#h1').innerHTML=t('h1');$('#copyright').textContent=t('copyright');$('#langBtn').textContent=t('langBtn');
+  $('#hello').textContent=me&&me.name?t('hello',me.name):'';
+  if(me&&me.name)$('#meName').textContent=me.name;
+}
+$('#langBtn').onclick=()=>{LANG=LANG==='ar'?'fr':'ar';localStorage.setItem('unem_lang',LANG);try{if(typeof window.setLanguage==='function')window.setLanguage(LANG)}catch(e){}applyLang();if(me&&me.name)render()};
+/* ===== ملفي: الاسم والتخصص والمستوى من حساب الطالب (للقراءة فقط) ===== */
+function profile(){
+  const st=(window.UNEM_STUDENT||{}),reg=st.reg?`<label>${t('pReg')}</label><input value="${esc(st.reg)}" readonly dir="ltr" style="text-align:start">`:'';
+  sheet(`<h3>${t('profile')}</h3><label>${t('pName')}</label><input value="${esc(me?.name||'')}" readonly>${reg}
+<div class="row"><div><label>${t('pSpec')}</label><input value="${esc(SPECS[me?.spec]||me?.spec||'')}" readonly></div><div><label>${t('pLevel')}</label><input value="${esc(me?.level||'')}" readonly></div></div>
+<p class="note">${t('pNote')}</p><div class="row" style="margin-top:10px"><button class="btn alt" id="pOut" type="button">${t('pSwitch')}</button><button class="btn" id="pOk" type="button">${t('pClose')}</button></div>`);
+  $('#pOk').onclick=shut;
+  $('#pOut').onclick=()=>{if(!confirm(t('pSwitchQ')))return;shut();me=null;if(window.UNEM_GATE)window.UNEM_GATE.logout(true);else{localStorage.removeItem('unem_student');location.href='/'}};
+}
+$('#meBtn').onclick=()=>{if(me&&me.id)profile()};
+function needLogin(){
+  localStorage.removeItem('unem_student');clearInterval(timer);
+  $('#main').innerHTML=`<div class="empty"><i class="fas fa-user-lock fa-2x"></i><h3>${t('needLoginT')}</h3><p>${t('needLoginD')}</p><button class="btn" style="max-width:260px" id="nlB" type="button">${t('needLoginB')}</button></div>`;
+  $('#nlB').onclick=()=>{if(window.UNEM_GATE)window.UNEM_GATE.logout(true);else location.href='/'};
+}
+const TABS=[['posts','t_posts','fa-newspaper'],['rooms','t_rooms','fa-hashtag'],['groups','t_groups','fa-users'],['partner','t_partner','fa-handshake'],['dms','t_dms','fa-comments']];
+function render(){$('#tabs').innerHTML=TABS.map(x=>`<button class="${x[0]==tab?'on':''}" onclick="tab='${x[0]}';render()"><i class="fas ${x[2]}"></i> ${t(x[1])}</button>`).join('');$('#main').innerHTML='<div class="empty"><i class="fas fa-spinner fa-spin"></i></div>';({posts:vPosts,rooms:vRooms,groups:vGroups,partner:vPartner,dms:vDms})[tab]()}
+function postCard(p,partner){const sv=saved.includes(p.id),K=KINDS();return `<div class="card" id="p${p.id}"><div class="ph">${av(p.an)}<div style="flex:1"><b>${esc(p.an)}</b>${partner?'':`<span class="tag ${p.kind}">${K[p.kind]||''}</span>`}<small>${ago(p.t)} · ${SPECS[p.spec]||''} · ${p.level||''}${p.subject?' · '+esc(p.subject):''}</small></div>
 ${p.can_del?`<button class="btn sm alt" onclick="delPost('${p.id}')"><i class="fas fa-trash"></i></button>`:`<button class="btn sm alt" onclick="report('post','${p.id}')"><i class="fas fa-flag"></i></button>`}</div><div class="body">${esc(p.body)}</div>
-<div class="acts">${partner?`<button onclick="openDm('${p.aid}','${esc(p.an)}')"><i class="fas fa-paper-plane"></i> راسله</button>`:`<button class="${p.liked?'on':''}" onclick="like('${p.id}')"><i class="fas fa-heart"></i> ${p.likes}</button><button onclick="cms('${p.id}')"><i class="fas fa-comment"></i> ${p.comments}</button><button class="${sv?'on':''}" onclick="save('${p.id}')" style="margin-inline-start:auto"><i class="fas fa-bookmark"></i></button>`}</div><div id="c${p.id}"></div></div>`}
-async function vPosts(){const d=await run('feed',{kind:fKind});if(!d)return $('#main').innerHTML='<div class="empty">تعذّر تحميل المنشورات</div>';
-$('#main').innerHTML=`<div class="card"><div class="ph">${av(me.name)}<div><b>شارك زملاءك</b><small>نص فقط · حتى 3000 حرف</small></div></div><div class="chips" id="nk">${Object.entries(KINDS).map(([k,v],i)=>`<span class="chip${i?'':' on'}" data-k="${k}">${v}</span>`).join('')}</div>
-<textarea id="nb" maxlength="3000" placeholder="اكتب سؤالك أو فكرتك أو إعلانك..."></textarea><button class="btn" style="margin-top:8px" onclick="newPost()"><i class="fas fa-paper-plane"></i> نشر</button></div>
-<div class="chips"><span class="chip${fKind?'':' on'}" onclick="fKind='';render()">الكل</span>${Object.entries(KINDS).map(([k,v])=>`<span class="chip${fKind==k?' on':''}" onclick="fKind='${k}';render()">${v}</span>`).join('')}</div>${d.length?d.map(p=>postCard(p)).join(''):'<div class="empty"><i class="fas fa-newspaper fa-2x"></i><p>لا توجد منشورات بعد. كن أول من يشارك!</p></div>'}`;
+<div class="acts">${partner?`<button data-id="${esc(p.aid)}" data-name="${esc(p.an)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>`:`<button class="${p.liked?'on':''}" onclick="like('${p.id}')"><i class="fas fa-heart"></i> ${p.likes}</button><button onclick="cms('${p.id}')"><i class="fas fa-comment"></i> ${p.comments}</button><button class="${sv?'on':''}" onclick="save('${p.id}')" style="margin-inline-start:auto"><i class="fas fa-bookmark"></i></button>`}</div><div id="c${p.id}"></div></div>`}
+async function vPosts(){const d=await run('feed',{kind:fKind});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failPosts')}</div>`;const K=KINDS();
+$('#main').innerHTML=`<div class="card"><div class="ph">${av(me.name)}<div><b>${t('share')}</b><small>${t('shareSub')}</small></div></div><div class="chips" id="nk">${Object.entries(K).map(([k,v],i)=>`<span class="chip${i?'':' on'}" data-k="${k}">${v}</span>`).join('')}</div>
+<textarea id="nb" maxlength="3000" placeholder="${t('postPh')}"></textarea><button class="btn" style="margin-top:8px" onclick="newPost()"><i class="fas fa-paper-plane"></i> ${t('publish')}</button></div>
+<div class="chips"><span class="chip${fKind?'':' on'}" onclick="fKind='';render()">${t('all')}</span>${Object.entries(K).map(([k,v])=>`<span class="chip${fKind==k?' on':''}" onclick="fKind='${k}';render()">${v}</span>`).join('')}</div>${d.length?d.map(p=>postCard(p)).join(''):`<div class="empty"><i class="fas fa-newspaper fa-2x"></i><p>${t('noPosts')}</p></div>`}`;
 $('#nk').onclick=e=>{if(e.target.dataset.k){document.querySelectorAll('#nk .chip').forEach(c=>c.classList.remove('on'));e.target.classList.add('on')}}}
-function newPost(){const body=$('#nb').value.trim(),k=$('#nk .on').dataset.k;if(!body)return toast(ERR.empty);run('post',{kind:k,body},()=>render())}
-const delPost=id=>confirm('حذف هذا المنشور؟')&&run('del_post',{id},()=>render());
+function newPost(){const body=$('#nb').value.trim(),k=$('#nk .on').dataset.k;if(!body)return toast(t('e_empty'));run('post',{kind:k,body},()=>render())}
+const delPost=id=>confirm(t('delPostQ'))&&run('del_post',{id},()=>render());
 const like=id=>run('like',{id},()=>render());
 const save=id=>{saved=saved.includes(id)?saved.filter(x=>x!=id):[...saved,id];localStorage.setItem('unem_community_saved',JSON.stringify(saved));render()};
-function report(kind,target){const reason=prompt('سبب الإبلاغ (اختياري):');if(reason===null)return;run('report',{kind,target,reason},()=>toast('تم إرسال البلاغ للمشرفين'))}
+function report(kind,target){const reason=prompt(t('reportQ'));if(reason===null)return;run('report',{kind,target,reason},()=>toast(t('reportOk')))}
 async function cms(id){const box=$('#c'+id);if(box.innerHTML)return box.innerHTML='';const d=await run('comments',{id});if(!d)return;
-box.innerHTML=d.map(c=>`<div class="cm"><b>${esc(c.an)}</b> <small style="color:var(--mut)">${ago(c.t)}</small>${c.can_del?` <a href="#" onclick="delCm('${c.id}','${id}');return false" style="color:#e11d48">حذف</a>`:''}<div>${esc(c.body)}</div></div>`).join('')+`<div class="row" style="margin-top:8px"><input id="ci${id}" maxlength="1000" placeholder="اكتب تعليقاً..."><button class="btn sm" style="flex:none" onclick="addCm('${id}')"><i class="fas fa-paper-plane"></i></button></div>`}
+box.innerHTML=d.map(c=>`<div class="cm"><b>${esc(c.an)}</b> <small style="color:var(--mut)">${ago(c.t)}</small>${c.can_del?` <a href="#" onclick="delCm('${c.id}','${id}');return false" style="color:#e11d48">${t('del')}</a>`:''}<div>${esc(c.body)}</div></div>`).join('')+`<div class="row" style="margin-top:8px"><input id="ci${id}" maxlength="1000" placeholder="${t('cmPh')}"><button class="btn sm" style="flex:none" onclick="addCm('${id}')"><i class="fas fa-paper-plane"></i></button></div>`}
 const bump=(id,n)=>{const b=document.querySelector(`#p${id} .acts button:nth-child(2)`);if(b)b.lastChild.textContent=' '+Math.max(0,(parseInt(b.textContent)||0)+n)};
 const addCm=id=>{const body=$('#ci'+id).value.trim();if(!body)return;run('comment',{id,body},()=>{bump(id,1);$('#c'+id).innerHTML='';cms(id)})};
 const delCm=(id,pid)=>run('del_comment',{id},()=>{bump(pid,-1);$('#c'+pid).innerHTML='';cms(pid)});
-function vRooms(){const r=[['general','الغرفة العامة','نقاش مفتوح لكل طلاب المعهد','#']].concat(Object.entries(SPECS).map(([k,v])=>['spec:'+k,'غرفة '+v,'نقاش طلاب '+v,v.replace('Master ','M-').slice(0,4)]));
-$('#main').innerHTML=`<p class="note">غرف نقاش عامة ومباشرة. الرسائل نصية فقط وتُحذف تلقائياً بعد 24 ساعة.</p>`+r.map(x=>`<div class="card li" onclick="openChat('${x[0]}','${x[1]}','${x[2]}')"><div class="ic">${x[3]}</div><div><b>${x[1]}</b><small>${x[2]}</small></div><i class="fas fa-chevron-left"></i></div>`).join('')}
+function vRooms(){const r=[['general',t('roomGen'),t('roomGenD'),'#']].concat(Object.entries(SPECS).map(([k,v])=>['spec:'+k,t('roomX',v),t('roomXD',v),v.replace('Master ','M-').slice(0,4)]));
+$('#main').innerHTML=`<p class="note">${t('roomNote')}</p>`+r.map(x=>`<div class="card li" data-room="${esc(x[0])}" data-title="${esc(x[1])}" data-sub="${esc(x[2])}" onclick="openChatEl(this)"><div class="ic">${x[3]}</div><div><b>${esc(x[1])}</b><small>${esc(x[2])}</small></div><i class="fas ${nxt()}"></i></div>`).join('')}
 let gF={spec:'',level:''};
-async function vGroups(){const d=await run('groups',gF);if(!d)return $('#main').innerHTML='<div class="empty">تعذّر تحميل المجموعات</div>';
-$('#main').innerHTML=`<div class="row"><select onchange="gF.spec=this.value;render()">${opts(SPECS,gF.spec,'كل الشعب')}</select><select onchange="gF.level=this.value;render()">${opts(lv,gF.level,'كل المستويات')}</select></div>
-<button class="btn" style="margin:10px 0" onclick="groupForm()">إنشاء مجموعة +</button>`+(d.length?d.map(g=>`<div class="card li" onclick="openGroup('${g.id}',${g.joined},'${esc(g.name).replace(/'/g,'')}','${g.spec||''} · ${g.level||''} · ${g.members} من ${g.max} أعضاء')"><div class="ic"><i class="fas fa-users"></i></div><div><b>${esc(g.name)}</b><small>${esc(g.subject||'')} ${SPECS[g.spec]||''} · ${g.level||''}</small><small>${g.members} من ${g.max} أعضاء${g.descr?' — '+esc(g.descr):''}</small></div><span class="btn sm ${g.joined?'alt':''}">${g.joined?'فتح':'انضمام'}</span></div>`).join(''):'<div class="empty"><i class="fas fa-users fa-2x"></i><p>لا توجد مجموعات دراسة بعد<br>أنشئ أول مجموعة وادعُ زملاءك للمراجعة معاً.</p></div>')}
-function groupForm(){sheet(`<h3>مجموعة دراسة جديدة</h3><label>اسم المجموعة</label><input id="gN" maxlength="60" placeholder="مثال: مراجعة Analyse 2"><label>المادة</label><input id="gSu" maxlength="60" placeholder="Analyse, Comptabilité...">
-<div class="row"><div><label>الحد الأقصى</label><input id="gM" type="number" min="2" max="30" value="10"></div><div><label>المستوى</label><select id="gL">${opts(lv,me.level)}</select></div><div><label>الشعبة</label><select id="gS">${opts(SPECS,me.spec)}</select></div></div>
-<label>وصف (اختياري)</label><textarea id="gD" maxlength="300" placeholder="ماذا ستراجعون؟ متى؟"></textarea><button class="btn" style="margin-top:10px" id="gOk">إنشاء المجموعة</button>`);
-$('#gOk').onclick=()=>{const name=$('#gN').value.trim();if(name.length<2)return toast('اكتب اسم المجموعة');run('group_new',{name,subject:$('#gSu').value,max:+$('#gM').value||10,level:$('#gL').value,spec:$('#gS').value,descr:$('#gD').value},d=>{shut();openChat('group:'+d.id,name,'مجموعة دراسة')})}}
-function openGroup(id,joined,name,sub){if(joined)return openChat('group:'+id,name,sub);run('group_join',{id},()=>openChat('group:'+id,name,sub))}
+async function vGroups(){const d=await run('groups',gF);if(!d)return $('#main').innerHTML=`<div class="empty">${t('failGroups')}</div>`;
+$('#main').innerHTML=`<div class="row"><select onchange="gF.spec=this.value;render()">${opts(SPECS,gF.spec,t('allSpecs'))}</select><select onchange="gF.level=this.value;render()">${opts(lv,gF.level,t('allLevels'))}</select></div>
+<button class="btn" style="margin:10px 0" onclick="groupForm()">${t('newGroup')}</button>`+(d.length?d.map(g=>`<div class="card li" data-id="${g.id}" data-j="${g.joined?1:0}" data-n="${esc(g.name)}" data-s="${esc((g.spec||'')+' · '+(g.level||'')+' · '+t('membersOf',g.members,g.max))}" onclick="openGroupEl(this)"><div class="ic"><i class="fas fa-users"></i></div><div><b>${esc(g.name)}</b><small>${esc(g.subject||'')} ${SPECS[g.spec]||''} · ${g.level||''}</small><small>${t('membersOf',g.members,g.max)}${g.descr?' — '+esc(g.descr):''}</small></div><span class="btn sm ${g.joined?'alt':''}">${g.joined?t('open'):t('join')}</span></div>`).join(''):`<div class="empty"><i class="fas fa-users fa-2x"></i><p>${t('noGroups')}</p></div>`)}
+function groupForm(){sheet(`<h3>${t('gTitle')}</h3><label>${t('gName')}</label><input id="gN" maxlength="60" placeholder="${t('gNamePh')}"><label>${t('gSubj')}</label><input id="gSu" maxlength="60" placeholder="${t('gSubjPh')}">
+<div class="row"><div><label>${t('gMax')}</label><input id="gM" type="number" min="2" max="30" value="10"></div><div><label>${t('gLevel')}</label><select id="gL">${opts(lv,me.level)}</select></div><div><label>${t('gSpec')}</label><select id="gS">${opts(SPECS,me.spec)}</select></div></div>
+<label>${t('gDesc')}</label><textarea id="gD" maxlength="300" placeholder="${t('gDescPh')}"></textarea><button class="btn" style="margin-top:10px" id="gOk">${t('gCreate')}</button>`);
+$('#gOk').onclick=()=>{const name=$('#gN').value.trim();if(name.length<2)return toast(t('gNameErr'));run('group_new',{name,subject:$('#gSu').value,max:+$('#gM').value||10,level:$('#gL').value,spec:$('#gS').value,descr:$('#gD').value},d=>{shut();openChat('group:'+d.id,name,t('gStudy'))})}}
+function openGroupEl(el){const id=el.dataset.id,name=el.dataset.n,sub=el.dataset.s;if(el.dataset.j==='1')return openChat('group:'+id,name,sub);run('group_join',{id},()=>openChat('group:'+id,name,sub))}
 let pF={spec:'',level:'',subject:''};
-async function vPartner(){const d=await run('feed',{kind:'partner',...pF});if(!d)return $('#main').innerHTML='<div class="empty">تعذّر التحميل</div>';
-$('#main').innerHTML=`<div class="card"><b><i class="fas fa-handshake"></i> ابحث عن زميل دراسة</b><div class="row" style="margin:8px 0"><select id="qL">${opts(lv,me.level)}</select><select id="qS">${opts(SPECS,me.spec)}</select></div><input id="qSu" maxlength="60" placeholder="المادة (مثال: Analyse)"><textarea id="qB" maxlength="300" style="margin-top:8px" placeholder="ماذا تريد أن تراجع؟ مثال: أبحث عن طالب لمراجعة Analyse غداً"></textarea>
-<button class="btn" style="margin-top:8px" onclick="newPartner()">نشر الطلب</button><p class="note">لا تظهر أرقام الهواتف — التواصل عبر الرسائل الخاصة فقط. الطلب يبقى 14 يوماً.</p></div>
-<div class="row"><select onchange="pF.spec=this.value;render()">${opts(SPECS,pF.spec,'كل الشعب')}</select><select onchange="pF.level=this.value;render()">${opts(lv,pF.level,'كل المستويات')}</select></div><div style="height:10px"></div>${d.length?d.map(p=>postCard(p,1)).join(''):'<div class="empty">لا توجد طلبات حالياً</div>'}`}
-function newPartner(){const body=$('#qB').value.trim();if(!body)return toast(ERR.empty);run('post',{kind:'partner',body,level:$('#qL').value,spec:$('#qS').value,subject:$('#qSu').value},()=>{toast('تم نشر طلبك');render()})}
-async function vDms(){const d=await run('dms');if(!d)return $('#main').innerHTML='<div class="empty">تعذّر التحميل</div>';
-$('#main').innerHTML=d.length?d.map(x=>`<div class="card li" onclick="openDm('${x.other}','${esc(x.an)}')">${av(x.an)}<div><b>${esc(x.an)}</b><small>${esc(x.body.slice(0,60))} · ${ago(x.t)}</small></div></div>`).join('')+'<p class="note">الرسائل الخاصة تختفي بعد 24 ساعة.</p>':'<div class="empty"><i class="fas fa-comments fa-2x"></i><p>لا توجد رسائل. ابدأ محادثة من «زميل دراسة» أو بالضغط على اسم طالب في غرفة.</p></div>'}
-function openDm(id,name){if(id===me.id)return toast('هذا أنت 🙂');openChat('dm:'+[me.id,id].sort().join(':'),name,'رسالة خاصة · تختفي بعد 24 ساعة')}
-function openChat(r,t,s){room=r;lastId=0;$('#chT').textContent=t;$('#chS').textContent=s;$('#msgs').innerHTML='';$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
+async function vPartner(){const d=await run('feed',{kind:'partner',...pF});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;
+$('#main').innerHTML=`<div class="card"><b><i class="fas fa-handshake"></i> ${t('pFind')}</b><div class="row" style="margin:8px 0"><select id="qL">${opts(lv,me.level)}</select><select id="qS">${opts(SPECS,me.spec)}</select></div><input id="qSu" maxlength="60" placeholder="${t('pSubjPh')}"><textarea id="qB" maxlength="300" style="margin-top:8px" placeholder="${t('pBodyPh')}"></textarea>
+<button class="btn" style="margin-top:8px" onclick="newPartner()">${t('pPost')}</button><p class="note">${t('pHint')}</p></div>
+<div class="row"><select onchange="pF.spec=this.value;render()">${opts(SPECS,pF.spec,t('allSpecs'))}</select><select onchange="pF.level=this.value;render()">${opts(lv,pF.level,t('allLevels'))}</select></div><div style="height:10px"></div>${d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`}`}
+function newPartner(){const body=$('#qB').value.trim();if(!body)return toast(t('e_empty'));run('post',{kind:'partner',body,level:$('#qL').value,spec:$('#qS').value,subject:$('#qSu').value},()=>{toast(t('pPosted'));render()})}
+async function vDms(){const d=await run('dms');if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;
+$('#main').innerHTML=d.length?d.map(x=>`<div class="card li" data-id="${esc(x.other)}" data-name="${esc(x.an)}" onclick="openDmEl(this)">${av(x.an)}<div><b>${esc(x.an)}</b><small>${esc(x.body.slice(0,60))} · ${ago(x.t)}</small></div></div>`).join('')+`<p class="note">${t('dmNote')}</p>`:`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`}
+function openDmEl(el){openDm(el.dataset.id,el.dataset.name)}
+function openDm(id,name){if(id===me.id)return toast(t('itsYou'));openChat('dm:'+[me.id,id].sort().join(':'),name,t('dmSub'))}
+function openChatEl(el){openChat(el.dataset.room,el.dataset.title,el.dataset.sub)}
+function openChat(r,ti,s){room=r;lastId=0;$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML='';$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
 function closeChat(){$('#chat').classList.remove('open');clearInterval(timer);room=null;if(tab==='groups'||tab==='dms')render()}
-async function pull(){if(!room||document.hidden)return;const r=room,d=await api('msgs',{room:r,after:lastId}).catch(()=>null);if(!d||r!==room||!d.length)return;const box=$('#msgs'),down=box.scrollHeight-box.scrollTop-box.clientHeight<80||!lastId;
-d.forEach(m=>{lastId=Math.max(lastId,m.id);box.insertAdjacentHTML('beforeend',`<div class="m ${m.mine?'me':''}">${m.mine?'':`<b onclick="openDm('${m.aid}','${esc(m.an)}')">${esc(m.an)}</b>`}${esc(m.body)}</div>`)});if(down)box.scrollTop=box.scrollHeight}
+async function pull(){if(!room||document.hidden)return;const r=room,d=await api('msgs',{room:r,after:lastId}).catch(()=>null);if(!d||d.need_register||r!==room||!d.length)return;const box=$('#msgs'),down=box.scrollHeight-box.scrollTop-box.clientHeight<80||!lastId;
+d.forEach(m=>{lastId=Math.max(lastId,m.id);box.insertAdjacentHTML('beforeend',`<div class="m ${m.mine?'me':''}">${m.mine?'':`<b data-id="${esc(m.aid)}" data-name="${esc(m.an)}" onclick="openDmEl(this)">${esc(m.an)}</b>`}${esc(m.body)}</div>`)});if(down)box.scrollTop=box.scrollHeight}
 async function sendMsg(){const i=$('#chIn'),body=i.value.trim();if(!body||!room)return;i.value='';const d=await run('send',{room,body});if(d)pull();else i.value=body}
 $('#chIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
-(async()=>{try{const d=await api('me');if(d&&!d.need_register){me=d;$('#meName').textContent=me.name;render()}else{me={name:'',spec:'BA',level:'L1'};$('#main').innerHTML='';profile(true)}}catch(e){const m=String(e.message||e);$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?'مجتمع الطلاب قيد التفعيل.<br>يلزم تنفيذ ملف db/20261011100000_student_community.sql في Supabase.':'تعذّر الاتصال بالخادم. تحقق من الإنترنت وأعد المحاولة.'}</p></div>`}})();
+/* توقيع MDA: 3 نقرات سريعة تُظهر رسالة (مثل الصفحة الرئيسية) */
+(function(){const s=document.querySelector('.mda-sign');if(!s)return;let n=0,h;s.addEventListener('click',()=>{n++;clearTimeout(h);h=setTimeout(()=>n=0,900);if(n>=3){n=0;toast(t('sign'))}})})();
+applyLang();
+async function boot(){try{const d=await api('me');if(d&&!d.need_register){me=d;applyLang();render()}else{needLogin()}}catch(e){const m=String(e.message||e);$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?t('setupFail'):t('connFail')}</p></div>`}}
+window.addEventListener('unem:student',()=>{if(!me)boot()});   /* بعد دخول الطالب من البوابة */
+boot();
 </script></body></html>
