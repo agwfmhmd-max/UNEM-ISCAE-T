@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as EmploisRouteImport } from './routes/emplois'
 import { Route as MoyenneRouteImport } from './routes/moyenne'
 import { Route as ResultatsRouteImport } from './routes/resultats'
 import { Route as ApiWebProxyRouteImport } from './routes/api/web-proxy'
@@ -23,6 +25,16 @@ import { Route as ApiPublicPushVapidKeyRouteImport } from './routes/api/public/p
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmploisRoute = EmploisRouteImport.update({
+  id: '/emplois',
+  path: '/emplois',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MoyenneRoute = MoyenneRouteImport.update({
@@ -75,6 +87,8 @@ const ApiPublicPushVapidKeyRoute = ApiPublicPushVapidKeyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
@@ -87,6 +101,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
@@ -100,6 +116,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
@@ -114,6 +132,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/community'
+    | '/emplois'
     | '/moyenne'
     | '/resultats'
     | '/api/web-proxy'
@@ -126,6 +146,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/community'
+    | '/emplois'
     | '/moyenne'
     | '/resultats'
     | '/api/web-proxy'
@@ -138,6 +160,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/community'
+    | '/emplois'
     | '/moyenne'
     | '/resultats'
     | '/api/web-proxy'
@@ -151,6 +175,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CommunityRoute: typeof CommunityRoute
+  EmploisRoute: typeof EmploisRoute
   MoyenneRoute: typeof MoyenneRoute
   ResultatsRoute: typeof ResultatsRoute
   ApiWebProxyRoute: typeof ApiWebProxyRoute
@@ -169,6 +195,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/emplois': {
+      id: '/emplois'
+      path: '/emplois'
+      fullPath: '/emplois'
+      preLoaderRoute: typeof EmploisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/moyenne': {
@@ -239,6 +279,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CommunityRoute: CommunityRoute,
+  EmploisRoute: EmploisRoute,
   MoyenneRoute: MoyenneRoute,
   ResultatsRoute: ResultatsRoute,
   ApiWebProxyRoute: ApiWebProxyRoute,
