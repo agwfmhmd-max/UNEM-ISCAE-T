@@ -1,8 +1,8 @@
 /* =====================================================================
  * UNEM ISCAE — بوابة دخول الطلاب (الاسم الكامل + رقم التسجيل)
  *  - تظهر عند فتح المنصة إذا لم يكن الطالب مسجّلاً على هذا الجهاز.
- *  - التحقق في قاعدة البيانات (دالة student_gate): إن كان في لائحة المشرف يُقبل مباشرة،
- *    وإلا يُنشأ حساب جديد بانتظار موافقة المشرف؛ والمرفوض لا يُقبل بذلك الحساب.
+ *  - التحقق في قاعدة البيانات (دالة student_gate): الحساب المعروف يدخل مباشرة،
+ *    وإن لم يوجد رقم التسجيل يُسمح بإنشاء حساب طالب مع اختيار التخصص والمستوى.
  *  - يُحفظ الحساب على الجهاز وفي قاعدة البيانات، فلا تُطلب المعلومات مرة أخرى.
  *  - الرمز السري للجهاز هو نفسه المستخدم في المجتمع: unem_community_token
  *  Developer: MDA — Mohamed Dah Agove
@@ -365,7 +365,12 @@
       ["MASTER_IG", "Master IG"],
     ];
     var specValue = ls("unem_student_spec") || "BA",
-      levelValue = ls("unem_student_level") || "L1";
+      levelList = /^MASTER_/.test(specValue) ? ["M1", "M2"] : ["L1", "L2", "L3"],
+      savedLevel = ls("unem_student_level"),
+      levelValue =
+        ls("unem_student_level_spec") === specValue && levelList.indexOf(savedLevel) >= 0
+          ? savedLevel
+          : "";
     var scopeOpts = scopes
       .map(function (x) {
         return (
@@ -379,7 +384,6 @@
         );
       })
       .join("");
-    var levelList = /^MASTER_/.test(specValue) ? ["M1", "M2"] : ["L1", "L2", "L3"];
     root.innerHTML =
       '<div class="g-card">' +
       head(creating ? "createTitle" : "title", creating ? "createIntro" : "sub") +
@@ -397,14 +401,25 @@
       (creating
         ? '<label for="ug-spec">' +
           esc(t("spec")) +
-          '</label><select id="ug-spec" style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">' +
+          '</label><select id="ug-spec" name="spec" autocomplete="off" style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">' +
           scopeOpts +
           '</select><label for="ug-level">' +
           esc(t("level")) +
-          '</label><select id="ug-level" style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">' +
+          '</label><select id="ug-level" name="level" autocomplete="off" required style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">' +
+          (!levelValue
+            ? '<option value="" selected disabled>' + esc(t("levelPh")) + "</option>"
+            : "") +
           levelList
             .map(function (x) {
-              return "<option" + (x === levelValue ? " selected" : "") + ">" + x + "</option";
+              return (
+                '<option value="' +
+                x +
+                '"' +
+                (x === levelValue ? " selected" : "") +
+                ">" +
+                x +
+                "</option>"
+              );
             })
             .join("") +
           "</select>"
@@ -433,16 +448,23 @@
         var s = this.value,
           lsv = /^MASTER_/.test(s) ? ["M1", "M2"] : ["L1", "L2", "L3"],
           sel = document.getElementById("ug-level");
-        sel.innerHTML = lsv
-          .map(function (x) {
-            return "<option>" + x + "</option>";
-          })
-          .join("");
+        sel.innerHTML =
+          '<option value="" selected disabled>' +
+          esc(t("levelPh")) +
+          "</option>" +
+          lsv
+            .map(function (x) {
+              return '<option value="' + x + '">' + x + "</option>";
+            })
+            .join("");
+        sel.value = "";
         ls("unem_student_spec", s);
-        ls("unem_student_level", sel.value);
+        ls("unem_student_level", null);
+        ls("unem_student_level_spec", null);
       };
       document.getElementById("ug-level").onchange = function () {
         ls("unem_student_level", this.value);
+        ls("unem_student_level_spec", document.getElementById("ug-spec").value);
       };
       document.getElementById("ug-back").onclick = function () {
         state = "form";
@@ -465,6 +487,10 @@
     }
   }
 
+  function levelListForSpec(spec) {
+    return /^MASTER_/.test(spec || "") ? ["M1", "M2"] : ["L1", "L2", "L3"];
+  }
+
   function submit(creating) {
     if (busy) return;
     var name = (document.getElementById("ug-name").value || "").replace(/\s+/g, " ").trim();
@@ -476,8 +502,13 @@
     if (name.length < 3) return showErr("bad_name");
     if (!/[A-Za-zÀ-ÖØ-öø-ÿŒœÆæ]/.test(name)) return showErr("bad_name_fr");
     if (reg.length < 2) return showErr("bad_reg");
+    if (creating && (!level || levelListForSpec(spec).indexOf(level) < 0))
+      return showErr("bad_scope");
     ls("unem_student_spec", spec || ls("unem_student_spec") || "BA");
-    ls("unem_student_level", level || ls("unem_student_level") || "L1");
+    if (creating) {
+      ls("unem_student_level", level);
+      ls("unem_student_level_spec", spec);
+    }
     busy = true;
     showErr("");
     var button = document.getElementById("ug-go");
