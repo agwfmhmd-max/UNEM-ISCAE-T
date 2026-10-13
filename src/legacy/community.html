@@ -52,6 +52,74 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:var(--s
 .mda-seal{width:22px;height:22px;display:block;flex:none;opacity:.42;filter:none;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .3s,filter .3s}
 .mda-sign:hover .mda-seal{transform:rotate(360deg);opacity:.9}
 .room-logo{width:44px;height:44px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:14px;color:#fff;box-shadow:0 5px 12px rgba(15,23,42,.16),inset 0 1px 0 rgba(255,255,255,.3);overflow:hidden}.room-logo i{font-size:.96rem;line-height:1}.room-logo small{font-size:.48rem;line-height:1;font-weight:900;letter-spacing:.035em;color:#fff;opacity:.96}.room-head-logo{width:40px;height:40px;border-radius:12px}.m .av{width:26px;height:26px;font-size:.68rem}.m .ph{gap:6px}.cm .av{width:24px;height:24px;font-size:.65rem}.cm .ph{gap:6px}
+
+/* ================= تصميم المجتمع المحسّن (UI v2) ================= */
+:root{--shadow:0 10px 30px rgba(15,81,50,.09);--shadow2:0 16px 40px rgba(15,81,50,.16);--ring:rgba(21,128,61,.22)}
+body.dark-mode{--shadow:0 10px 30px rgba(0,0,0,.35);--shadow2:0 16px 40px rgba(0,0,0,.45)}
+body{background:radial-gradient(900px 420px at 100% -80px,rgba(21,128,61,.10),transparent 60%),radial-gradient(700px 380px at -10% 20%,rgba(245,185,66,.10),transparent 60%),var(--bg);background-attachment:fixed}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#0a3d2a 0%,#0f5132 45%,#15803d 100%);padding:calc(14px + env(safe-area-inset-top)) 16px 26px;border-radius:0 0 30px 30px;box-shadow:0 14px 36px rgba(15,81,50,.28)}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.hero::before{width:260px;height:260px;top:-120px;inset-inline-end:-70px;background:radial-gradient(circle,rgba(245,185,66,.30),transparent 68%)}
+.hero::after{width:220px;height:220px;bottom:-130px;inset-inline-start:-60px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 68%)}
+.hero .wrap{position:relative;z-index:1}
+.top a,.top button{background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.22);transition:.2s}
+.top a:hover,.top button:hover{background:rgba(255,255,255,.28);transform:translateY(-1px)}
+.hero h1{font-size:1.9rem;letter-spacing:-.01em;margin:16px 0 6px;text-shadow:0 2px 14px rgba(0,0,0,.2)}
+.hero p{max-width:60ch;opacity:.92}
+.hello{display:inline-flex!important;align-items:center;gap:6px;margin:14px 0 0!important;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(245,185,66,.55);backdrop-filter:blur(8px);color:#fde7a6!important;font-weight:800;font-size:.92rem!important;box-shadow:0 6px 18px rgba(0,0,0,.14);animation:fadeUp .5s both}
+.tabs{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);margin:0 0 14px;padding:12px 12px 10px;gap:8px;border-bottom:1px solid var(--line);box-shadow:0 8px 22px rgba(15,23,42,.05)}
+.tabs button{border-radius:999px;background:var(--card);color:var(--mut);border:1px solid var(--line);padding:9px 16px;font-size:.88rem;box-shadow:0 2px 6px rgba(15,23,42,.04);transition:.2s}
+.tabs button i{margin-inline-end:4px}
+.tabs button:hover{transform:translateY(-1px);color:var(--g)}
+.tabs button.on,body.dark-mode .tabs button.on{background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(15,81,50,.3)}
+.card{border-radius:20px;box-shadow:var(--shadow);border:1px solid var(--line);transition:transform .2s,box-shadow .2s;animation:fadeUp .35s both}
+.card:hover{box-shadow:var(--shadow2)}
+.li:hover{transform:translateY(-2px)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.card,.hello{animation:none}}
+.av{width:42px;height:42px;box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--ring)}
+.m .av{width:28px;height:28px;box-shadow:0 0 0 2px var(--card)}.cm .av{width:26px;height:26px;box-shadow:none}
+.ph b{font-size:.96rem}
+.body{font-size:.98rem;line-height:1.9}
+.tag{font-size:.68rem;padding:3px 9px;border-radius:999px}
+.btn{background:linear-gradient(135deg,#f7c75a,#f5b942);box-shadow:0 6px 14px rgba(245,185,66,.32);transition:.2s}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 20px rgba(245,185,66,.42)}
+.btn.alt{background:var(--soft);box-shadow:none}
+input:focus,select:focus,textarea:focus{border-color:var(--g2);box-shadow:0 0 0 3px var(--ring)}
+.chip{transition:.15s}.chip:hover{border-color:var(--g2);color:var(--g2)}
+.chip.on{background:linear-gradient(135deg,var(--g),var(--g2));border-color:transparent;color:#fff}body.dark-mode .chip.on{background:var(--gold);color:#1e293b}
+.acts{align-items:center;gap:6px;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px}
+.acts button{border-radius:999px;padding:6px 12px;transition:.15s}.acts button:hover{background:var(--soft)}
+.empty{padding:40px 14px}.empty>i{display:grid;place-items:center;width:78px;height:78px;margin:0 auto 12px;border-radius:50%;background:linear-gradient(135deg,rgba(21,128,61,.12),rgba(245,185,66,.18));color:var(--g2);font-size:1.8rem!important}
+.li .ic{box-shadow:0 8px 16px rgba(15,23,42,.18)}
+h3{font-size:1.02rem;margin:18px 2px 10px}
+.note{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:8px 12px;line-height:1.7}
+.sheet{border-radius:26px 26px 0 0;box-shadow:0 -20px 50px rgba(0,0,0,.25);animation:fadeUp .25s both}
+.ov{backdrop-filter:blur(4px)}
+/* المحادثة */
+.ch{background:linear-gradient(135deg,#0a3d2a,#0f5132 60%,#15803d);box-shadow:0 8px 22px rgba(15,81,50,.3)}
+#chat{background:radial-gradient(600px 300px at 100% 0,rgba(21,128,61,.08),transparent 60%),var(--bg)}
+.m{border-radius:18px 18px 18px 6px;box-shadow:0 3px 10px rgba(15,23,42,.06);padding:8px 12px}
+.m.me{background:linear-gradient(135deg,#0f5132,#15803d);color:#fff;border-color:transparent;border-radius:18px 18px 6px 18px}
+.m.me b{color:rgba(255,255,255,.8)}
+.sb{box-shadow:0 -8px 24px rgba(15,23,42,.06)}
+.sb input{border-radius:999px;padding:11px 16px}.sb button{border-radius:50%;width:46px;height:46px;background:linear-gradient(135deg,#f7c75a,#f5b942);box-shadow:0 6px 14px rgba(245,185,66,.4)}
+/* زر الإبلاغ الواضح */
+.rep{display:inline-flex;align-items:center;gap:6px;background:#fff1f2!important;color:#be123c!important;border:1.5px solid #fda4af!important;border-radius:999px!important;padding:6px 14px!important;font-weight:800;font-size:.8rem;cursor:pointer;margin-inline-start:auto;transition:.15s}
+.rep:hover{background:#e11d48!important;color:#fff!important;border-color:#e11d48!important;transform:translateY(-1px);box-shadow:0 6px 14px rgba(225,29,72,.3)}
+body.dark-mode .rep{background:rgba(225,29,72,.14)!important;color:#fda4af!important;border-color:rgba(253,164,175,.45)!important}
+.acts .rep{margin-inline-start:auto}
+.mrep{margin-top:6px;display:flex;justify-content:flex-end}.mrep .rep{padding:4px 11px!important;font-size:.72rem;margin:0}
+.m.me .mrep{display:none}
+.cm{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.cm .ph{flex:1 1 100%}.cm>div:not(.ph){flex:1 1 100%}.cm .rep{padding:3px 10px!important;font-size:.7rem}
+.li .rep{flex:none;margin:0}
+.rep-opts{display:grid;gap:8px;margin:6px 0 10px}
+.rep-opt{display:flex!important;align-items:center;gap:10px;margin:0!important;padding:11px 13px;border:1.5px solid var(--line);border-radius:14px;background:var(--soft);cursor:pointer;font-size:.9rem!important}
+.rep-opt input{width:auto;accent-color:#e11d48}
+.rep-opt:has(input:checked){border-color:#e11d48;background:#fff1f2;color:#9f1239}
+body.dark-mode .rep-opt:has(input:checked){background:rgba(225,29,72,.16);color:#fecdd3}
+.btn.rep-send{background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;box-shadow:0 8px 18px rgba(225,29,72,.35)}
+@media(max-width:520px){.hero h1{font-size:1.6rem}.tabs{padding-inline:8px}.tabs button{padding:8px 13px}}
 </style></head><body>
 <header class="hero"><div class="wrap"><div class="top"><a href="/"><i class="fas fa-arrow-right ic-flip" id="homeIc"></i> <span data-t="home">الرئيسية</span></a>
 <div class="grp"><button id="langBtn" type="button" aria-label="Langue / اللغة">Français</button><button id="meBtn" type="button"><i class="fas fa-user"></i> <span id="meName" data-t="me">ملفي</span></button></div></div>
@@ -79,7 +147,7 @@ ar:{home:'الرئيسية',me:'ملفي',title:'مجتمع الطلاب | UNEM 
  t_posts:'المنشورات',t_rooms:'الغرف',t_groups:'مجموعات الدراسة',t_partner:'زميل دراسة',t_dms:'الرسائل',t_admin:'إشراف المجتمع',adminTitle:'إدارة المجتمع',adminRefresh:'تحديث القائمة',adminPosts:'المنشورات وطلبات الزملاء',adminGroups:'المجموعات',adminMessages:'آخر الرسائل',adminReports:'البلاغات',clearRoom:'حذف رسائل الغرفة',noAdmin:'لا توجد عناصر حالياً',avatar:'الصورة الشخصية',avatarChange:'اختيار صورة',avatarSave:'حفظ الصورة',avatarHint:'صورة مربعة واضحة (JPEG/PNG/WebP، حتى 1 ميغابايت).',avatarOk:'تم تحديث الصورة الشخصية',adminDeleteQ:'هل تريد حذف هذا العنصر نهائياً؟',sevenDays:'تنتهي بعد 7 أيام',
  ago_m:n=>'منذ '+n+' د',ago_h:n=>'منذ '+n+' س',ago_d:n=>'منذ '+n+' ي',
  profile:'ملفي',pName:'الاسم الكامل',pReg:'رقم التسجيل',pSpec:'التخصص',pLevel:'المستوى',pNote:'الاسم والتخصص والمستوى مأخوذة من حسابك المسجّل في المنصة. لا تُعرض أرقام الهواتف، والتواصل يتم عبر الرسائل داخل المجتمع.',pClose:'إغلاق',pSwitch:'تغيير الحساب',pSwitchQ:'تسجيل الخروج من هذا الحساب على هذا الجهاز؟',
- reply:'راسله',del:'حذف',reportQ:'سبب الإبلاغ (اختياري):',reportOk:'تم إرسال البلاغ للمشرفين',delPostQ:'حذف هذا المنشور؟',
+ reply:'راسله',del:'حذف',reportQ:'سبب الإبلاغ (اختياري):',reportBtn:'إبلاغ',reportTitle:'إبلاغ للمشرفين',reportThisContent:'الإبلاغ عن هذا المحتوى',reportThisStudent:n=>'الإبلاغ عن الطالب: '+n,reportSend:'إرسال البلاغ',reportCancel:'إلغاء',reportHint:'يصل البلاغ إلى مشرفي المجتمع فقط ولا يظهر لأي طالب.',staffBadge:'مشرف المجتمع',reportOk:'تم إرسال البلاغ للمشرفين',delPostQ:'حذف هذا المنشور؟',
  share:'شارك زملاءك',shareSub:'نص فقط · حتى 3000 حرف · تنتهي المنشورات بعد 7 أيام',postPh:'اكتب سؤالك أو فكرتك أو إعلانك...',publish:'نشر',all:'الكل',noPosts:'لا توجد منشورات بعد. كن أول من يشارك!',failPosts:'تعذّر تحميل المنشورات',
  cmPh:'اكتب تعليقاً...',
  roomNote:'غرف نقاش عامة ومباشرة. الرسائل نصية فقط وتُحذف تلقائياً بعد 24 ساعة.',roomGen:'الغرفة العامة',roomGenD:'نقاش مفتوح لكل طلاب المعهد',roomX:v=>'غرفة '+v,roomXD:v=>'نقاش طلاب '+v,
@@ -99,7 +167,7 @@ fr:{home:'Accueil',me:'Mon profil',title:'Communauté étudiante | UNEM ISCAE',h
  t_posts:'Publications',t_rooms:'Salons',t_groups:'Groupes d’étude',t_partner:'Binôme d’étude',t_dms:'Messages',t_admin:'Modération',adminTitle:'Modération de la communauté',adminRefresh:'Actualiser',adminPosts:'Publications et demandes de binôme',adminGroups:'Groupes',adminMessages:'Derniers messages',adminReports:'Signalements',clearRoom:'Effacer les messages du salon',noAdmin:'Aucun élément pour le moment',avatar:'Photo de profil',avatarChange:'Choisir une photo',avatarSave:'Enregistrer la photo',avatarHint:'Photo carrée (JPEG/PNG/WebP, 1 Mo maximum).',avatarOk:'Photo de profil mise à jour',adminDeleteQ:'Supprimer définitivement cet élément ?',sevenDays:'Expire après 7 jours',
  ago_m:n=>'il y a '+n+' min',ago_h:n=>'il y a '+n+' h',ago_d:n=>'il y a '+n+' j',
  profile:'Mon profil',pName:'Nom complet',pReg:'Numéro d’inscription',pSpec:'Filière',pLevel:'Niveau',pNote:'Le nom, la filière et le niveau proviennent de votre compte enregistré sur la plateforme. Les numéros de téléphone ne sont pas affichés ; la communication se fait par messages dans la communauté.',pClose:'Fermer',pSwitch:'Changer de compte',pSwitchQ:'Se déconnecter de ce compte sur cet appareil ?',
- reply:'Écrire',del:'Supprimer',reportQ:'Motif du signalement (facultatif) :',reportOk:'Signalement envoyé aux administrateurs',delPostQ:'Supprimer cette publication ?',
+ reply:'Écrire',del:'Supprimer',reportQ:'Motif du signalement (facultatif) :',reportBtn:'Signaler',reportTitle:'Signaler aux modérateurs',reportThisContent:'Signaler ce contenu',reportThisStudent:n=>'Signaler l’étudiant : '+n,reportSend:'Envoyer le signalement',reportCancel:'Annuler',reportHint:'Le signalement n’est visible que par les modérateurs de la communauté.',staffBadge:'Modérateur',reportOk:'Signalement envoyé aux administrateurs',delPostQ:'Supprimer cette publication ?',
  share:'Partagez avec vos camarades',shareSub:'Texte uniquement · 3000 caractères max · publications expirées après 7 jours',postPh:'Écrivez votre question, idée ou annonce...',publish:'Publier',all:'Tout',noPosts:'Aucune publication pour le moment. Soyez le premier à partager !',failPosts:'Impossible de charger les publications',
  cmPh:'Écrire un commentaire...',
  roomNote:'Salons de discussion publics et en direct. Messages en texte uniquement, supprimés automatiquement après 24 h.',roomGen:'Salon général',roomGenD:'Discussion ouverte à tous les étudiants de l’institut',roomX:v=>'Salon '+v,roomXD:v=>'Discussion des étudiants '+v,
@@ -137,7 +205,7 @@ function applyLang(){
   document.querySelectorAll('[data-t]').forEach(e=>{const k=e.dataset.t;if(k==='me'&&me&&me.name)return;e.textContent=t(k)});
   document.querySelectorAll('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
   $('#h1').innerHTML=t('h1');$('#copyright').textContent=t('copyright');$('#langBtn').textContent=t('langBtn');
-  $('#hello').textContent=me&&me.name?(me.admin?t('adminBadge'):t('hello',me.name)):'';
+  $('#hello').textContent=me&&me.name?(me.admin?'🛡️ '+t('adminBadge'):t('hello',me.name)):'';$('#hello').style.display=me&&me.name?'':'none';
   if(me&&me.name)$('#meName').textContent=me.name;
 }
 $('#langBtn').onclick=()=>{LANG=LANG==='ar'?'fr':'ar';localStorage.setItem('unem_lang',LANG);try{if(typeof window.setLanguage==='function')window.setLanguage(LANG)}catch(e){}applyLang();if(me&&me.name)render()};
@@ -159,7 +227,7 @@ function needLogin(){
 }
 const BASE_TABS=[['posts','t_posts','fa-newspaper'],['rooms','t_rooms','fa-hashtag'],['groups','t_groups','fa-users'],['partner','t_partner','fa-handshake'],['dms','t_dms','fa-comments']];
 function render(){const tabs=me&&me.admin?BASE_TABS.concat([['admin','t_admin','fa-shield-halved']]):BASE_TABS;$('#tabs').innerHTML=tabs.map(x=>`<button class="${x[0]==tab?'on':''}" onclick="tab='${x[0]}';render()"><i class="fas ${x[2]}"></i> ${t(x[1])}</button>`).join('');$('#main').innerHTML='<div class="empty"><i class="fas fa-spinner fa-spin"></i></div>';({posts:vPosts,rooms:vRooms,groups:vGroups,partner:vPartner,dms:vDms,admin:vAdmin})[tab]()}
-function postCard(p,partner){const sv=saved.includes(p.id),K=KINDS();return `<div class="card" id="p${p.id}"><div class="ph">${av(p.an,p.avatar)}<div style="flex:1"><b>${esc(p.an)}</b>${partner?'':`<span class="tag ${p.kind}">${K[p.kind]||''}</span>`}<small>${ago(p.t)} · ${SPECS[p.spec]||''} · ${p.level||''}${p.subject?' · '+esc(p.subject):''}</small></div>${!me?.admin&&p.aid!==me?.id?`<button class="btn sm alt" title="${t('reportStudent')}" onclick="report('student','${esc(p.aid)}')"><i class="fas fa-user-flag"></i></button>`:''}${p.can_del?`<button class="btn sm alt" onclick="delPost('${p.id}')"><i class="fas fa-trash"></i></button>`:`<button class="btn sm alt" title="${t('reportContent')}" onclick="report('post','${p.id}')"><i class="fas fa-flag"></i></button>`}</div><div class="body">${esc(p.body)}</div><div class="acts">${partner?`<button data-id="${esc(p.aid)}" data-name="${esc(p.an)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>`:`<button class="${p.liked?'on':''}" onclick="like('${p.id}')"><i class="fas fa-heart"></i> ${p.likes}</button><button onclick="cms('${p.id}')"><i class="fas fa-comment"></i> ${p.comments}</button><button class="${sv?'on':''}" onclick="save('${p.id}')" style="margin-inline-start:auto"><i class="fas fa-bookmark"></i></button>`}</div><div id="c${p.id}"></div></div>`}
+function postCard(p,partner){const sv=saved.includes(p.id),K=KINDS();return `<div class="card" id="p${p.id}"><div class="ph">${av(p.an,p.avatar)}<div style="flex:1"><b>${esc(p.an)}</b>${partner?'':`<span class="tag ${p.kind}">${K[p.kind]||''}</span>`}<small>${ago(p.t)} · ${SPECS[p.spec]||''} · ${p.level||''}${p.subject?' · '+esc(p.subject):''}</small></div>${p.can_del?`<button class="btn sm alt" title="${t('del')}" onclick="delPost('${p.id}')"><i class="fas fa-trash"></i></button>`:''}</div><div class="body">${esc(p.body)}</div><div class="acts">${partner?`<button data-id="${esc(p.aid)}" data-name="${esc(p.an)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>${!me?.admin&&p.aid!==me?.id?repBtn('post',p.id,p.aid,p.an):''}`:`<button class="${p.liked?'on':''}" onclick="like('${p.id}')"><i class="fas fa-heart"></i> ${p.likes}</button><button onclick="cms('${p.id}')"><i class="fas fa-comment"></i> ${p.comments}</button><button class="${sv?'on':''}" onclick="save('${p.id}')" style="margin-inline-start:auto"><i class="fas fa-bookmark"></i></button>${!me?.admin&&p.aid!==me?.id?repBtn('post',p.id,p.aid,p.an):''}`}</div><div id="c${p.id}"></div></div>`}
 async function vPosts(){const d=await run('feed',{kind:fKind});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failPosts')}</div>`;const K=KINDS();
 $('#main').innerHTML=`<div class="card"><div class="ph">${av(me.name,me.avatar_data)}<div><b>${t('share')}</b><small>${t('shareSub')}</small></div></div><div class="chips" id="nk">${Object.entries(K).map(([k,v],i)=>`<span class="chip${i?'':' on'}" data-k="${k}">${v}</span>`).join('')}</div>
 <textarea id="nb" maxlength="3000" placeholder="${t('postPh')}"></textarea><button class="btn" style="margin-top:8px" onclick="newPost()"><i class="fas fa-paper-plane"></i> ${t('publish')}</button></div>
@@ -169,8 +237,16 @@ function newPost(){const body=$('#nb').value.trim(),k=$('#nk .on').dataset.k;if(
 const delPost=id=>confirm(t('delPostQ'))&&run('del_post',{id},()=>render());
 const like=id=>run('like',{id},()=>render());
 const save=id=>{saved=saved.includes(id)?saved.filter(x=>x!=id):[...saved,id];localStorage.setItem('unem_community_saved',JSON.stringify(saved));render()};
-function report(kind,target){const reason=prompt(t('reportQ'));if(reason===null)return;run('report',{kind,target:String(target),reason},()=>toast(t('reportOk')))}
-async function cms(id){const box=$('#c'+id);if(box.innerHTML)return box.innerHTML='';const d=await run('comments',{id});if(!d)return;box.innerHTML=d.map(c=>`<div class="cm"><div class="ph">${av(c.an,c.avatar)}<div style="flex:1"><b>${esc(c.an)}</b> <small style="color:var(--mut)">${ago(c.t)}</small></div>${!me?.admin&&c.aid!==me?.id?`<button class="btn sm alt" title="${t('reportStudent')}" onclick="report('student','${esc(c.aid)}')"><i class="fas fa-user-flag"></i></button>`:''}${c.can_del?`<a href="#" onclick="delCm('${c.id}','${id}');return false" style="color:#e11d48">${t('del')}</a>`:`<button class="btn sm alt" title="${t('reportMessage')}" onclick="report('comment','${c.id}')"><i class="fas fa-flag"></i></button>`}</div><div>${esc(c.body)}</div></div>`).join('')+`<div class="row" style="margin-top:8px"><input id="ci${id}" maxlength="1000" placeholder="${t('cmPh')}"><button class="btn sm" style="flex:none" onclick="addCm('${id}')"><i class="fas fa-paper-plane"></i></button></div>`}
+const repBtn=(kind,target,aid,an)=>`<button type="button" class="rep" data-k="${esc(kind)}" data-t="${esc(target)}" data-a="${esc(aid||'')}" data-n="${esc(an||'')}" onclick="event.stopPropagation();reportEl(this)"><i class="fas fa-flag"></i> ${t('reportBtn')}</button>`;
+function reportEl(el){const d=el.dataset;reportMenu(d.k,d.t,d.a,d.n)}
+function reportMenu(kind,target,aid,an){
+  const canStudent=kind!=='student'&&aid&&aid!==me?.id;
+  sheet(`<h3><i class="fas fa-flag" style="color:#e11d48"></i> ${t('reportTitle')}</h3>${canStudent?`<div class="rep-opts"><label class="rep-opt"><input type="radio" name="repw" value="content" checked><span>${t('reportThisContent')}</span></label><label class="rep-opt"><input type="radio" name="repw" value="student"><span>${t('reportThisStudent',esc(an))}</span></label></div>`:''}<label>${t('reportQ')}</label><textarea id="repR" maxlength="300"></textarea><p class="note">${t('reportHint')}</p><div class="row" style="margin-top:10px"><button class="btn alt" id="repC" type="button">${t('reportCancel')}</button><button class="btn rep-send" id="repS" type="button"><i class="fas fa-paper-plane"></i> ${t('reportSend')}</button></div>`);
+  $('#repC').onclick=shut;
+  $('#repS').onclick=()=>{const w=document.querySelector('input[name=repw]:checked')?.value||'content',k=w==='student'?'student':kind,tg=w==='student'?aid:target;$('#repS').disabled=true;run('report',{kind:k,target:String(tg),reason:$('#repR').value.trim()},()=>{shut();toast(t('reportOk'))}).then(d=>{if(d===null)$('#repS').disabled=false})}
+}
+const report=(kind,target)=>reportMenu(kind,target,'','');
+async function cms(id){const box=$('#c'+id);if(box.innerHTML)return box.innerHTML='';const d=await run('comments',{id});if(!d)return;box.innerHTML=d.map(c=>`<div class="cm"><div class="ph">${av(c.an,c.avatar)}<div style="flex:1"><b>${esc(c.an)}</b> <small style="color:var(--mut)">${ago(c.t)}</small></div>${c.can_del?`<a href="#" onclick="delCm('${c.id}','${id}');return false" style="color:#e11d48;font-weight:700">${t('del')}</a>`:''}${!me?.admin&&c.aid!==me?.id?repBtn('comment',c.id,c.aid,c.an):''}</div><div>${esc(c.body)}</div></div>`).join('')+`<div class="row" style="margin-top:8px"><input id="ci${id}" maxlength="1000" placeholder="${t('cmPh')}"><button class="btn sm" style="flex:none" onclick="addCm('${id}')"><i class="fas fa-paper-plane"></i></button></div>`}
 const bump=(id,n)=>{const b=document.querySelector(`#p${id} .acts button:nth-child(2)`);if(b)b.lastChild.textContent=' '+Math.max(0,(parseInt(b.textContent)||0)+n)};
 const addCm=id=>{const body=$('#ci'+id).value.trim();if(!body)return;run('comment',{id,body},()=>{bump(id,1);$('#c'+id).innerHTML='';cms(id)})};
 const delCm=(id,pid)=>run('del_comment',{id},()=>{bump(pid,-1);$('#c'+pid).innerHTML='';cms(pid)});
@@ -206,19 +282,19 @@ $('#main').innerHTML=`<button class="btn" onclick="render()">${t('adminRefresh')
 window.openAdminRoom=function(r){if(!me?.admin)return;openChat(r,r,'');const b=$('#chClear');if(b){b.hidden=false;b.onclick=()=>adminClearRoom(r)}};
 window.adminDelete=(type,id)=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type,id},()=>{if(type==='message'&&room){const el=document.querySelector('[data-message-id="'+CSS.escape(String(id))+'"]');if(el)el.remove();}else render()})};
 window.adminClearRoom=r=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type:'room',room:r},()=>{if(room===r)closeChat();render()})};
-async function vDms(){if(me?.admin){const x=await run('admin_list');if(!x)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;const d=(x.rooms||[]).filter(r=>r.room.startsWith('dm:'));$('#main').innerHTML=`<p class="note">${t('adminAllNote')}</p>`+(d.length?d.map(r=>`<div class="card li" data-room="${esc(r.room)}" data-title="${esc(r.title||t('roomDM'))}" data-sub="${esc(t('roomCount',r.messages||0))}" onclick="openChatEl(this)">${roomMark(r.room,r.title||t('roomDM'))}<div><b>${esc(r.title||t('roomDM'))}</b><small>${esc(t('roomCount',r.messages||0))}${r.last_t?' · '+ago(r.last_t):''}</small></div><i class="fas ${nxt()}"></i></div>`).join(''):`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`);return}const d=await run('dms');if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;$('#main').innerHTML=d.length?d.map(x=>`<div class="card li" data-id="${esc(x.other)}" data-name="${esc(x.an)}" onclick="openDmEl(this)">${av(x.an,x.avatar)}<div><b>${esc(x.an)}</b><small>${esc(x.body.slice(0,60))} · ${ago(x.t)}</small></div><button class="btn sm alt" title="${t('reportStudent')}" onclick="event.stopPropagation();report('student','${esc(x.other)}')"><i class="fas fa-user-flag"></i></button></div>`).join('')+`<p class="note">${t('dmNote')}</p>`:`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`}
+async function vDms(){if(me?.admin){const x=await run('admin_list');if(!x)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;const d=(x.rooms||[]).filter(r=>r.room.startsWith('dm:'));$('#main').innerHTML=`<p class="note">${t('adminAllNote')}</p>`+(d.length?d.map(r=>`<div class="card li" data-room="${esc(r.room)}" data-title="${esc(r.title||t('roomDM'))}" data-sub="${esc(t('roomCount',r.messages||0))}" onclick="openChatEl(this)">${roomMark(r.room,r.title||t('roomDM'))}<div><b>${esc(r.title||t('roomDM'))}</b><small>${esc(t('roomCount',r.messages||0))}${r.last_t?' · '+ago(r.last_t):''}</small></div><i class="fas ${nxt()}"></i></div>`).join(''):`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`);return}const d=await run('dms');if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;$('#main').innerHTML=d.length?d.map(x=>`<div class="card li" data-id="${esc(x.other)}" data-name="${esc(x.an)}" onclick="openDmEl(this)">${av(x.an,x.avatar)}<div><b>${esc(x.an)}</b><small>${esc(x.body.slice(0,60))} · ${ago(x.t)}</small></div>${repBtn('student',x.other,x.other,x.an)}</div>`).join('')+`<p class="note">${t('dmNote')}</p>`:`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`}
 function openDmEl(el){openDm(el.dataset.id,el.dataset.name)}
 function openDm(id,name){if(id===me.id)return toast(t('itsYou'));openChat('dm:'+[me.id,id].sort().join(':'),name,t('dmSub'))}
 function openChatEl(el){openChat(el.dataset.room,el.dataset.title,el.dataset.sub)}
 function openChat(r,ti,s){room=r;lastId=0;$('#chIcon').outerHTML=roomMark(r,ti,true);$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML='';const cb=$('#chClear');cb.hidden=!(me&&me.admin);if(me&&me.admin)cb.onclick=()=>adminClearRoom(r);$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
 function closeChat(){$('#chat').classList.remove('open');clearInterval(timer);room=null;if(tab==='groups'||tab==='dms')render()}
-async function pull(){if(!room||document.hidden)return;const r=room,d=await api('msgs',{room:r,after:lastId}).catch(()=>null);if(!d||d.need_register||r!==room||!d.length)return;const box=$('#msgs'),down=box.scrollHeight-box.scrollTop-box.clientHeight<80||!lastId;d.forEach(m=>{lastId=Math.max(lastId,m.id);const name=m.an||me.name,avatar=m.mine?me.avatar_data:m.avatar;box.insertAdjacentHTML('beforeend',`<div class="m ${m.mine?'me':''}" data-message-id="${m.id}"><div class="ph">${av(name,avatar)}<b data-id="${esc(m.aid)}" data-name="${esc(name)}" onclick="openDmEl(this)">${esc(name)}</b>${!me?.admin&&m.aid!==me?.id?`<button type="button" class="btn sm alt" title="${t('reportStudent')}" onclick="report('student','${esc(m.aid)}')"><i class="fas fa-user-flag"></i></button>`:''}</div><div>${esc(m.body)}</div>${!me?.admin?`<button type="button" class="btn sm alt" title="${t('reportMessage')}" onclick="report('message','${m.id}')"><i class="fas fa-flag"></i></button>`:''}${me?.admin?`<button type="button" class="btn sm alt" onclick="adminDelete('message','${m.id}')" title="${t('adminMsgDelete')}"><i class="fas fa-trash"></i></button>`:''}</div>`)});if(down)box.scrollTop=box.scrollHeight}
+async function pull(){if(!room||document.hidden)return;const r=room,d=await api('msgs',{room:r,after:lastId}).catch(()=>null);if(!d||d.need_register||r!==room||!d.length)return;const box=$('#msgs'),down=box.scrollHeight-box.scrollTop-box.clientHeight<80||!lastId;d.forEach(m=>{lastId=Math.max(lastId,m.id);const name=m.an||me.name,avatar=m.mine?me.avatar_data:m.avatar;box.insertAdjacentHTML('beforeend',`<div class="m ${m.mine?'me':''}" data-message-id="${m.id}"><div class="ph">${av(name,avatar)}<b data-id="${esc(m.aid)}" data-name="${esc(name)}" onclick="openDmEl(this)">${esc(name)}</b></div><div>${esc(m.body)}</div>${!me?.admin&&!m.mine&&m.aid!==me?.id?`<div class="mrep">${repBtn('message',m.id,m.aid,name)}</div>`:''}${me?.admin?`<button type="button" class="btn sm alt" onclick="adminDelete('message','${m.id}')" title="${t('adminMsgDelete')}"><i class="fas fa-trash"></i></button>`:''}</div>`)});if(down)box.scrollTop=box.scrollHeight}
 async function sendMsg(){const i=$('#chIn'),body=i.value.trim();if(!body||!room)return;i.value='';const d=await run('send',{room,body});if(d)pull();else i.value=body}
 $('#chIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 /* توقيع MDA: 3 نقرات سريعة تُظهر رسالة (مثل الصفحة الرئيسية) */
 (function(){const s=document.querySelector('.mda-sign');if(!s)return;let n=0,h;s.addEventListener('click',()=>{n++;clearTimeout(h);h=setTimeout(()=>n=0,900);if(n>=3){n=0;toast(t('sign'))}})})();
 applyLang();
-async function boot(){try{const d=await api('me');if(d&&!d.need_register){me=d;applyLang();render()}else{needLogin()}}catch(e){const m=String(e.message||e);$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?t('setupFail'):t('connFail')}</p></div>`}}
+async function boot(){try{const d=await api('me');if(d&&!d.need_register){me=d;if(me.admin){try{window.UNEM_GATE&&window.UNEM_GATE.staffPass&&window.UNEM_GATE.staffPass()}catch(e){}}applyLang();render()}else{try{localStorage.removeItem('unem_gate_staff')}catch(e){}needLogin()}}catch(e){const m=String(e.message||e);$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?t('setupFail'):t('connFail')}</p></div>`}}
 window.addEventListener('unem:student',()=>{if(!me)boot()});   /* بعد دخول الطالب من البوابة */
 boot();
 </script></body></html>
