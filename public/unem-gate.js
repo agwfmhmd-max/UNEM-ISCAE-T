@@ -260,9 +260,9 @@
     "@keyframes ugspin{to{transform:rotate(360deg)}}" +
     "#unem-welcome{position:fixed;inset:0;z-index:2147483100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,6,23,.62);backdrop-filter:blur(6px);font-family:Tajawal,system-ui,sans-serif}" +
     "#unem-welcome .w{background:linear-gradient(145deg,#0b3d2a,#15803d);color:#fff;border-radius:26px;padding:30px 24px;width:min(420px,100%);text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.45);border:1px solid rgba(245,185,66,.5);animation:ugpop .45s cubic-bezier(.2,.9,.3,1.3)}" +
-    "#unem-welcome .e{font-size:2.6rem}#unem-welcome h3{margin:8px 0 2px;font-size:1.05rem;font-weight:700;opacity:.9}#unem-welcome h2{margin:6px 0 4px;font-size:1.55rem;font-weight:800;color:#f5b942;word-break:break-word;line-height:1.5}#unem-welcome p{margin:0 0 16px;opacity:.85;font-size:.88rem}" +
+    "#unem-welcome .e{width:66px;height:66px;margin:0 auto 8px;border-radius:50%;display:grid;place-items:center;color:#f5b942;background:rgba(245,185,66,.14);border:1px solid rgba(245,185,66,.55);box-shadow:0 0 0 6px rgba(245,185,66,.08)}#unem-welcome h3{margin:8px 0 2px;font-size:1.05rem;font-weight:700;opacity:.9}#unem-welcome h2{margin:6px 0 4px;font-size:1.55rem;font-weight:800;color:#f5b942;word-break:break-word;line-height:1.5}#unem-welcome p{margin:0 0 16px;opacity:.85;font-size:.88rem}" +
     "#unem-welcome button{border:0;border-radius:12px;padding:11px 28px;font:inherit;font-weight:800;background:#f5b942;color:#3b2a00;cursor:pointer}" +
-    "#unem-welcome-pill{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:2147483100;max-width:92vw;background:rgba(11,61,42,.96);color:#fff;border:1px solid rgba(245,185,66,.55);border-radius:999px;padding:9px 18px;font:700 .88rem Tajawal,system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:ugpop .4s ease-out;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+    "#unem-welcome-pill{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:2147483100;max-width:92vw;background:rgba(11,61,42,.96);color:#fff;border:1px solid rgba(245,185,66,.55);border-radius:999px;padding:9px 18px;font:700 .88rem Tajawal,system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:ugpop .4s ease-out;white-space:nowrap;overflow:hidden;display:flex;align-items:center;gap:9px}#unem-welcome-pill .ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#f5b942;color:#3b2a00}#unem-welcome-pill .lb{flex:none;opacity:.85;font-weight:600}#unem-welcome-pill .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#f5b942;font-weight:800}" +
     "@keyframes ugpop{from{opacity:0;transform:translate(0,12px) scale(.94)}to{opacity:1;transform:none}}#unem-welcome-pill{animation-name:ugdrop}@keyframes ugdrop{from{opacity:0;top:-40px}to{opacity:1}}";
 
   function addCss() {
@@ -660,7 +660,7 @@
       w.id = "unem-welcome";
       w.dir = lang() === "ar" ? "rtl" : "ltr";
       w.innerHTML =
-        '<div class="w"><div class="e">🎓</div><div style="font-size:.78rem;letter-spacing:.1em;font-weight:900;color:#a7f3d0">UNEM ISCAE</div><h3>' +
+        '<div class="w"><div class="e"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.2V16c0 1.3 2.7 3 6 3s6-1.7 6-3v-4.8"/><path d="M22 9v6"/></svg></div><div style="font-size:.78rem;letter-spacing:.1em;font-weight:900;color:#a7f3d0">UNEM ISCAE</div><h3>' +
         esc(t("hello")) +
         "</h3><h2></h2><p>" +
         esc(t("helloSub")) +
@@ -694,7 +694,10 @@
       addCss();
       var p = document.createElement("div");
       p.id = "unem-welcome-pill";
-      p.textContent = "👋 " + t("back") + " " + s.name;
+      p.innerHTML =
+        '<span class="ic"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg></span><span class="lb"></span><b class="nm"></b>';
+      p.querySelector(".lb").textContent = t("back");
+      p.querySelector(".nm").textContent = s.name;
       document.documentElement.appendChild(p);
       setTimeout(function () {
         if (p.parentNode) p.parentNode.removeChild(p);
@@ -723,7 +726,10 @@
             if (ev === "SIGNED_OUT") ls(K_STAFF, null);
           });
         }
-        if (typeof canUpload === "function" && canUpload()) {
+        if (
+          (typeof hasAdminDashboardAccess === "function" && hasAdminDashboardAccess()) ||
+          (typeof canUpload === "function" && canUpload())
+        ) {
           ls(K_STAFF, String(Date.now()));
           clearInterval(iv);
           passed = true;
@@ -740,6 +746,18 @@
   var api = (window.UNEM_GATE = {
     student: function () {
       return cached();
+    },
+    /* يُستدعى من صفحة المجتمع بعد أن يؤكد الخادم أن الحساب الحالي مشرف:
+       يُزيل نافذة التسجيل فوراً دون أي بيانات طالب. */
+    staffPass: function () {
+      passed = true;
+      clearInterval(pollTimer);
+      ls(K_STAFF, String(Date.now()));
+      if (root && root.parentNode) root.parentNode.removeChild(root);
+      root = null;
+      try {
+        window.dispatchEvent(new CustomEvent("unem:staff"));
+      } catch (e) {}
     },
     logout: function (stay) {
       var done = function () {
@@ -764,7 +782,7 @@
     if (c) {
       window.UNEM_STUDENT = c;
       passed = true;
-      if (IS_COMMUNITY) welcomeOncePerSession(c);
+      // صفحة المجتمع تعرض الترحيب بالاسم داخل ترويستها، فلا حاجة لشارة عائمة تغطي الأزرار.
       // تحقق في الخلفية: قد يكون المشرف رفض الحساب أو حذفه
       rpc("status")
         .then(function (d) {
@@ -780,11 +798,15 @@
           passed = false;
           ls(K_STUDENT, null);
           window.UNEM_STUDENT = null;
-          if (!IS_COMMUNITY || (staffOk() && d.status === "none")) {
+          if (!IS_COMMUNITY) {
             if (IS_APP) staffWatch();
             return;
           }
-          handle(d.status === "none" ? { status: "none" } : d);
+          if (d.status === "none") {
+            begin();
+            return;
+          }
+          handle(d);
         })
         .catch(function () {
           /* بدون إنترنت: نبقي الجلسة المحفوظة */
@@ -792,11 +814,10 @@
       return;
     }
     if (IS_APP) staffWatch();
-    if (staffOk()) {
-      return;
-    }
     // الموقع والجداول متاحان للزوار؛ التسجيل مطلوب فقط عند دخول المجتمع.
     if (!IS_COMMUNITY) return;
+    // المجتمع: الخادم يقرر. إن كان الحساب مشرفاً تستدعي الصفحة UNEM_GATE.staffPass()
+    // فتُزال نافذة الدخول، وإلا يظهر تسجيل الطالب كالمعتاد.
     begin();
   }
   function begin() {
@@ -814,12 +835,21 @@
           state = "form";
           lastMsg = t("rejected");
           render();
+        } else if (staffOk()) {
+          // حساب مشرف معروف على هذا الجهاز: امنح صفحة المجتمع لحظة لتأكيد صلاحية الإشراف
+          // من الخادم قبل عرض نموذج تسجيل الطالب (يمنع الوميض).
+          setTimeout(function () {
+            if (passed || state === "pending") return;
+            state = "form";
+            render();
+          }, 1800);
         } else {
           state = "form";
           render();
         }
       })
       .catch(function (e) {
+        if (passed) return;
         state = "form";
         if (isSetupError(e)) lastMsg = t("setup");
         render();
