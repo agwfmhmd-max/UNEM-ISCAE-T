@@ -3993,7 +3993,7 @@ body.fp-open{ overflow:hidden !important; }
     }
     
     populateAcademicYears(); updateUploadSemesters(); updateT20Semesters();
-    loadSiteDisplaySettings().then(determineDisplayMode);
+    window.__unemResultsReady = loadSiteDisplaySettings().then(determineDisplayMode).catch(function () {});
 
     let tapCount = 0;
     document.getElementById('main-header').addEventListener('click', async () => {
@@ -9749,5 +9749,52 @@ body.fp-open{ overflow:hidden !important; }
 .pro-card, .admin-sheet, .modal-overlay.fullpage .modal-content { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
 </style>
 
+<script id="unem-auto-results">
+/* UNEM ISCAE — الطالب المسجَّل في المجتمع: يُملأ رقم تسجيله ويُنفَّذ البحث عن نتائجه مباشرة عند دخول القسم. */
+(function () {
+  'use strict';
+  var done = false, tries = 0;
+  function student() {
+    try {
+      var s = JSON.parse(localStorage.getItem('unem_student') || 'null');
+      if (s && s.status === 'approved' && s.reg && String(s.reg).trim()) return s;
+    } catch (e) {}
+    return null;
+  }
+  function note(reg) {
+    var form = document.getElementById('searchForm');
+    if (!form || document.getElementById('unem-auto-note')) return;
+    var n = document.createElement('div');
+    n.id = 'unem-auto-note';
+    n.style.cssText = 'margin:10px 0 0;padding:8px 12px;border-radius:12px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:.82rem;font-weight:700;text-align:center';
+    n.textContent = '✅ تم البحث تلقائياً برقم تسجيلك: ' + reg;
+    form.appendChild(n);
+  }
+  function run() {
+    if (done) return;
+    var s = student();
+    if (!s) return;
+    var input = document.getElementById('matricule');
+    if (!input || typeof window.searchAllSemesters !== 'function') {
+      if (++tries < 60) setTimeout(run, 250);
+      return;
+    }
+    done = true;
+    var reg = String(s.reg).trim().toUpperCase();
+    input.value = reg;
+    var ready = window.__unemResultsReady && typeof window.__unemResultsReady.then === 'function'
+      ? Promise.race([window.__unemResultsReady, new Promise(function (r) { setTimeout(r, 4000); })])
+      : Promise.resolve();
+    ready.then(function () {
+      note(reg);
+      try { window.searchAllSemesters(); } catch (e) {}
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+  window.addEventListener('load', run);
+  window.addEventListener('unem:student', run);
+})();
+</script>
 </body>
 </html>

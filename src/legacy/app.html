@@ -2391,6 +2391,16 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
 .home-welcome .hw-text b em{font-style:normal;color:#fde7a6}
 .home-welcome .hw-text small{display:block;opacity:.85;font-size:.78rem;font-weight:600;margin-top:2px}
 .home-welcome .hw-text small:empty{display:none}
+.home-welcome .hw-emoji{position:relative;color:#fde7a6}
+.home-welcome .hw-emoji svg{width:58%;height:58%;display:block}
+.home-welcome .hw-emoji.is-student{background:linear-gradient(135deg,#f9cf6a,#e2a022);color:#3b2a00;border-color:rgba(255,255,255,.55);font-size:1.05rem;font-weight:900;letter-spacing:.02em;box-shadow:0 6px 16px rgba(0,0,0,.22)}
+.home-welcome .hw-emoji.is-student::after{content:"";position:absolute;bottom:-5px;inset-inline-end:-5px;width:17px;height:17px;border-radius:50%;border:2px solid #0f5132;background:#22c55e url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'><path d='M5 13l4 4L19 7'/></svg>") center/10px no-repeat}
+.home-welcome .hw-kicker{display:block;font-size:.72rem;font-weight:800;letter-spacing:.05em;color:#a7f3d0;line-height:1.4}
+.home-welcome .hw-kicker:empty{display:none}
+.home-welcome .hw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.home-welcome .hw-chips:empty{display:none}
+.home-welcome .hw-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:800;line-height:1.5;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);direction:ltr}
+.home-welcome .hw-chip i{font-size:.68rem;color:#fde7a6}
 .home-welcome .hw-visits{position:relative;display:flex;align-items:center;gap:10px;flex:none;padding:9px 15px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px)}
 .home-welcome .hw-visits i{font-size:1.15rem;color:#fde7a6}
 .home-welcome .hw-visits b{display:block;font-size:1.3rem;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -2459,7 +2469,7 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
 <div class="section-box" id="main-menu">
 <section class="home-welcome" id="home-welcome" aria-live="polite">
 <div class="hw-glow" aria-hidden="true"></div>
-<div class="hw-hi"><span class="hw-emoji" aria-hidden="true">👋</span><div class="hw-text"><b id="hw-line">مرحباً بك في منصة UNEM ISCAE</b><small id="hw-sub"></small></div></div>
+<div class="hw-hi"><span class="hw-emoji" id="hw-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.2V16c0 1.3 2.7 3 6 3s6-1.7 6-3v-4.8"/><path d="M22 9v6"/></svg></span><div class="hw-text"><span class="hw-kicker" id="hw-kicker"></span><b id="hw-line">مرحباً بك في منصة UNEM ISCAE</b><div class="hw-chips" id="hw-chips"></div><small id="hw-sub"></small></div></div>
 <div class="hw-visits" id="hw-visits" style="display:none" title="إجمالي زوار المنصة"><i class="fas fa-users" aria-hidden="true"></i><div><b id="hw-visits-n">0</b><small id="hw-visits-l">إجمالي زوار المنصة</small></div></div>
 </section>
 <button type="button" class="fav-home-bar" id="fav-home-bar" onclick="openFavorites()" aria-label="المفضلة">
@@ -11125,18 +11135,30 @@ body.dark-mode #top-files-overlay [style*="background: #ccfbf1"]{background:#1e2
 <script id="home-welcome-script">
 /* UNEM ISCAE — ترحيب الطالب بالاسم المسجَّل في المجتمع + إجمالي زوار المنصة. Developer: MDA */
 (function(){'use strict';
-var T={ar:{hello:'مرحباً بك في منصة UNEM ISCAE',helloName:'مرحباً بك',welcomeSub:'يسعدنا وجودك معنا — اطّلع على الملخصات والنتائج والجداول والمجتمع.',guestSub:'سجّل في مجتمع الطلاب ليظهر اسمك هنا.',visits:'إجمالي زوار المنصة'},
-fr:{hello:'Bienvenue sur la plateforme UNEM ISCAE',helloName:'Bienvenue',welcomeSub:'Ravis de vous revoir — résumés, résultats, emplois du temps et communauté.',guestSub:'Inscrivez-vous à la communauté pour voir votre nom ici.',visits:'Total des visiteurs de la plateforme'}};
+var T={ar:{hello:'مرحباً بك في منصة UNEM ISCAE',helloName:'مرحباً بك',kick:'مرحباً بك',welcomeSub:'يسعدنا وجودك معنا — اطّلع على الملخصات والنتائج والجداول والمجتمع.',guestSub:'سجّل في مجتمع الطلاب ليظهر اسمك هنا.',visits:'إجمالي زوار المنصة'},
+fr:{hello:'Bienvenue sur la plateforme UNEM ISCAE',helloName:'Bienvenue',kick:'Bienvenue',welcomeSub:'Ravis de vous revoir — résumés, résultats, emplois du temps et communauté.',guestSub:'Inscrivez-vous à la communauté pour voir votre nom ici.',visits:'Total des visiteurs de la plateforme'}};
 var visits=null;
 function lang(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}catch(e){return 'ar'}}
 function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'null');return s&&s.status==='approved'&&s.name?s:null}catch(e){return null}}
 function $(i){return document.getElementById(i)}
+function initials(n){var w=String(n||'').trim().split(/\s+/).filter(Boolean);if(!w.length)return '?';var a=Array.from(w[0])[0]||'',b=w.length>1?(Array.from(w[w.length-1])[0]||''):'';return (a+b).toUpperCase()}
 function fmt(n){try{return Number(n).toLocaleString(lang()==='fr'?'fr-FR':'en-US')}catch(e){return String(n)}}
 function render(){
   var l=lang(),t=T[l],box=$('home-welcome');if(!box)return;
-  var st=student(),line=$('hw-line'),sub=$('hw-sub');
-  if(st){line.textContent='';line.appendChild(document.createTextNode(t.helloName+' '));var em=document.createElement('em');em.textContent=st.name;line.appendChild(em);sub.textContent=t.welcomeSub}
-  else{line.textContent=t.hello;sub.textContent=t.guestSub}
+  var st=student(),line=$('hw-line'),sub=$('hw-sub'),av=$('hw-avatar'),kick=$('hw-kicker'),chips=$('hw-chips');
+  if(!av.__cap)av.__cap=av.innerHTML;
+  if(st){
+    line.textContent='';var em=document.createElement('em');em.textContent=st.name;line.appendChild(em);
+    if(kick)kick.textContent=t.kick;sub.textContent=t.welcomeSub;
+    av.classList.add('is-student');av.textContent=initials(st.name);
+    if(chips){chips.textContent='';
+      [['fa-graduation-cap',st.spec],['fa-layer-group',st.level],['fa-id-card',st.reg]].forEach(function(c){
+        if(!c[1])return;var s=document.createElement('span');s.className='hw-chip';var i=document.createElement('i');i.className='fas '+c[0];i.setAttribute('aria-hidden','true');s.appendChild(i);s.appendChild(document.createTextNode(String(c[1])));chips.appendChild(s)});}
+  }
+  else{
+    line.textContent=t.hello;sub.textContent=t.guestSub;if(kick)kick.textContent='';if(chips)chips.textContent='';
+    if(av.classList.contains('is-student')){av.classList.remove('is-student');av.innerHTML=av.__cap}
+  }
   var v=$('hw-visits');
   if(visits!==null){v.style.display='';$('hw-visits-l').textContent=t.visits;v.title=t.visits;$('hw-visits-n').textContent=fmt(visits)}
 }
