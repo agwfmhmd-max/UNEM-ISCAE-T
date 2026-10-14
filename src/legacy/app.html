@@ -2397,6 +2397,8 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
 .home-welcome .hw-emoji.is-student::after{content:"";position:absolute;bottom:-5px;inset-inline-end:-5px;width:17px;height:17px;border-radius:50%;border:2px solid #0f5132;background:#22c55e url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'><path d='M5 13l4 4L19 7'/></svg>") center/10px no-repeat}
 .home-welcome .hw-kicker{display:block;font-size:.72rem;font-weight:800;letter-spacing:.05em;color:#a7f3d0;line-height:1.4}
 .home-welcome .hw-kicker:empty{display:none}
+.home-welcome .hw-emoji.has-photo{background:#fff;padding:0}
+.home-welcome .hw-emoji img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .home-welcome .hw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .home-welcome .hw-chips:empty{display:none}
 .home-welcome .hw-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:800;line-height:1.5;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);direction:ltr}
@@ -11132,6 +11134,16 @@ body.dark-mode #top-files-overlay [style*="background: #ccfbf1"]{background:#1e2
   #main-menu>.home-welcome .hw-visits small{display:inline-block!important;font-size:.72rem!important}
 }
 </style>
+<style id="unem-home-compact">
+/* الهاتف: بطاقة «مجتمع الطلاب» أصغر (أيقونة بجانب النص) لتظهر بقية الأقسام دون نزول كبير. الأجهزة الأكبر لا تتأثر. */
+@media(max-width:600px){
+  body #main-menu>.semesters-grid{grid-template-rows:auto!important;grid-auto-rows:minmax(clamp(88px,13vh,116px),auto)!important}
+  body #main-menu>.semesters-grid>.semester-card.wide-card.community-card{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto auto!important;column-gap:12px!important;row-gap:0!important;justify-content:start!important;align-content:center!important;align-items:center!important;justify-items:start!important;text-align:start!important;min-height:0!important;height:auto!important;padding:8px 14px!important}
+  body #main-menu>.semesters-grid>.semester-card.wide-card.community-card .icon-box{grid-column:1!important;grid-row:1/span 2!important;width:42px!important;height:42px!important;font-size:1.1rem!important;margin:0!important}
+  body #main-menu>.semesters-grid>.semester-card.wide-card.community-card h3{grid-column:2!important;grid-row:1!important;margin:0!important;font-size:.95rem!important;line-height:1.3!important;text-align:start!important}
+  body #main-menu>.semesters-grid>.semester-card.wide-card.community-card p{grid-column:2!important;grid-row:2!important;margin:2px 0 0!important;max-width:none!important;font-size:.66rem!important;line-height:1.35!important;text-align:start!important}
+}
+</style>
 <script id="home-welcome-script">
 /* UNEM ISCAE — ترحيب الطالب بالاسم المسجَّل في المجتمع + إجمالي زوار المنصة. Developer: MDA */
 (function(){'use strict';
@@ -11142,6 +11154,18 @@ function lang(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}ca
 function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'null');return s&&s.status==='approved'&&s.name?s:null}catch(e){return null}}
 function $(i){return document.getElementById(i)}
 function initials(n){var w=String(n||'').trim().split(/\s+/).filter(Boolean);if(!w.length)return '?';var a=Array.from(w[0])[0]||'',b=w.length>1?(Array.from(w[w.length-1])[0]||''):'';return (a+b).toUpperCase()}
+function avatarFor(st){try{var a=JSON.parse(localStorage.getItem('unem_student_avatar')||'null');if(a&&a.data&&String(a.reg)===String(st.reg)&&/^data:image\/(jpeg|png|webp);base64,/.test(a.data))return a.data}catch(e){}return null}
+function syncAvatar(){
+  var st=student();if(!st)return;var tk=null;try{tk=localStorage.getItem('unem_community_token')}catch(e){}if(!tk||tk.length<30)return;
+  var tries=0;(function go(){
+    if(typeof supabaseClient==='undefined'||!supabaseClient){if(++tries<20)setTimeout(go,500);return}
+    supabaseClient.rpc('community_api',{p_token:tk,p_action:'me',p_args:{}}).then(function(r){
+      var d=r&&r.data;if(!d||d.need_register||d.admin)return;
+      try{if(d.avatar_data)localStorage.setItem('unem_student_avatar',JSON.stringify({reg:st.reg,data:d.avatar_data}));else localStorage.removeItem('unem_student_avatar')}catch(e){}
+      render();
+    }).catch(function(){});
+  })();
+}
 function fmt(n){try{return Number(n).toLocaleString(lang()==='fr'?'fr-FR':'en-US')}catch(e){return String(n)}}
 function render(){
   var l=lang(),t=T[l],box=$('home-welcome');if(!box)return;
@@ -11150,14 +11174,17 @@ function render(){
   if(st){
     line.textContent='';var em=document.createElement('em');em.textContent=st.name;line.appendChild(em);
     if(kick)kick.textContent=t.kick;sub.textContent=t.welcomeSub;
-    av.classList.add('is-student');av.textContent=initials(st.name);
+    av.classList.add('is-student');av.textContent='';
+    var photo=avatarFor(st);
+    if(photo){av.classList.add('has-photo');var im=document.createElement('img');im.alt='';im.decoding='async';im.onerror=function(){av.classList.remove('has-photo');av.textContent=initials(st.name)};im.src=photo;av.appendChild(im)}
+    else{av.classList.remove('has-photo');av.textContent=initials(st.name)}
     if(chips){chips.textContent='';
       [['fa-graduation-cap',st.spec],['fa-layer-group',st.level],['fa-id-card',st.reg]].forEach(function(c){
         if(!c[1])return;var s=document.createElement('span');s.className='hw-chip';var i=document.createElement('i');i.className='fas '+c[0];i.setAttribute('aria-hidden','true');s.appendChild(i);s.appendChild(document.createTextNode(String(c[1])));chips.appendChild(s)});}
   }
   else{
     line.textContent=t.hello;sub.textContent=t.guestSub;if(kick)kick.textContent='';if(chips)chips.textContent='';
-    if(av.classList.contains('is-student')){av.classList.remove('is-student');av.innerHTML=av.__cap}
+    if(av.classList.contains('is-student')){av.classList.remove('is-student','has-photo');av.innerHTML=av.__cap}
   }
   var v=$('hw-visits');
   if(visits!==null){v.style.display='';$('hw-visits-l').textContent=t.visits;v.title=t.visits;$('hw-visits-n').textContent=fmt(visits)}
@@ -11184,9 +11211,11 @@ function loadVisits(){
   })();
 }
 function init(){
-  render();loadVisits();
-  window.addEventListener('unem:student',function(){render()});
-  window.addEventListener('storage',function(e){if(e.key==='unem_student'||e.key==='unem_lang')render()});
+  render();loadVisits();syncAvatar();
+  window.addEventListener('unem:student',function(){render();syncAvatar()});
+  window.addEventListener('unem:avatar',function(){render()});
+  window.addEventListener('pageshow',function(){render();syncAvatar()});
+  window.addEventListener('storage',function(e){if(e.key==='unem_student'||e.key==='unem_lang'||e.key==='unem_student_avatar')render()});
   var old=window.setLanguage;
   if(typeof old==='function'&&!old.__hw){var f=function(){var r=old.apply(this,arguments);try{render()}catch(e){}return r};f.__hw=1;window.setLanguage=f}
 }
