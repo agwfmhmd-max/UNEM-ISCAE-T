@@ -11151,6 +11151,10 @@ body.dark-mode #top-files-overlay [style*="background: #ccfbf1"]{background:#1e2
   :root:root:root body #main-menu>.semesters-grid>.semester-card.wide-card.about-card{grid-column:auto!important}
 }
 </style>
+<style id="unem-hw-avatar-fix">
+#main-menu>.home-welcome .hw-emoji.has-photo{padding:0!important;background:#fff!important}
+#main-menu>.home-welcome .hw-emoji.has-photo img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:inherit!important}
+</style>
 <script id="home-welcome-script">
 /* UNEM ISCAE — ترحيب الطالب بالاسم المسجَّل في المجتمع + إجمالي زوار المنصة. Developer: MDA */
 (function(){'use strict';
@@ -11161,9 +11165,9 @@ function lang(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}ca
 function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'null');return s&&s.status==='approved'&&s.name?s:null}catch(e){return null}}
 function $(i){return document.getElementById(i)}
 function initials(n){var w=String(n||'').trim().split(/\s+/).filter(Boolean);if(!w.length)return '?';var a=Array.from(w[0])[0]||'',b=w.length>1?(Array.from(w[w.length-1])[0]||''):'';return (a+b).toUpperCase()}
-function avatarFor(st){try{var a=JSON.parse(localStorage.getItem('unem_student_avatar')||'null');if(a&&a.data&&String(a.reg)===String(st.reg)&&/^data:image\/(jpeg|png|webp);base64,/.test(a.data))return a.data}catch(e){}return null}
-function syncAvatar(){
-  var st=student();if(!st)return;var tk=null;try{tk=localStorage.getItem('unem_community_token')}catch(e){}if(!tk||tk.length<30)return;
+function avatarFor(st){try{var a=JSON.parse(localStorage.getItem('unem_student_avatar')||'null');if(a&&a.data&&String(a.reg).trim().toLowerCase()===String(st.reg).trim().toLowerCase()&&/^data:image\/(jpeg|png|webp);base64,/.test(a.data))return a.data}catch(e){}return null}
+function syncAvatar(n){
+  n=n||0;var st=student();if(!st)return;var tk=null;try{tk=localStorage.getItem('unem_community_token')}catch(e){}if(!tk||tk.length<30)return;
   var U='https://cbaswqaufawdsvadizyi.supabase.co',K=(window.SUPABASE_KEY||'');
   function key(){
     if(K)return K;
@@ -11174,10 +11178,10 @@ function syncAvatar(){
   var k=key();if(!k)return;
   fetch(U+'/rest/v1/rpc/community_api',{method:'POST',headers:{'Content-Type':'application/json',apikey:k,Authorization:'Bearer '+k},body:JSON.stringify({p_token:tk,p_action:'me',p_args:{}})})
     .then(function(r){return r.json()}).then(function(d){
-      if(!d||d.need_register||d.admin||d.code||d.message)return;
+      if(!d||d.need_register||d.code||d.message)return;if(d.admin&&!d.account)return;
       try{if(d.avatar_data)localStorage.setItem('unem_student_avatar',JSON.stringify({reg:st.reg,data:d.avatar_data}));else localStorage.removeItem('unem_student_avatar')}catch(e){}
       render();
-    }).catch(function(){});
+    }).catch(function(){if(n<2)setTimeout(function(){syncAvatar(n+1)},4000)});
 }
 function fmt(n){try{return Number(n).toLocaleString(lang()==='fr'?'fr-FR':'en-US')}catch(e){return String(n)}}
 function render(){
@@ -11228,6 +11232,10 @@ function init(){
   window.addEventListener('unem:student',function(){render();syncAvatar()});
   window.addEventListener('unem:avatar',function(){render()});
   window.addEventListener('pageshow',function(){render();syncAvatar()});
+  var lastSync=Date.now();
+  function softSync(){if(Date.now()-lastSync<15000)return;lastSync=Date.now();syncAvatar()}
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)softSync()});
+  window.addEventListener('focus',softSync);
   window.addEventListener('storage',function(e){if(e.key==='unem_student'||e.key==='unem_lang'||e.key==='unem_student_avatar')render()});
   var old=window.setLanguage;
   if(typeof old==='function'&&!old.__hw){var f=function(){var r=old.apply(this,arguments);try{render()}catch(e){}return r};f.__hw=1;window.setLanguage=f}

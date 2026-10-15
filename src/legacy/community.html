@@ -158,10 +158,29 @@ body.dark-mode .rep-opt:has(input:checked){background:rgba(225,29,72,.16);color:
 .av{flex:0 0 auto!important;aspect-ratio:1/1;min-width:0;overflow:hidden;border-radius:50%!important}
 .av img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
 .li>.av{width:42px;height:42px;flex:0 0 42px!important}
+<style id="community-v4">
+/* ===== v4: تعديل/حذف/تثبيت + صورة الطالب في الأعلى ===== */
+#meBtn{display:inline-flex;align-items:center;gap:6px}
+#meIc{display:inline-grid;place-items:center}
+#meBtn .av,#hello .av{width:26px!important;height:26px!important;flex:0 0 26px!important;font-size:.72rem;box-shadow:0 0 0 2px rgba(255,255,255,.75)!important}
+#hello .av{width:28px!important;height:28px!important;flex:0 0 28px!important}
+.pin-badge{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:800;color:#92400e;background:#fef3c7;border:1px solid #f5b942;border-radius:999px;padding:2px 9px}
+.ed-tag{display:inline-block;font-size:.68rem;color:var(--mut);font-weight:700}
+.pmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:3px}
+.card.pinned{border-color:#f5b942;box-shadow:0 0 0 2px rgba(245,185,66,.35),var(--shadow)}
+.mmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:3px;justify-content:flex-end}
+.m.pinned{box-shadow:0 0 0 2px rgba(245,185,66,.85)}
+.m.me .ed-tag{color:rgba(255,255,255,.75)}
+.adm-ret{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+.macts .adm-ret{margin:0}
+.macts .btn.sm{width:auto;padding:3px 11px;font-size:.72rem;box-shadow:none}
+.ext-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}
+.acts .edb{margin-inline-start:auto}
+.cm a.cm-edit{font-weight:700;margin-inline-end:8px;color:var(--g2)}
 </style>
 </head><body>
 <header class="hero"><div class="wrap"><div class="top"><a href="/"><i class="fas fa-arrow-right ic-flip" id="homeIc"></i> <span data-t="home">الرئيسية</span></a>
-<div class="grp"><button id="langBtn" type="button" aria-label="Langue / اللغة">Français</button><button id="meBtn" type="button"><i class="fas fa-user"></i> <span id="meName" data-t="me">ملفي</span></button></div></div>
+<div class="grp"><button id="langBtn" type="button" aria-label="Langue / اللغة">Français</button><button id="meBtn" type="button"><span id="meIc"><i class="fas fa-user"></i></span> <span id="meName" data-t="me">ملفي</span></button></div></div>
 <h1 id="h1"></h1><p data-t="sub"></p><p class="hello" id="hello"></p></div></header>
 <nav class="tabs" id="tabs"></nav>
 <main class="wrap" id="main"></main>
@@ -235,7 +254,17 @@ Object.assign(I18N.fr,{replyMsg:'Répondre',replyingTo:'Réponse à',cancel:'Ann
  wSpecT:(n,s)=>'Bienvenue '+n+' dans le salon '+s,wSpecD:(s,l)=>'Salon de discussion en direct des étudiants '+s+', tous niveaux confondus ; vous êtes inscrit en '+lvn(l)+'. Posez vos questions sur les cours et les examens et aidez ceux qui vous sollicitent. Messages en texte uniquement, supprimés après 24 h.',
  wGroupT:(n,g)=>'Bienvenue '+n+' dans le groupe « '+g+' »',wGroupD:(s,l,subj,mem,max,descr)=>'Groupe d’étude des étudiants '+s+' — '+lvn(l)+(subj?' · Matière : '+subj:'')+'. Membres : '+mem+' sur '+max+'.'+(descr?' Objectif du groupe : '+descr+'.':'')+' Révisez ensemble et échangez questions et résumés dans le respect. Les messages sont supprimés après 24 h.',
  wDmT:o=>'Conversation privée avec '+o,wDmD:'Conversation entre deux étudiants de la même filière et du même niveau. Ne partagez pas de numéros de téléphone ni d’informations personnelles. Utilisez « Répondre » pour répondre à un message précis et « Signaler » en cas d’abus. Les messages sont supprimés après 24 h.'});
-const AVC={},GC={};let RT=null;
+Object.assign(I18N.ar,{edit:'تعديل',save:'حفظ',saved:'تم حفظ التعديل',editedTag:'معدّل',pinned:'مثبّت',pin:'تثبيت',unpin:'إلغاء التثبيت',extend:'تمديد',extendTitle:'زيادة مدة الظهور',
+ ext1d:'+ يوم',ext3d:'+ 3 أيام',ext7d:'+ 7 أيام',ext30d:'+ 30 يوماً',extOk:'تمت زيادة مدة الظهور',pinOk:'تم التثبيت — سيبقى ظاهراً دون أن يختفي',unpinOk:'أُلغي التثبيت وعادت المدة العادية',
+ editPostT:'تعديل المنشور',editMsgT:'تعديل الرسالة',editCmT:'تعديل التعليق',delMsgQ:'حذف هذه الرسالة؟',delCmQ:'حذف هذا التعليق؟',delOk:'تم الحذف',e_forbidden:'غير مسموح بهذا الإجراء',
+ expIn:s=>'ينتهي بعد '+s,expDone:'منتهي',dd:n=>n+' يوم',hh:n=>n+' س',mm:n=>n+' د',
+ wPostsD:(s,l)=>'هذا فضاء طلبة المعهد كلهم، وأنت من '+s+' — '+lvn(l)+'. اطرح سؤالاً دراسياً، أو اطلب مساعدة، أو شارك إعلاناً؛ تظهر لك هنا منشورات جميع طلاب المعهد من كل التخصصات والمستويات، ويمكنك تعديل منشوراتك أو حذفها في أي وقت. تنتهي المنشورات بعد 7 أيام ما لم يثبّتها المشرف.'});
+Object.assign(I18N.fr,{edit:'Modifier',save:'Enregistrer',saved:'Modification enregistrée',editedTag:'modifié',pinned:'Épinglé',pin:'Épingler',unpin:'Désépingler',extend:'Prolonger',extendTitle:'Prolonger la durée d’affichage',
+ ext1d:'+ 1 jour',ext3d:'+ 3 jours',ext7d:'+ 7 jours',ext30d:'+ 30 jours',extOk:'Durée d’affichage prolongée',pinOk:'Épinglé — il restera affiché sans disparaître',unpinOk:'Désépinglé, durée normale rétablie',
+ editPostT:'Modifier la publication',editMsgT:'Modifier le message',editCmT:'Modifier le commentaire',delMsgQ:'Supprimer ce message ?',delCmQ:'Supprimer ce commentaire ?',delOk:'Supprimé',e_forbidden:'Action non autorisée',
+ expIn:s=>'Expire dans '+s,expDone:'Expiré',dd:n=>n+' j',hh:n=>n+' h',mm:n=>n+' min',
+ wPostsD:(s,l)=>'Voici l’espace de tous les étudiants de l’institut ; vous êtes en '+s+' — '+lvn(l)+'. Posez une question, demandez de l’aide ou partagez une annonce ; vous voyez ici les publications de tous les étudiants, toutes filières et tous niveaux confondus, et vous pouvez modifier ou supprimer les vôtres à tout moment. Les publications expirent après 7 jours sauf si un modérateur les épingle.'});
+const AVC={},GC={},MSGS={};let RT=null,SYNC_N=0;
 const rem=(id,name,avatar)=>{if(!id)return;const e=AVC[id]||(AVC[id]={});if(name)e.name=name;if(avatar)e.avatar=avatar};
 let LANG=localStorage.getItem('unem_lang')==='fr'?'fr':'ar';
 const t=(k,...a)=>{const v=(I18N[LANG][k]!==undefined?I18N[LANG][k]:I18N.ar[k]);return typeof v==='function'?v(...a):v};
@@ -246,9 +275,9 @@ if(localStorage.getItem('unem_theme')==='dark')document.body.classList.add('dark
 let sb;try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
 let TK=localStorage.getItem('unem_community_token');if(!TK||TK.length<30){TK=crypto.randomUUID()+crypto.randomUUID();localStorage.setItem('unem_community_token',TK)}
 let me=null,tab='posts',fKind='',timer=null,room=null,lastId=0,saved=JSON.parse(localStorage.getItem('unem_community_saved')||'[]');
-const ERR_KEYS=['rate','report_rate','banned','full','empty','not_member'];
+const ERR_KEYS=['rate','report_rate','banned','full','empty','not_member','forbidden'];
 function toast(m){const e=$('#toast');e.textContent=m;e.style.display='block';clearTimeout(e._h);e._h=setTimeout(()=>e.style.display='none',2800)}
-function cacheAvatar(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'null');if(!s||!s.reg||!me||me.admin)return;if(me.avatar_data)localStorage.setItem('unem_student_avatar',JSON.stringify({reg:s.reg,data:me.avatar_data}));else localStorage.removeItem('unem_student_avatar')}catch(e){}}
+function cacheAvatar(){try{var s=null;try{s=JSON.parse(localStorage.getItem('unem_student')||'null')}catch(e){}if(!s||!s.reg)s=window.UNEM_STUDENT||s;if(!s||!s.reg||!me)return;if(me.admin&&!me.account)return;if(me.avatar_data)localStorage.setItem('unem_student_avatar',JSON.stringify({reg:s.reg,data:me.avatar_data}));else localStorage.removeItem('unem_student_avatar')}catch(e){}}
 async function api(a,args={}){if(!sb)throw Error('offline');const{data,error}=await sb.rpc('community_api',{p_token:TK,p_action:a,p_args:args});if(error)throw error;return data}
 async function run(a,args,ok){try{const d=await api(a,args);if(d&&d.need_register){setTimeout(needLogin,0);return null}if(ok)ok(d);return d}catch(e){const m=String(e.message||e),k=ERR_KEYS.find(k=>m.includes(k));toast(k?t('e_'+k):(/community_api|PGRST202|schema cache/.test(m)?t('e_setup'):t('e_conn')));return null}}
 const ago=x=>{const m=Math.max(1,Math.round((Date.now()-new Date(x))/6e4));return m<60?t('ago_m',m):m<1440?t('ago_h',Math.round(m/60)):t('ago_d',Math.round(m/1440))};
@@ -270,6 +299,11 @@ function applyLang(){
     }else h.textContent=me&&me.name?'🛡️ '+t('adminBadge'):'';
   })($('#hello'));$('#hello').style.display=me&&me.name?'':'none';
   if(me&&me.name)$('#meName').textContent=me.name;
+  paintHeaderAvatar();
+}
+function paintHeaderAvatar(){
+  const ic=$('#meIc');if(ic)ic.innerHTML=me&&me.avatar_data&&(!me.admin||me.account)?av(me.name,me.avatar_data):'<i class="fas fa-user"></i>';
+  const h=$('#hello'),sv=h&&h.querySelector('svg');if(sv&&me&&me.avatar_data&&!me.admin)sv.outerHTML=av(me.name,me.avatar_data);
 }
 $('#langBtn').onclick=()=>{LANG=LANG==='ar'?'fr':'ar';localStorage.setItem('unem_lang',LANG);try{if(typeof window.setLanguage==='function')window.setLanguage(LANG)}catch(e){}applyLang();if(me&&me.name)render()};
 /* ===== ملفي: الاسم والتخصص والمستوى من حساب الطالب (للقراءة فقط) ===== */
@@ -279,7 +313,7 @@ function profile(){
 <div class="row"><div><label>${t('pSpec')}</label><input value="${esc(SPECS[me?.spec]||me?.spec||'')}" readonly></div><div><label>${t('pLevel')}</label><input value="${esc(me?.level||'')}" readonly></div></div>
 <p class="note">${t('pNote')}</p><label>${t('avatar')}</label><div class="ph" style="margin:8px 0">${av(me?.name,me?.avatar_data)}<input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp"></div><p class="note">${t('avatarHint')}</p><button class="btn alt" id="avatarSave" type="button">${t('avatarSave')}</button><div class="row" style="margin-top:10px"><button class="btn alt" id="pOut" type="button">${t('pSwitch')}</button><button class="btn" id="pOk" type="button">${t('pClose')}</button></div>`);
   $('#pOk').onclick=shut;
-  $('#avatarSave').onclick=async()=>{const f=$('#avatarFile').files?.[0];if(!f)return toast(t('e_empty'));if(f.size>1024*1024)return toast(t('avatarHint'));try{const data=await new Promise((resolve,reject)=>{const im=new Image(),url=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement('canvas'),size=320;c.width=size;c.height=size;const ctx=c.getContext('2d'),side=Math.min(im.width,im.height),x=(im.width-side)/2,y=(im.height-side)/2;ctx.drawImage(im,x,y,side,side,0,0,size,size);URL.revokeObjectURL(url);resolve(c.toDataURL('image/jpeg',.78))};im.onerror=reject;im.src=url});const out=await api('avatar',{data});if(out?.avatar_data)me.avatar_data=out.avatar_data;cacheAvatar();toast(t('avatarOk'));profile()}catch(e){toast(t('e_conn'))}};
+  $('#avatarSave').onclick=async()=>{const f=$('#avatarFile').files?.[0];if(!f)return toast(t('e_empty'));if(f.size>1024*1024)return toast(t('avatarHint'));try{const data=await new Promise((resolve,reject)=>{const im=new Image(),url=URL.createObjectURL(f);im.onload=()=>{const c=document.createElement('canvas'),size=320;c.width=size;c.height=size;const ctx=c.getContext('2d'),side=Math.min(im.width,im.height),x=(im.width-side)/2,y=(im.height-side)/2;ctx.drawImage(im,x,y,side,side,0,0,size,size);URL.revokeObjectURL(url);resolve(c.toDataURL('image/jpeg',.78))};im.onerror=reject;im.src=url});const out=await api('avatar',{data});if(out?.avatar_data)me.avatar_data=out.avatar_data;cacheAvatar();paintHeaderAvatar();toast(t('avatarOk'));profile()}catch(e){toast(t('e_conn'))}};
   $('#pOut').onclick=()=>{if(!confirm(t('pSwitchQ')))return;shut();me=null;if(window.UNEM_GATE)window.UNEM_GATE.logout(true);else{localStorage.removeItem('unem_student');location.href='/'}};
 }
 $('#meBtn').onclick=()=>{if(me&&me.id)profile()};
@@ -290,7 +324,7 @@ function needLogin(){
 }
 const BASE_TABS=[['posts','t_posts','fa-newspaper'],['rooms','t_rooms','fa-hashtag'],['groups','t_groups','fa-users'],['partner','t_partner','fa-handshake'],['dms','t_dms','fa-comments']];
 function render(){const tabs=me&&me.admin?BASE_TABS.concat([['admin','t_admin','fa-shield-halved']]):BASE_TABS;$('#tabs').innerHTML=tabs.map(x=>`<button class="${x[0]==tab?'on':''}" onclick="tab='${x[0]}';render()"><i class="fas ${x[2]}"></i> ${t(x[1])}</button>`).join('');$('#main').innerHTML='<div class="empty"><i class="fas fa-spinner fa-spin"></i></div>';({posts:vPosts,rooms:vRooms,groups:vGroups,partner:vPartner,dms:vDms,admin:vAdmin})[tab]()}
-function postCard(p,partner){rem(p.aid,p.an,p.avatar);const sv=saved.includes(p.id),K=KINDS();return `<div class="card" id="p${p.id}"><div class="ph">${av(p.an,p.avatar)}<div style="flex:1"><b>${esc(p.an)}</b>${partner?'':`<span class="tag ${p.kind}">${K[p.kind]||''}</span>`}<small>${ago(p.t)} · ${SPECS[p.spec]||''} · ${p.level||''}${p.subject?' · '+esc(p.subject):''}</small></div>${p.can_del?`<button class="btn sm alt" title="${t('del')}" onclick="delPost('${p.id}')"><i class="fas fa-trash"></i></button>`:''}</div><div class="body">${esc(p.body)}</div><div class="acts">${partner?`<button data-id="${esc(p.aid)}" data-name="${esc(p.an)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>${!me?.admin&&p.aid!==me?.id?repBtn('post',p.id,p.aid,p.an):''}`:`<button class="${p.liked?'on':''}" onclick="like('${p.id}')"><i class="fas fa-heart"></i> ${p.likes}</button><button onclick="cms('${p.id}')"><i class="fas fa-comment"></i> ${p.comments}</button><button class="${sv?'on':''}" onclick="save('${p.id}')" style="margin-inline-start:auto"><i class="fas fa-bookmark"></i></button>${!me?.admin&&p.aid!==me?.id?repBtn('post',p.id,p.aid,p.an):''}`}</div><div id="c${p.id}"></div></div>`}
+function postCard(p,partner){rem(p.aid,p.an,p.avatar);const sv=saved.includes(p.id),K=KINDS();return `<div class="card${p.pinned?' pinned':''}" id="p${p.id}" data-kind="${esc(p.kind)}"><div class="ph">${av(p.an,p.avatar)}<div style="flex:1"><b>${esc(p.an)}</b>${partner?'':`<span class="tag ${p.kind}">${K[p.kind]||''}</span>`}<small>${ago(p.t)} · ${SPECS[p.spec]||''} · ${p.level||''}${p.subject?' · '+esc(p.subject):''}</small>${postMeta(p)}</div>${p.can_edit?`<button class="btn sm alt" title="${t('edit')}" onclick="editPost('${p.id}')"><i class="fas fa-pen"></i></button>`:''}${p.can_del?`<button class="btn sm alt" title="${t('del')}" onclick="delPost('${p.id}')"><i class="fas fa-trash"></i></button>`:''}</div><div class="body">${esc(p.body)}</div>${admRet('post',p.id,p.pinned)}<div class="acts">${partner?`<button data-id="${esc(p.aid)}" data-name="${esc(p.an)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>${!me?.admin&&p.aid!==me?.id?repBtn('post',p.id,p.aid,p.an):''}`:`<button class="${p.liked?'on':''}" onclick="like('${p.id}')"><i class="fas fa-heart"></i> ${p.likes}</button><button onclick="cms('${p.id}')"><i class="fas fa-comment"></i> ${p.comments}</button><button class="${sv?'on':''}" onclick="save('${p.id}')" style="margin-inline-start:auto"><i class="fas fa-bookmark"></i></button>${!me?.admin&&p.aid!==me?.id?repBtn('post',p.id,p.aid,p.an):''}`}</div><div id="c${p.id}"></div></div>`}
 async function vPosts(){const d=await run('feed',{kind:fKind});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failPosts')}</div>`;const K=KINDS();
 const wlc=me.admin?`<div class="card wl"><div class="wl-ic"><i class="fas fa-shield-halved"></i></div><div><b>${esc(t('wPostsAdminT'))}</b><p>${esc(t('wPostsAdminD'))}</p></div></div>`:`<div class="card wl"><div class="wl-ic"><i class="fas fa-graduation-cap"></i></div><div><b>${esc(t('wPostsT',me.name))}</b><p>${esc(t('wPostsD',SPECS[me.spec]||me.spec||'',me.level))}</p><div class="wl-chips"><span>${esc(SPECS[me.spec]||me.spec||'')}</span><span>${esc(lvn(me.level))}</span></div></div></div>`;
 $('#main').innerHTML=wlc+`<div class="card"><div class="ph">${av(me.name,me.avatar_data)}<div><b>${t('share')}</b><small>${t('shareSub')}</small></div></div><div class="chips" id="nk">${Object.entries(K).map(([k,v],i)=>`<span class="chip${i?'':' on'}" data-k="${k}">${v}</span>`).join('')}</div>
@@ -300,6 +334,33 @@ $('#nk').onclick=e=>{if(e.target.dataset.k){document.querySelectorAll('#nk .chip
 function newPartner(){const subject=($('#qSu').value||'').trim(),body=($('#qB').value||'').trim();if(!body)return toast(t('e_empty'));run('post',{kind:'partner',subject,body},()=>{toast(t('pPosted'));render()})}
 function newPost(){const body=$('#nb').value.trim(),k=$('#nk .on').dataset.k;if(!body)return toast(t('e_empty'));run('post',{kind:k,body},()=>render())}
 const delPost=id=>confirm(t('delPostQ'))&&run('del_post',{id},()=>render());
+/* ===== تعديل/تثبيت/تمديد ===== */
+const pinBadge=()=>`<span class="pin-badge"><i class="fas fa-thumbtack"></i> ${t('pinned')}</span>`;
+const edTag=()=>`<span class="ed-tag">· ${t('editedTag')}</span>`;
+function leftTxt(x){const ms=new Date(x)-Date.now();if(!isFinite(ms))return '';if(ms<=0)return t('expDone');const m=Math.round(ms/6e4);return t('expIn',m<60?t('mm',Math.max(1,m)):m<2880?t('hh',Math.round(m/60)):t('dd',Math.round(m/1440)))}
+const admRet=(type,id,pinned)=>me&&me.admin?`<span class="adm-ret"><button type="button" class="btn sm alt" onclick="adminPin('${type}','${esc(id)}',${pinned?'false':'true'})"><i class="fas fa-thumbtack"></i> ${pinned?t('unpin'):t('pin')}</button>${pinned?'':`<button type="button" class="btn sm alt" onclick="adminExtend('${type}','${esc(id)}')"><i class="fas fa-clock"></i> ${t('extend')}</button>`}</span>`:'';
+const postMeta=p=>{const b=[];if(p.pinned)b.push(pinBadge());if(p.ed)b.push(edTag());if(me&&me.admin&&p.exp)b.push(`<span class="ed-tag"><i class="fas fa-hourglass-half"></i> ${leftTxt(p.exp)}</span>`);return b.length?`<div class="pmeta">${b.join('')}</div>`:''};
+const afterRet=type=>{if(type==='message'&&room)syncMsgs(room);else render()};
+window.adminPin=(type,id,pinned)=>{if(!me?.admin)return;run('admin_pin',{type,id,pinned},()=>{toast(t(pinned?'pinOk':'unpinOk'));afterRet(type)})};
+window.adminExtend=(type,id)=>{if(!me?.admin)return;
+  sheet(`<h3><i class="fas fa-clock"></i> ${t('extendTitle')}</h3><div class="ext-opts">${[[24,'ext1d'],[72,'ext3d'],[168,'ext7d'],[720,'ext30d']].map(([h,k])=>`<button type="button" class="btn alt" data-h="${h}">${t(k)}</button>`).join('')}</div><button class="btn alt" id="exC" type="button">${t('cancel')}</button>`);
+  document.querySelectorAll('#sheet .ext-opts button').forEach(b=>b.onclick=()=>{b.disabled=true;run('admin_extend',{type,id,hours:+b.dataset.h},()=>{shut();toast(t('extOk'));afterRet(type)}).then(d=>{if(d===null)b.disabled=false})});
+  $('#exC').onclick=shut};
+function editSheet(title,text,withKind,kind,onSave,max){
+  const K=KINDS();
+  sheet(`<h3><i class="fas fa-pen"></i> ${esc(title)}</h3>${withKind?`<div class="chips" id="ek">${Object.entries(K).map(([k,v])=>`<span class="chip${k===kind?' on':''}" data-k="${k}">${v}</span>`).join('')}</div>`:''}<textarea id="edT" maxlength="${max}" style="min-height:120px">${esc(text)}</textarea><div class="row" style="margin-top:10px"><button class="btn alt" id="edC" type="button">${t('cancel')}</button><button class="btn" id="edS" type="button"><i class="fas fa-check"></i> ${t('save')}</button></div>`);
+  const ta=$('#edT');ta.focus();try{ta.setSelectionRange(ta.value.length,ta.value.length)}catch(e){}
+  if(withKind)$('#ek').onclick=e=>{if(e.target.dataset.k){document.querySelectorAll('#ek .chip').forEach(c=>c.classList.remove('on'));e.target.classList.add('on')}};
+  $('#edC').onclick=shut;
+  $('#edS').onclick=()=>{const body=ta.value.trim();if(!body)return toast(t('e_empty'));const k=withKind?(document.querySelector('#ek .on')||{dataset:{}}).dataset.k:undefined;$('#edS').disabled=true;onSave(body,k).then(d=>{if(d===null)$('#edS').disabled=false})}}
+function editPost(id){const c=document.getElementById('p'+id),b=c&&c.querySelector('.body');if(!b)return;const kind=c.dataset.kind||'';
+  editSheet(t('editPostT'),b.textContent,kind!=='partner'&&!!kind,kind,(body,k)=>run('edit_post',{id,body,kind:k},()=>{shut();toast(t('saved'));render()}),3000)}
+function editCm(id,pid){const b=document.getElementById('cb'+id);if(!b)return;
+  editSheet(t('editCmT'),b.textContent,false,'',body=>run('edit_comment',{id,body},()=>{shut();toast(t('saved'));$('#c'+pid).innerHTML='';cms(pid)}),1000)}
+function editMsgEl(el){const id=String(el.dataset.id),m=MSGS[id];if(!m)return;
+  editSheet(t('editMsgT'),m.body,false,'',body=>run('edit_message',{id,body},()=>{shut();toast(t('saved'));syncMsgs(room)}),1000)}
+function delMsgEl(el){const id=String(el.dataset.id);if(!confirm(t('delMsgQ')))return;run('del_message',{id},()=>{const w=document.querySelector('[data-message-id="'+id.replace(/[^0-9]/g,'')+'"]');if(w)w.remove();delete MSGS[id];toast(t('delOk'))})}
+
 const like=id=>run('like',{id},()=>render());
 const save=id=>{saved=saved.includes(id)?saved.filter(x=>x!=id):[...saved,id];localStorage.setItem('unem_community_saved',JSON.stringify(saved));render()};
 const repBtn=(kind,target,aid,an)=>`<button type="button" class="rep" data-k="${esc(kind)}" data-t="${esc(target)}" data-a="${esc(aid||'')}" data-n="${esc(an||'')}" onclick="event.stopPropagation();reportEl(this)"><i class="fas fa-flag"></i> ${t('reportBtn')}</button>`;
@@ -311,7 +372,7 @@ function reportMenu(kind,target,aid,an){
   $('#repS').onclick=()=>{const w=document.querySelector('input[name=repw]:checked')?.value||'content',k=w==='student'?'student':kind,tg=w==='student'?aid:target;$('#repS').disabled=true;run('report',{kind:k,target:String(tg),reason:$('#repR').value.trim()},()=>{shut();toast(t('reportOk'))}).then(d=>{if(d===null)$('#repS').disabled=false})}
 }
 const report=(kind,target)=>reportMenu(kind,target,'','');
-async function cms(id){const box=$('#c'+id);if(box.innerHTML)return box.innerHTML='';const d=await run('comments',{id});if(!d)return;box.innerHTML=d.map(c=>`<div class="cm"><div class="ph">${av(c.an,c.avatar)}<div style="flex:1"><b>${esc(c.an)}</b> <small style="color:var(--mut)">${ago(c.t)}</small></div>${c.can_del?`<a href="#" onclick="delCm('${c.id}','${id}');return false" style="color:#e11d48;font-weight:700">${t('del')}</a>`:''}${!me?.admin&&c.aid!==me?.id?repBtn('comment',c.id,c.aid,c.an):''}</div><div>${esc(c.body)}</div></div>`).join('')+`<div class="row" style="margin-top:8px"><input id="ci${id}" maxlength="1000" placeholder="${t('cmPh')}"><button class="btn sm" style="flex:none" onclick="addCm('${id}')"><i class="fas fa-paper-plane"></i></button></div>`}
+async function cms(id){const box=$('#c'+id);if(box.innerHTML)return box.innerHTML='';const d=await run('comments',{id});if(!d)return;box.innerHTML=d.map(c=>`<div class="cm"><div class="ph">${av(c.an,c.avatar)}<div style="flex:1"><b>${esc(c.an)}</b> <small style="color:var(--mut)">${ago(c.t)}</small>${c.ed?edTag():''}</div>${c.can_edit?`<a href="#" class="cm-edit" onclick="editCm('${c.id}','${id}');return false">${t('edit')}</a>`:''}${c.can_del?`<a href="#" onclick="delCm('${c.id}','${id}');return false" style="color:#e11d48;font-weight:700">${t('del')}</a>`:''}${!me?.admin&&c.aid!==me?.id?repBtn('comment',c.id,c.aid,c.an):''}</div><div class="cmb" id="cb${c.id}">${esc(c.body)}</div></div>`).join('')+`<div class="row" style="margin-top:8px"><input id="ci${id}" maxlength="1000" placeholder="${t('cmPh')}"><button class="btn sm" style="flex:none" onclick="addCm('${id}')"><i class="fas fa-paper-plane"></i></button></div>`}
 const bump=(id,n)=>{const b=document.querySelector(`#p${id} .acts button:nth-child(2)`);if(b)b.lastChild.textContent=' '+Math.max(0,(parseInt(b.textContent)||0)+n)};
 const addCm=id=>{const body=$('#ci'+id).value.trim();if(!body)return;run('comment',{id,body},()=>{bump(id,1);$('#c'+id).innerHTML='';cms(id)})};
 const delCm=(id,pid)=>run('del_comment',{id},()=>{bump(pid,-1);$('#c'+pid).innerHTML='';cms(pid)});
@@ -333,14 +394,14 @@ function groupForm(){sheet(`<h3>${t('gTitle')}</h3><label>${t('gName')}</label><
 $('#gOk').onclick=()=>{const name=$('#gN').value.trim();if(name.length<2)return toast(t('gNameErr'));const gi={name,subject:$('#gSu').value.trim(),max:+$('#gM').value||10,descr:$('#gD').value.trim(),members:1,spec:me.spec,level:me.level};run('group_new',{name,subject:$('#gSu').value,max:+$('#gM').value||10,level:me.level,spec:me.spec,descr:$('#gD').value},d=>{GC[d.id]=gi;shut();openChat('group:'+d.id,name,t('gStudy'))})}}
 function openGroupEl(el){const id=el.dataset.id,name=el.dataset.n,sub=el.dataset.s;if(el.dataset.j==='1')return openChat('group:'+id,name,sub);run('group_join',{id},()=>openChat('group:'+id,name,sub))}
 let pF={spec:'',level:'',subject:''};
-async function vPartner(){let d;if(me?.admin){const x=await run('admin_list');d=x&&(x.posts||[]).filter(p=>p.kind==='partner').map(p=>({...p,can_del:true}))||[]}else d=await run('feed',{kind:'partner',...pF});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;
+async function vPartner(){let d;if(me?.admin){const x=await run('admin_list');d=x&&(x.posts||[]).filter(p=>p.kind==='partner').map(p=>({...p,can_del:true,can_pin:true}))||[]}else d=await run('feed',{kind:'partner',...pF});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;
 if(me?.admin){$('#main').innerHTML=`<p class="note">${t('adminAllNote')}</p><h3>${t('adminAllRequests')}</h3>`+(d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`);return}
 $('#main').innerHTML=`<div class="card"><b><i class="fas fa-handshake"></i> ${t('pFind')}</b><div class="card" style="padding:8px;margin:8px 0"><b>${esc(SPECS[me.spec]||me.spec)} · ${esc(me.level)}</b></div><input id="qSu" maxlength="60" placeholder="${t('pSubjPh')}"><textarea id="qB" maxlength="300" style="margin-top:8px" placeholder="${t('pBodyPh')}"></textarea><button class="btn" style="margin-top:8px" onclick="newPartner()">${t('pPost')}</button><p class="note">${t('pHint')}</p></div><div style="height:10px"></div>${d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`}`}
 async function vAdmin(){if(!me?.admin)return;const d=await run('admin_list');if(!d)return;
 const del=(type,id)=>`<button class="btn sm alt" onclick="adminDelete('${type}','${esc(id)}')"><i class="fas fa-trash"></i> ${t('del')}</button>`;
-const post=(d.posts||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(KINDS()[x.kind]||x.kind)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small><div class="body">${esc(x.body)}</div>${del('post',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+const post=(d.posts||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(KINDS()[x.kind]||x.kind)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small><div class="body">${esc(x.body)}</div>${x.pinned?pinBadge():''}${del('post',x.id)} ${admRet('post',x.id,x.pinned)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
 const groups=(d.groups||[]).map(x=>`<div class="card li"><div><b>${esc(x.name)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small></div>${del('group',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
-const msgs=(d.messages||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(x.room)}</b><div class="body">${esc(x.body)}</div>${del('message',x.id)} <button class="btn sm alt" onclick="adminClearRoom('${esc(x.room)}')">${t('clearRoom')}</button></div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
+const msgs=(d.messages||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(x.room)}</b><div class="body">${esc(x.body)}</div>${x.pinned?pinBadge():''}${del('message',x.id)} ${admRet('message',x.id,x.pinned)} <button class="btn sm alt" onclick="adminClearRoom('${esc(x.room)}')">${t('clearRoom')}</button></div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
 const comments=(d.comments||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${ago(x.t)}</b><div class="body">${esc(x.body)}</div>${del('comment',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
 const reports=(d.reports||[]).map(x=>`<div class="card"><b>${esc(x.kind||'')}</b>${x.target_name?` · ${esc(x.target_name)}`:''}<div class="body">${esc(x.target_content||x.target||'')}<br>${esc(x.reason||'')}</div>${del('report',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
 const rooms=(d.rooms||[]).map(x=>`<div class="card li"><div><b>${esc(x.room)}</b><small>${x.messages} · ${ago(x.last_t)}</small></div><button class="btn sm" onclick="openAdminRoom('${esc(x.room)}')">${t('adminOpenRoom')}</button> <button class="btn sm alt" onclick="adminClearRoom('${esc(x.room)}')">${t('clearRoom')}</button></div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
@@ -360,20 +421,36 @@ function chatWelcome(r,ti){if(!me||me.admin)return '';const n=me.name,s=SPECS[me
   else return '';
   return `<div class="sysmsg"><i class="fas ${ic}"></i><b>${esc(T)}</b><span>${esc(D)}</span></div>`}
 function refreshHead(){if(room&&room.startsWith('dm:')&&!(me&&me.admin)){const h=$('#chIcon');if(h)h.outerHTML=roomMark(room,$('#chT').textContent,true)}}
-function openChat(r,ti,s){room=r;lastId=0;cancelReply();$('#chIcon').outerHTML=roomMark(r,ti,true);$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML=chatWelcome(r,ti);const cb=$('#chClear');cb.hidden=!(me&&me.admin);if(me&&me.admin)cb.onclick=()=>adminClearRoom(r);$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
+function openChat(r,ti,s){room=r;lastId=0;SYNC_N=0;Object.keys(MSGS).forEach(k=>delete MSGS[k]);cancelReply();$('#chIcon').outerHTML=roomMark(r,ti,true);$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML=chatWelcome(r,ti);const cb=$('#chClear');cb.hidden=!(me&&me.admin);if(me&&me.admin)cb.onclick=()=>adminClearRoom(r);$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
 function closeChat(){$('#chat').classList.remove('open');clearInterval(timer);room=null;cancelReply();if(tab==='groups'||tab==='dms')render()}
 function showReply(){const b=$('#replyBar');if(!RT){b.hidden=true;b.innerHTML='';return}b.hidden=false;b.innerHTML=`<i class="fas fa-reply"></i><div><b>${esc(t('replyingTo'))} ${esc(RT.name)}</b><small>${esc(RT.body)}</small></div><button type="button" aria-label="${esc(t('cancel'))}" onclick="cancelReply()"><i class="fas fa-xmark"></i></button>`}
 function replyEl(el){RT={id:el.dataset.id,name:el.dataset.n,body:el.dataset.b};showReply();$('#chIn').focus()}
 function cancelReply(){RT=null;showReply()}
 function jumpMsg(id){const el=document.querySelector('[data-message-id="'+String(id).replace(/[^0-9]/g,'')+'"]');if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1300)}
 const nameHue=n=>[...String(n)].reduce((s,c)=>s+c.charCodeAt(0),0)*37%360;
-async function pull(){if(!room||document.hidden)return;const r=room,d=await api('msgs',{room:r,after:lastId}).catch(()=>null);if(!d||d.need_register||r!==room||!d.length)return;const box=$('#msgs'),down=box.scrollHeight-box.scrollTop-box.clientHeight<80||!lastId,isDm=r.startsWith('dm:'),adm=!!(me&&me.admin);
-  d.forEach(m=>{lastId=Math.max(lastId,m.id);const mine=!!m.mine,name=m.an||me.name;rem(m.aid,name,mine?null:m.avatar);const side=!mine&&(!isDm||adm),avatar=(AVC[m.aid]||{}).avatar;
-    const quote=m.rt?`<div class="q" data-r="${esc(m.rt)}" onclick="jumpMsg(this.dataset.r)"><b>${esc(m.rn||'')}</b>${esc(m.rb||'')}</div>`:'';
-    const nm=side?`<span class="mn" style="color:hsl(${nameHue(name)} 55% 38%)" data-id="${esc(m.aid)}" data-name="${esc(name)}" onclick="openDmEl(this)">${esc(name)}</span>`:'';
-    const acts=`<div class="macts"><button type="button" class="mrp" data-id="${esc(m.id)}" data-n="${esc(name)}" data-b="${esc(String(m.body).slice(0,140))}" onclick="replyEl(this)"><i class="fas fa-reply"></i> ${t('replyMsg')}</button>${!adm&&!mine&&m.aid!==me?.id?repBtn('message',m.id,m.aid,name):''}${adm?`<button type="button" class="btn sm alt" onclick="adminDelete('message','${m.id}')" title="${t('adminMsgDelete')}"><i class="fas fa-trash"></i></button>`:''}</div>`;
-    box.insertAdjacentHTML('beforeend',`<div class="mw${mine?' me':''}" data-message-id="${m.id}">${side?av(name,avatar):''}<div class="m${mine?' me':''}">${nm}${quote}<div class="mt">${esc(m.body)}</div>${acts}</div></div>`)});
-  if(isDm)refreshHead();if(down)box.scrollTop=box.scrollHeight}
+function msgHtml(m,isDm,adm){
+  const mine=!!m.mine,name=m.an||me.name,side=!mine&&(!isDm||adm),avatar=(AVC[m.aid]||{}).avatar;
+  const quote=m.rt?`<div class="q" data-r="${esc(m.rt)}" onclick="jumpMsg(this.dataset.r)"><b>${esc(m.rn||'')}</b>${esc(m.rb||'')}</div>`:'';
+  const nm=side?`<span class="mn" style="color:hsl(${nameHue(name)} 55% 38%)" data-id="${esc(m.aid)}" data-name="${esc(name)}" onclick="openDmEl(this)">${esc(name)}</span>`:'';
+  const own=mine?`<button type="button" class="mrp" data-id="${esc(m.id)}" onclick="editMsgEl(this)"><i class="fas fa-pen"></i> ${t('edit')}</button>${adm?'':`<button type="button" class="mrp" data-id="${esc(m.id)}" onclick="delMsgEl(this)"><i class="fas fa-trash"></i> ${t('del')}</button>`}`:'';
+  const acts=`<div class="macts"><button type="button" class="mrp" data-id="${esc(m.id)}" data-n="${esc(name)}" data-b="${esc(String(m.body).slice(0,140))}" onclick="replyEl(this)"><i class="fas fa-reply"></i> ${t('replyMsg')}</button>${own}${!adm&&!mine&&m.aid!==me?.id?repBtn('message',m.id,m.aid,name):''}${adm?`${admRet('message',m.id,m.pin)}<button type="button" class="btn sm alt" onclick="adminDelete('message','${m.id}')" title="${t('adminMsgDelete')}"><i class="fas fa-trash"></i></button>`:''}</div>`;
+  const meta=[];if(m.pin)meta.push(pinBadge());if(m.ed)meta.push(edTag());if(adm&&m.exp)meta.push(`<span class="ed-tag"><i class="fas fa-hourglass-half"></i> ${leftTxt(m.exp)}</span>`);
+  return `<div class="mw${mine?' me':''}" data-message-id="${m.id}">${side?av(name,avatar):''}<div class="m${mine?' me':''}${m.pin?' pinned':''}">${nm}${quote}<div class="mt">${esc(m.body)}</div>${meta.length?`<div class="mmeta">${meta.join('')}</div>`:''}${acts}</div></div>`}
+async function pull(){if(!room||document.hidden)return;const r=room,d=await api('msgs',{room:r,after:lastId}).catch(()=>null);
+  if(d&&!d.need_register&&r===room&&d.length){const box=$('#msgs'),down=box.scrollHeight-box.scrollTop-box.clientHeight<80||!lastId,isDm=r.startsWith('dm:'),adm=!!(me&&me.admin);
+    /* الصورة تصل مع آخر رسالة لكل كاتب فقط: نسجّلها أولاً ثم نرسم، فتظهر صورة الكاتب على كل رسائله وليس آخر رسالة فقط */
+    d.forEach(m=>{const mine=!!m.mine;rem(m.aid,m.an||me.name,mine?null:m.avatar)});
+    d.forEach(m=>{if(document.querySelector('[data-message-id="'+String(m.id).replace(/[^0-9]/g,'')+'"]')){lastId=Math.max(lastId,m.id);return}lastId=Math.max(lastId,m.id);MSGS[String(m.id)]=m;box.insertAdjacentHTML('beforeend',msgHtml(m,isDm,adm))});
+    if(isDm)refreshHead();if(down)box.scrollTop=box.scrollHeight}
+  if(r===room&&(++SYNC_N%2===0))syncMsgs(r)}
+/* مزامنة التعديل/التثبيت/الحذف الذي تم من أي شخص آخر على الرسائل المعروضة */
+async function syncMsgs(r){r=r||room;if(!r||r!==room)return;const ids=Object.keys(MSGS).slice(-150);if(!ids.length)return;
+  const d=await api('msgs_sync',{room:r,ids}).catch(()=>null);if(!Array.isArray(d)||r!==room)return;
+  const box=$('#msgs'),isDm=r.startsWith('dm:'),adm=!!(me&&me.admin),alive={};d.forEach(x=>alive[String(x.id)]=x);
+  ids.forEach(id=>{const el=document.querySelector('[data-message-id="'+id.replace(/[^0-9]/g,'')+'"]'),x=alive[id];
+    if(!x){if(el)el.remove();delete MSGS[id];return}
+    const m=MSGS[id];if(!m||!el)return;
+    if(m.body!==x.body||(m.ed||null)!==(x.ed||null)||!!m.pin!==!!x.pin||(adm&&(m.exp||null)!==(x.exp||null))){Object.assign(m,{body:x.body,ed:x.ed,pin:x.pin,exp:x.exp});el.outerHTML=msgHtml(m,isDm,adm)}})}
 async function sendMsg(){const i=$('#chIn'),body=i.value.trim();if(!body||!room)return;i.value='';const args={room,body};if(RT)args.reply_to=RT.id;const d=await run('send',args);if(d){cancelReply();pull()}else i.value=body}
 $('#chIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 /* توقيع MDA: 3 نقرات سريعة تُظهر رسالة (مثل الصفحة الرئيسية) */
