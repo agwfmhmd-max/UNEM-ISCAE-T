@@ -30,7 +30,7 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:var(--s
 .body{margin:10px 0;white-space:pre-wrap;word-break:break-word;line-height:1.8}
 .acts{display:flex;gap:14px;color:var(--mut);font-size:.85rem}.acts button{background:none;border:0;cursor:pointer;color:inherit}.acts .on{color:#e11d48}
 .cm{background:var(--soft);border-radius:12px;padding:8px 10px;margin-top:6px;font-size:.85rem}.cm b{font-size:.78rem}
-.li{display:flex;align-items:center;gap:12px;cursor:pointer}.li .ic{width:44px;height:44px;border-radius:13px;background:#0f172a;color:var(--gold);display:grid;place-items:center;font-weight:800;font-size:.8rem;flex:none}.li div{flex:1;min-width:0}.li small{color:var(--mut);display:block}
+.li{display:flex;align-items:center;gap:12px;cursor:pointer}.li .ic{width:44px;height:44px;border-radius:13px;background:#0f172a;color:var(--gold);display:grid;place-items:center;font-weight:800;font-size:.8rem;flex:none}.li>div:not(.av):not(.room-logo):not(.ic){flex:1;min-width:0}.li small{color:var(--mut);display:block}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}.note{font-size:.72rem;color:var(--mut);margin-top:8px}
 .ov{position:fixed;inset:0;background:rgba(2,6,23,.6);z-index:80;display:none;align-items:flex-end;justify-content:center}.ov.open{display:flex}
 .sheet{background:var(--card);width:min(560px,100%);border-radius:22px 22px 0 0;padding:18px;max-height:92vh;overflow:auto}.sheet h3{margin:0 0 10px}.sheet label{font-size:.78rem;font-weight:700;display:block;margin:8px 0 4px}
@@ -153,6 +153,11 @@ body.dark-mode .rep-opt:has(input:checked){background:rgba(225,29,72,.16);color:
 .wl-ic{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;font-size:1.1rem}
 .wl b{display:block;font-size:1rem;margin-bottom:4px}.wl p{margin:0;font-size:.85rem;line-height:1.9;color:var(--mut)}
 .wl-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.wl-chips span{font-size:.72rem;font-weight:800;padding:3px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+
+/* شعار/صورة الطالب: دائرة ثابتة الأبعاد دائماً ولا تتمدد داخل أي صف flex (كانت تظهر بيضاوية عريضة في قائمة الرسائل). */
+.av{flex:0 0 auto!important;aspect-ratio:1/1;min-width:0;overflow:hidden;border-radius:50%!important}
+.av img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.li>.av{width:42px;height:42px;flex:0 0 42px!important}
 </style>
 </head><body>
 <header class="hero"><div class="wrap"><div class="top"><a href="/"><i class="fas fa-arrow-right ic-flip" id="homeIc"></i> <span data-t="home">الرئيسية</span></a>
