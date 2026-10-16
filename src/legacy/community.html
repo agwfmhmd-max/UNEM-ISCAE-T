@@ -177,6 +177,15 @@ body.dark-mode .rep-opt:has(input:checked){background:rgba(225,29,72,.16);color:
 .ext-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px}
 .acts .edb{margin-inline-start:auto}
 .cm a.cm-edit{font-weight:700;margin-inline-end:8px;color:var(--g2)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:800;border-radius:999px;padding:3px 11px;border:1px solid var(--line);background:var(--soft)}
+.st i{font-size:.6rem}.st.seen i{font-size:.7rem}
+.st.on{color:#166534;background:#dcfce7;border-color:#86efac}.st.on i{color:#22c55e}
+.st.seen{color:#92400e;background:#fef3c7;border-color:#fcd34d}
+.st.off{color:#475569;background:#f1f5f9;border-color:#cbd5e1}.st.off i{color:#94a3b8}
+body.dark-mode .st.on{background:rgba(34,197,94,.16);color:#86efac;border-color:rgba(134,239,172,.4)}
+body.dark-mode .st.seen{background:rgba(245,185,66,.16);color:#fde68a;border-color:rgba(253,230,138,.4)}
+body.dark-mode .st.off{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(203,213,225,.3)}
+#stReg{letter-spacing:.03em}
 </style>
 </head><body>
 <header class="hero"><div class="wrap"><div class="top"><a href="/"><i class="fas fa-arrow-right ic-flip" id="homeIc"></i> <span data-t="home">الرئيسية</span></a>
@@ -264,6 +273,12 @@ Object.assign(I18N.fr,{edit:'Modifier',save:'Enregistrer',saved:'Modification en
  editPostT:'Modifier la publication',editMsgT:'Modifier le message',editCmT:'Modifier le commentaire',delMsgQ:'Supprimer ce message ?',delCmQ:'Supprimer ce commentaire ?',delOk:'Supprimé',e_forbidden:'Action non autorisée',
  expIn:s=>'Expire dans '+s,expDone:'Expiré',dd:n=>n+' j',hh:n=>n+' h',mm:n=>n+' min',
  wPostsD:(s,l)=>'Voici l’espace de tous les étudiants de l’institut ; vous êtes en '+s+' — '+lvn(l)+'. Posez une question, demandez de l’aide ou partagez une annonce ; vous voyez ici les publications de tous les étudiants, toutes filières et tous niveaux confondus, et vous pouvez modifier ou supprimer les vôtres à tout moment. Les publications expirent après 7 jours sauf si un modérateur les épingle.'});
+Object.assign(I18N.ar,{findT:'ابحث عن طالب برقم التسجيل',findHint:'اكتب رقم تسجيل أي طالب في المعهد (من أي تخصص أو مستوى) لتعرف حالته وتراسله.',findPh:'رقم التسجيل (مثال: I21567)',findBtn:'بحث',findNone:'لا يوجد طالب بهذا الرقم.',
+ stOnline:'متصل الآن',stSeen:x=>'آخر ظهور: '+x,stInactive:'غير نشط',stInactiveD:'لم يسجّل في المنصة بعد، لذلك لا يمكن مراسلته الآن.',
+ wDmD:'محادثة خاصة بين طالبين من المعهد. لا تشارك أرقام الهواتف أو معلومات شخصية. استخدم «رد» للإجابة على رسالة محددة، و«إبلاغ» إن واجهت إساءة. الرسائل تُحذف بعد 24 ساعة.'});
+Object.assign(I18N.fr,{findT:'Rechercher un étudiant par numéro d’inscription',findHint:'Saisissez le numéro d’inscription de n’importe quel étudiant de l’institut (toute filière ou niveau) pour voir son statut et lui écrire.',findPh:'N° d’inscription (ex. : I21567)',findBtn:'Rechercher',findNone:'Aucun étudiant avec ce numéro.',
+ stOnline:'En ligne',stSeen:x=>'Dernière activité : '+x,stInactive:'Inactif',stInactiveD:'Cet étudiant ne s’est pas encore inscrit sur la plateforme ; vous ne pouvez pas lui écrire pour le moment.',
+ wDmD:'Conversation privée entre deux étudiants de l’institut. Ne partagez pas de numéros de téléphone ni d’informations personnelles. Utilisez « Répondre » pour répondre à un message précis et « Signaler » en cas d’abus. Les messages sont supprimés après 24 h.'});
 const AVC={},GC={},MSGS={};let RT=null,SYNC_N=0;
 const rem=(id,name,avatar)=>{if(!id)return;const e=AVC[id]||(AVC[id]={});if(name)e.name=name;if(avatar)e.avatar=avatar};
 let LANG=localStorage.getItem('unem_lang')==='fr'?'fr':'ar';
@@ -334,6 +349,22 @@ $('#nk').onclick=e=>{if(e.target.dataset.k){document.querySelectorAll('#nk .chip
 function newPartner(){const subject=($('#qSu').value||'').trim(),body=($('#qB').value||'').trim();if(!body)return toast(t('e_empty'));run('post',{kind:'partner',subject,body},()=>{toast(t('pPosted'));render()})}
 function newPost(){const body=$('#nb').value.trim(),k=$('#nk .on').dataset.k;if(!body)return toast(t('e_empty'));run('post',{kind:k,body},()=>render())}
 const delPost=id=>confirm(t('delPostQ'))&&run('del_post',{id},()=>render());
+/* ===== البحث عن طالب برقم التسجيل (زميل دراسة) ===== */
+let FR=null,FQ='';
+const stCard=()=>`<div class="card" id="stCard"><b><i class="fas fa-magnifying-glass"></i> ${t('findT')}</b><p class="note" style="margin-top:6px">${t('findHint')}</p><div class="row" style="margin-top:8px"><input id="stReg" dir="ltr" autocomplete="off" autocapitalize="off" maxlength="40" placeholder="${esc(t('findPh'))}" value="${esc(FQ)}" style="text-align:start"><button class="btn sm" id="stGo" type="button" style="flex:none"><i class="fas fa-search"></i> ${t('findBtn')}</button></div><div id="stRes"></div></div>`;
+function stResult(r){
+  if(!r)return '';
+  if(!r.found)return `<div class="empty" style="padding:16px 6px"><p>${t('findNone')}</p></div>`;
+  if(r.id)rem(r.id,r.name,r.avatar);
+  const st=r.online?`<span class="st on"><i class="fas fa-circle"></i> ${t('stOnline')}</span>`:(r.active&&r.last_seen?`<span class="st seen"><i class="fas fa-clock"></i> ${t('stSeen',ago(r.last_seen))}</span>`:`<span class="st off"><i class="fas fa-circle"></i> ${t('stInactive')}</span>`);
+  return `<div class="card" style="margin:10px 0 0"><div class="ph">${av(r.name,r.avatar)}<div style="flex:1"><b>${esc(r.name)}</b><small>${esc(r.reg||'')} · ${esc(SPECS[r.spec]||r.spec||'')}${r.level?' · '+esc(r.level):''}</small><div class="pmeta">${st}</div></div>${r.registered&&!r.self?`<button type="button" class="btn sm" data-id="${esc(r.id)}" data-name="${esc(r.name)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>`:''}</div>${r.self?`<p class="note">${t('itsYou')}</p>`:''}${r.registered?'':`<p class="note">${t('stInactiveD')}</p>`}</div>`}
+function bindFind(){
+  const inp=$('#stReg'),btn=$('#stGo'),out=$('#stRes');if(!inp||!btn)return;
+  const go=async()=>{const q=(inp.value||'').trim();FQ=q;if(!q)return toast(t('e_empty'));btn.disabled=true;const d=await run('find_student',{reg:q});btn.disabled=false;if(d===null)return;FR=d;out.innerHTML=stResult(d)};
+  btn.onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+  if(FR&&FQ){out.innerHTML=stResult(FR);run('find_student',{reg:FQ}).then(d=>{if(d&&document.body.contains(out)){FR=d;out.innerHTML=stResult(d)}})}
+}
+
 /* ===== تعديل/تثبيت/تمديد ===== */
 const pinBadge=()=>`<span class="pin-badge"><i class="fas fa-thumbtack"></i> ${t('pinned')}</span>`;
 const edTag=()=>`<span class="ed-tag">· ${t('editedTag')}</span>`;
@@ -396,7 +427,7 @@ function openGroupEl(el){const id=el.dataset.id,name=el.dataset.n,sub=el.dataset
 let pF={spec:'',level:'',subject:''};
 async function vPartner(){let d;if(me?.admin){const x=await run('admin_list');d=x&&(x.posts||[]).filter(p=>p.kind==='partner').map(p=>({...p,can_del:true,can_pin:true}))||[]}else d=await run('feed',{kind:'partner',...pF});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;
 if(me?.admin){$('#main').innerHTML=`<p class="note">${t('adminAllNote')}</p><h3>${t('adminAllRequests')}</h3>`+(d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`);return}
-$('#main').innerHTML=`<div class="card"><b><i class="fas fa-handshake"></i> ${t('pFind')}</b><div class="card" style="padding:8px;margin:8px 0"><b>${esc(SPECS[me.spec]||me.spec)} · ${esc(me.level)}</b></div><input id="qSu" maxlength="60" placeholder="${t('pSubjPh')}"><textarea id="qB" maxlength="300" style="margin-top:8px" placeholder="${t('pBodyPh')}"></textarea><button class="btn" style="margin-top:8px" onclick="newPartner()">${t('pPost')}</button><p class="note">${t('pHint')}</p></div><div style="height:10px"></div>${d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`}`}
+$('#main').innerHTML=`${stCard()}<div class="card"><b><i class="fas fa-handshake"></i> ${t('pFind')}</b><div class="card" style="padding:8px;margin:8px 0"><b>${esc(SPECS[me.spec]||me.spec)} · ${esc(me.level)}</b></div><input id="qSu" maxlength="60" placeholder="${t('pSubjPh')}"><textarea id="qB" maxlength="300" style="margin-top:8px" placeholder="${t('pBodyPh')}"></textarea><button class="btn" style="margin-top:8px" onclick="newPartner()">${t('pPost')}</button><p class="note">${t('pHint')}</p></div><div style="height:10px"></div>${d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`}`;bindFind()}
 async function vAdmin(){if(!me?.admin)return;const d=await run('admin_list');if(!d)return;
 const del=(type,id)=>`<button class="btn sm alt" onclick="adminDelete('${type}','${esc(id)}')"><i class="fas fa-trash"></i> ${t('del')}</button>`;
 const post=(d.posts||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(KINDS()[x.kind]||x.kind)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small><div class="body">${esc(x.body)}</div>${x.pinned?pinBadge():''}${del('post',x.id)} ${admRet('post',x.id,x.pinned)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
