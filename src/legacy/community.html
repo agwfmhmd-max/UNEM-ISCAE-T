@@ -250,29 +250,29 @@ fr:{home:'Accueil',me:'Mon profil',title:'Communauté étudiante | UNEM ISCAE',h
 };
 const lvn=l=>({ar:{L1:'السنة الأولى',L2:'السنة الثانية',L3:'السنة الثالثة',M1:'ماستر 1',M2:'ماستر 2'},fr:{L1:'Licence 1',L2:'Licence 2',L3:'Licence 3',M1:'Master 1',M2:'Master 2'}}[LANG]||{})[l]||l||'';
 Object.assign(I18N.ar,{replyMsg:'رد',replyingTo:'الرد على',cancel:'إلغاء',
- wPostsT:n=>'مرحباً بك يا '+n+' في مجتمع طلبة المعهد',wPostsD:(s,l)=>'هذا فضاء طلبة '+s+' — '+lvn(l)+'. اطرح سؤالاً دراسياً، أو اطلب مساعدة، أو شارك إعلاناً مع زملاء دفعتك. تظهر لك هنا منشورات تخصصك ومستواك فقط، وتنتهي كل المنشورات بعد 7 أيام.',
+ wPostsT:n=>'مرحباً بك يا '+n+' في مجتمع طلبة المعهد',wPostsD:()=>'هذا فضاء طلبة المعهد كلهم. اطرح سؤالاً دراسياً، أو اطلب مساعدة، أو شارك إعلاناً مع زملائك. تنتهي كل المنشورات بعد 7 أيام.',
  wPostsAdminT:'مرحباً بك أيها المشرف',wPostsAdminD:'عرض شامل لمنشورات كل التخصصات والمستويات. يمكنك حذف أي محتوى مخالف ومراجعة البلاغات من تبويب الإشراف.',
- wGenT:n=>'مرحباً بك يا '+n+' في الغرفة العامة',wGenD:s=>'نقاش مفتوح بين طلاب المعهد من جميع التخصصات. عرّف بنفسك وتعرّف على زملائك، وأنت هنا من تخصص '+s+'. التزم بالاحترام؛ الرسائل نصية فقط وتُحذف بعد 24 ساعة.',
- wSpecT:(n,s)=>'مرحباً بك يا '+n+' في غرفة '+s,wSpecD:(s,l)=>'غرفة نقاش مباشرة لطلبة '+s+' بكل مستوياتهم، وأنت مسجّل في '+lvn(l)+'. شارك أسئلتك عن المواد والامتحانات وساعد من يسألك. الرسائل نصية فقط وتُحذف بعد 24 ساعة.',
+ wGenT:n=>'مرحباً بك يا '+n+' في الغرفة العامة',wGenD:s=>'نقاش مفتوح بين طلاب المعهد من جميع التخصصات. عرّف بنفسك وتعرّف على زملائك. التزم بالاحترام؛ الرسائل نصية فقط وتُحذف بعد 24 ساعة.',
+ wSpecT:(n,s)=>'مرحباً بك يا '+n+' في غرفة '+s,wSpecD:(s,l)=>'غرفة نقاش مباشرة لطلبة '+s+' بكل مستوياتهم. شارك أسئلتك عن المواد والامتحانات وساعد من يسألك. الرسائل نصية فقط وتُحذف بعد 24 ساعة.',
  wGroupT:(n,g)=>'مرحباً بك يا '+n+' في مجموعة «'+g+'»',wGroupD:(s,l,subj,mem,max,descr)=>'مجموعة دراسة لطلبة '+s+' — '+lvn(l)+(subj?' · المادة: '+subj:'')+'. الأعضاء: '+mem+' من '+max+'.'+(descr?' هدف المجموعة: '+descr+'.':'')+' تعاونوا في المراجعة وتبادلوا الأسئلة والملخصات باحترام. الرسائل تُحذف بعد 24 ساعة.',
  wDmT:o=>'محادثة خاصة مع '+o,wDmD:'محادثة بين طالبين من نفس التخصص والمستوى. لا تشارك أرقام الهواتف أو معلومات شخصية. استخدم «رد» للإجابة على رسالة محددة، و«إبلاغ» إن واجهت إساءة. الرسائل تُحذف بعد 24 ساعة.'});
 Object.assign(I18N.fr,{replyMsg:'Répondre',replyingTo:'Réponse à',cancel:'Annuler',
- wPostsT:n=>'Bienvenue '+n+' dans la communauté de l’institut',wPostsD:(s,l)=>'Voici l’espace des étudiants '+s+' — '+lvn(l)+'. Posez une question, demandez de l’aide ou partagez une annonce avec votre promotion. Seules les publications de votre filière et de votre niveau s’affichent ici ; elles expirent après 7 jours.',
+ wPostsT:n=>'Bienvenue '+n+' dans la communauté de l’institut',wPostsD:()=>'Voici l’espace de tous les étudiants de l’institut. Posez une question, demandez de l’aide ou partagez une annonce avec vos camarades. Les publications expirent après 7 jours.',
  wPostsAdminT:'Bienvenue, modérateur',wPostsAdminD:'Vue complète des publications de toutes les filières et de tous les niveaux. Vous pouvez supprimer tout contenu inapproprié et traiter les signalements depuis l’onglet Modération.',
- wGenT:n=>'Bienvenue '+n+' dans le salon général',wGenD:s=>'Discussion ouverte entre les étudiants de l’institut, toutes filières confondues. Présentez-vous et faites connaissance ; vous êtes de la filière '+s+'. Restez respectueux ; messages en texte uniquement, supprimés après 24 h.',
- wSpecT:(n,s)=>'Bienvenue '+n+' dans le salon '+s,wSpecD:(s,l)=>'Salon de discussion en direct des étudiants '+s+', tous niveaux confondus ; vous êtes inscrit en '+lvn(l)+'. Posez vos questions sur les cours et les examens et aidez ceux qui vous sollicitent. Messages en texte uniquement, supprimés après 24 h.',
+ wGenT:n=>'Bienvenue '+n+' dans le salon général',wGenD:s=>'Discussion ouverte entre les étudiants de l’institut, toutes filières confondues. Présentez-vous et faites connaissance. Restez respectueux ; messages en texte uniquement, supprimés après 24 h.',
+ wSpecT:(n,s)=>'Bienvenue '+n+' dans le salon '+s,wSpecD:(s,l)=>'Salon de discussion en direct des étudiants '+s+', tous niveaux confondus. Posez vos questions sur les cours et les examens et aidez ceux qui vous sollicitent. Messages en texte uniquement, supprimés après 24 h.',
  wGroupT:(n,g)=>'Bienvenue '+n+' dans le groupe « '+g+' »',wGroupD:(s,l,subj,mem,max,descr)=>'Groupe d’étude des étudiants '+s+' — '+lvn(l)+(subj?' · Matière : '+subj:'')+'. Membres : '+mem+' sur '+max+'.'+(descr?' Objectif du groupe : '+descr+'.':'')+' Révisez ensemble et échangez questions et résumés dans le respect. Les messages sont supprimés après 24 h.',
  wDmT:o=>'Conversation privée avec '+o,wDmD:'Conversation entre deux étudiants de la même filière et du même niveau. Ne partagez pas de numéros de téléphone ni d’informations personnelles. Utilisez « Répondre » pour répondre à un message précis et « Signaler » en cas d’abus. Les messages sont supprimés après 24 h.'});
 Object.assign(I18N.ar,{edit:'تعديل',save:'حفظ',saved:'تم حفظ التعديل',editedTag:'معدّل',pinned:'مثبّت',pin:'تثبيت',unpin:'إلغاء التثبيت',extend:'تمديد',extendTitle:'زيادة مدة الظهور',
  ext1d:'+ يوم',ext3d:'+ 3 أيام',ext7d:'+ 7 أيام',ext30d:'+ 30 يوماً',extOk:'تمت زيادة مدة الظهور',pinOk:'تم التثبيت — سيبقى ظاهراً دون أن يختفي',unpinOk:'أُلغي التثبيت وعادت المدة العادية',
  editPostT:'تعديل المنشور',editMsgT:'تعديل الرسالة',editCmT:'تعديل التعليق',delMsgQ:'حذف هذه الرسالة؟',delCmQ:'حذف هذا التعليق؟',delOk:'تم الحذف',e_forbidden:'غير مسموح بهذا الإجراء',
  expIn:s=>'ينتهي بعد '+s,expDone:'منتهي',dd:n=>n+' يوم',hh:n=>n+' س',mm:n=>n+' د',
- wPostsD:(s,l)=>'هذا فضاء طلبة المعهد كلهم، وأنت من '+s+' — '+lvn(l)+'. اطرح سؤالاً دراسياً، أو اطلب مساعدة، أو شارك إعلاناً؛ تظهر لك هنا منشورات جميع طلاب المعهد من كل التخصصات والمستويات، ويمكنك تعديل منشوراتك أو حذفها في أي وقت. تنتهي المنشورات بعد 7 أيام ما لم يثبّتها المشرف.'});
+ wPostsD:()=>'هذا فضاء طلبة المعهد كلهم. اطرح سؤالاً دراسياً، أو اطلب مساعدة، أو شارك إعلاناً؛ تظهر لك هنا منشورات جميع طلاب المعهد من كل التخصصات والمستويات، ويمكنك تعديل منشوراتك أو حذفها في أي وقت. تنتهي المنشورات بعد 7 أيام ما لم يثبّتها المشرف.'});
 Object.assign(I18N.fr,{edit:'Modifier',save:'Enregistrer',saved:'Modification enregistrée',editedTag:'modifié',pinned:'Épinglé',pin:'Épingler',unpin:'Désépingler',extend:'Prolonger',extendTitle:'Prolonger la durée d’affichage',
  ext1d:'+ 1 jour',ext3d:'+ 3 jours',ext7d:'+ 7 jours',ext30d:'+ 30 jours',extOk:'Durée d’affichage prolongée',pinOk:'Épinglé — il restera affiché sans disparaître',unpinOk:'Désépinglé, durée normale rétablie',
  editPostT:'Modifier la publication',editMsgT:'Modifier le message',editCmT:'Modifier le commentaire',delMsgQ:'Supprimer ce message ?',delCmQ:'Supprimer ce commentaire ?',delOk:'Supprimé',e_forbidden:'Action non autorisée',
  expIn:s=>'Expire dans '+s,expDone:'Expiré',dd:n=>n+' j',hh:n=>n+' h',mm:n=>n+' min',
- wPostsD:(s,l)=>'Voici l’espace de tous les étudiants de l’institut ; vous êtes en '+s+' — '+lvn(l)+'. Posez une question, demandez de l’aide ou partagez une annonce ; vous voyez ici les publications de tous les étudiants, toutes filières et tous niveaux confondus, et vous pouvez modifier ou supprimer les vôtres à tout moment. Les publications expirent après 7 jours sauf si un modérateur les épingle.'});
+ wPostsD:()=>'Voici l’espace de tous les étudiants de l’institut. Posez une question, demandez de l’aide ou partagez une annonce ; vous voyez ici les publications de tous les étudiants, toutes filières et tous niveaux confondus, et vous pouvez modifier ou supprimer les vôtres à tout moment. Les publications expirent après 7 jours sauf si un modérateur les épingle.'});
 Object.assign(I18N.ar,{findT:'ابحث عن طالب برقم التسجيل',findHint:'اكتب رقم تسجيل أي طالب في المعهد (من أي تخصص أو مستوى) لتعرف حالته وتراسله.',findPh:'رقم التسجيل (مثال: I21567)',findBtn:'بحث',findNone:'لا يوجد طالب بهذا الرقم.',
  stOnline:'متصل الآن',stSeen:x=>'آخر ظهور: '+x,stInactive:'غير نشط',stInactiveD:'لم يسجّل في المنصة بعد، لذلك لا يمكن مراسلته الآن.',
  wDmD:'محادثة خاصة بين طالبين من المعهد. لا تشارك أرقام الهواتف أو معلومات شخصية. استخدم «رد» للإجابة على رسالة محددة، و«إبلاغ» إن واجهت إساءة. الرسائل تُحذف بعد 24 ساعة.'});
@@ -350,7 +350,7 @@ function newPartner(){const subject=($('#qSu').value||'').trim(),body=($('#qB').
 function newPost(){const body=$('#nb').value.trim(),k=$('#nk .on').dataset.k;if(!body)return toast(t('e_empty'));run('post',{kind:k,body},()=>render())}
 const delPost=id=>confirm(t('delPostQ'))&&run('del_post',{id},()=>render());
 /* ===== البحث عن طالب برقم التسجيل (زميل دراسة) ===== */
-let FR=null,FQ='';
+let FR=null,FQ='',FT=[];
 const stCard=()=>`<div class="card" id="stCard"><b><i class="fas fa-magnifying-glass"></i> ${t('findT')}</b><p class="note" style="margin-top:6px">${t('findHint')}</p><div class="row" style="margin-top:8px"><input id="stReg" dir="ltr" autocomplete="off" autocapitalize="off" maxlength="40" placeholder="${esc(t('findPh'))}" value="${esc(FQ)}" style="text-align:start"><button class="btn sm" id="stGo" type="button" style="flex:none"><i class="fas fa-search"></i> ${t('findBtn')}</button></div><div id="stRes"></div></div>`;
 function stResult(r){
   if(!r)return '';
@@ -360,7 +360,7 @@ function stResult(r){
   return `<div class="card" style="margin:10px 0 0"><div class="ph">${av(r.name,r.avatar)}<div style="flex:1"><b>${esc(r.name)}</b><small>${esc(r.reg||'')} · ${esc(SPECS[r.spec]||r.spec||'')}${r.level?' · '+esc(r.level):''}</small><div class="pmeta">${st}</div></div>${r.registered&&!r.self?`<button type="button" class="btn sm" data-id="${esc(r.id)}" data-name="${esc(r.name)}" onclick="openDmEl(this)"><i class="fas fa-paper-plane"></i> ${t('reply')}</button>`:''}</div>${r.self?`<p class="note">${t('itsYou')}</p>`:''}${r.registered?'':`<p class="note">${t('stInactiveD')}</p>`}</div>`}
 function bindFind(){
   const inp=$('#stReg'),btn=$('#stGo'),out=$('#stRes');if(!inp||!btn)return;
-  const go=async()=>{const q=(inp.value||'').trim();FQ=q;if(!q)return toast(t('e_empty'));btn.disabled=true;const d=await run('find_student',{reg:q});btn.disabled=false;if(d===null)return;FR=d;out.innerHTML=stResult(d)};
+  const go=async()=>{const q=(inp.value||'').trim();FQ=q;if(!q)return toast(t('e_empty'));const now=Date.now();FT=FT.filter(x=>now-x<60000);if(FT.length>=4)return toast(t('e_rate'));FT.push(now);btn.disabled=true;const d=await run('find_student',{reg:q});btn.disabled=false;if(d===null)return;FR=d;out.innerHTML=stResult(d)};
   btn.onclick=go;inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
   if(FR&&FQ){out.innerHTML=stResult(FR);run('find_student',{reg:FQ}).then(d=>{if(d&&document.body.contains(out)){FR=d;out.innerHTML=stResult(d)}})}
 }
