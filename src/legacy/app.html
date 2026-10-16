@@ -7900,6 +7900,14 @@ function escapeHtml(value){
         });
        // ================== تجربة المستخدم الجديد: التثبيت ثم الإشعارات ==================
         window.addEventListener('DOMContentLoaded', () => {
+            // ===== نسخة بدون نوافذ الترحيب: لا نافذة «ثبّت التطبيق» ولا «فعّل الإشعارات» =====
+            // لإعادة النوافذ الأصلية: ضع قبل هذا السكربت  window.UNEM_SHOW_ONBOARDING_PROMPTS = true;
+            // (زر الجرس في الأعلى لتفعيل/إيقاف الإشعارات يدوياً يبقى يعمل كما هو.)
+            if (window.UNEM_SHOW_ONBOARDING_PROMPTS !== true) {
+                // نمنع أيضاً شريط التثبيت الافتراضي الذي يعرضه المتصفح من تلقاء نفسه.
+                window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); });
+                return;
+            }
             let deferredPrompt = null;
 
             const installToast = document.getElementById('install-toast');
