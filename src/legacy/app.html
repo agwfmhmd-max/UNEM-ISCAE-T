@@ -2134,7 +2134,8 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
 </div>
 <div id="admin-onboarding-prompts-setting" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;padding:14px;margin-bottom:15px;">
 <strong style="display:block;font-size:.95rem;">📲 نافذتا التثبيت والإشعارات</strong>
-<span style="display:block;color:var(--text-secondary);font-size:.78rem;margin:4px 0 10px;">تظهران فقط للطلاب الجدد ولمن لم يثبّت التطبيق أو لم يفعّل الإشعارات. أوقف أيّاً منهما لإخفائها عن الجميع.</span>
+<span style="display:block;color:var(--text-secondary);font-size:.78rem;margin:4px 0 10px;">الافتراضي: مخفيتان. فعّل المفتاح لإظهار النافذة للطلاب الجدد ولمن لم يثبّت التطبيق أو لم يفعّل الإشعارات فقط، وأوقفه لإخفائها عن الجميع.</span>
+<div id="unem-build-warning" style="display:none;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:10px;padding:10px;margin-bottom:10px;font-size:.78rem;line-height:1.7;"></div>
 <label style="display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800;cursor:pointer;margin-bottom:8px;">
 <span>📲 نافذة «ثبّت التطبيق»</span>
 <input id="prompt-install-toggle" onchange="savePromptSetting('show_install_prompt', this.checked)" style="width:20px;height:20px;accent-color:#16a34a;" type="checkbox"/>
@@ -2520,7 +2521,7 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
 </footer>
 <!-- سكربت الترجمة والوضع الليلي -->
 <script src="/legacy/app/02-i18n.js?v=2381514f3f"></script>
-<script src="/legacy/app/03-main.js?v=fd411e9e3c"></script>
+<script src="/legacy/app/03-main.js?v=d49df677dd"></script>
 <script src="/legacy/app/04-welcome-splash.js?v=a0a36c6be6"></script>
 <!-- نظام Service Worker -->
 <script src="/legacy/app/05-service-worker-register.js?v=af7af7df82"></script>
@@ -3460,6 +3461,65 @@ body.dark-mode #top-files-overlay [style*="background: #ccfbf1"]{background:#1e2
 #main-menu>.home-welcome .hw-emoji.has-photo{padding:0!important;background:#fff!important}
 #main-menu>.home-welcome .hw-emoji.has-photo img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:inherit!important}
 </style>
+<style id="unem-prompts-guard-css">
+/* حارس: لا تُعرض نافذة التثبيت ولا نافذة الإشعارات إلا إذا فعّلها المشرف (يضبط السكربت أدناه الخاصية بعد قراءة الإعداد من الخادم).
+   هذا الحارس في app.html نفسه فلا يتأثر بنسخة ملفات public/legacy، وهو يعمل حتى لو بقي منطق قديم يحاول إظهارهما. */
+html:not([data-install-prompt="on"]) #install-toast,
+html:not([data-install-prompt="on"]) #ios-install-modal{display:none!important}
+html:not([data-push-prompt="on"]) #push-onboarding-modal{display:none!important}
+</style>
+<script id="unem-prompts-guard">
+(function(){
+  var shared=null;
+  function fetchFlags(){
+    return new Promise(function(resolve){
+      var HIDDEN={install:false,push:false,reset:0},tries=0,finished=false;
+      function done(f){ if(finished) return; finished=true; try{ var de=document.documentElement; de.setAttribute('data-install-prompt',f.install?'on':'off'); de.setAttribute('data-push-prompt',f.push?'on':'off'); }catch(e){} resolve(f); }
+      setTimeout(function(){ done(HIDDEN); },10000);
+      (function go(){
+        if(typeof supabaseClient==='undefined'||!supabaseClient){ if(++tries<40) return setTimeout(go,250); return done(HIDDEN); }
+        supabaseClient.rpc('get_public_platform_stats').then(function(r){
+          var d=r&&r.data; if(typeof d==='string'){ try{ d=JSON.parse(d); }catch(e){} } if(Array.isArray(d)) d=d[0];
+          if(!d||(r&&r.error)) return done(HIDDEN);
+          done({install:d.show_install_prompt===true,push:d.show_push_prompt===true,reset:Number(d.prompts_reset_at)||0});
+        }).catch(function(){ if(++tries<3) setTimeout(go,1500); else done(HIDDEN); });
+      })();
+    });
+  }
+  window.unemPromptFlags=function(){ if(!shared) shared=fetchFlags(); return shared; };
+  window.unemPromptFlagsReset=function(){ shared=null; try{ document.documentElement.removeAttribute('data-install-prompt'); document.documentElement.removeAttribute('data-push-prompt'); }catch(e){} window.unemPromptFlags(); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ window.unemPromptFlags(); }); else window.unemPromptFlags();
+
+  /* ===== كاشف عدم تطابق الملفات: يعمل داخل لوحة المشرف فقط ===== */
+  function sha1hex(bytes){
+    var a=new Uint8Array(bytes),out=[],i; for(i=0;i<a.length;i++){ if(a[i]===13&&a[i+1]===10) continue; out.push(a[i]); }
+    return crypto.subtle.digest('SHA-1',new Uint8Array(out)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b),function(x){ return ('0'+x.toString(16)).slice(-2); }).join(''); });
+  }
+  window.unemVerifyBuild=function(){
+    if(!(window.crypto&&crypto.subtle)) return Promise.resolve([]);
+    var tags=[].slice.call(document.querySelectorAll('script[src^="/legacy/"]'));
+    return Promise.all(tags.map(function(t){
+      var u=new URL(t.getAttribute('src'),location.href),want=u.searchParams.get('v')||'';
+      if(!want) return null;
+      return fetch(u.pathname+'?chk='+Date.now(),{cache:'no-store'}).then(function(r){ return r.ok?r.arrayBuffer():Promise.reject(); })
+        .then(sha1hex).then(function(h){ return h.slice(0,10)===want?null:u.pathname.split('/').pop(); }).catch(function(){ return null; });
+    })).then(function(a){ return a.filter(Boolean); });
+  };
+  function showIssues(list){
+    var box=document.getElementById('unem-build-warning'); if(!box||!list.length) return;
+    box.innerHTML='⚠️ <b>الموقع غير مرفوع بالكامل:</b> الملفات التالية على الخادم لا تطابق <code>app.html</code> (غالباً نُسيَ رفعها أو رُفعت نسخة قديمة منها، وقد يظهر السلوك القديم):<br><b dir="ltr">'+list.join(' ، ')+'</b><br>ارفع المجلد <code dir="ltr">public/legacy/</code> كاملاً مع <code dir="ltr">src/legacy/app.html</code> ثم أعد تحميل الصفحة.';
+    box.style.display='block';
+  }
+  var checked=false;
+  function runOnce(){ if(checked) return; checked=true; window.unemVerifyBuild().then(showIssues).catch(function(){}); }
+  function watch(){
+    var card=document.getElementById('admin-onboarding-prompts-setting'); if(!card) return;
+    if('IntersectionObserver' in window){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ runOnce(); io.disconnect(); } }); }); io.observe(card); }
+    else card.addEventListener('mouseenter',runOnce);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',watch); else watch();
+})();
+</script>
 <style id="unem-hw-stats-css">
 .home-welcome .hw-stats{display:flex;align-items:stretch;gap:10px;flex:none}
 .home-welcome .hw-stats .hw-visits{flex:1 1 auto}
