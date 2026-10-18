@@ -1,0 +1,23 @@
+# قاعدة البيانات (Supabase)
+
+كل ملفات SQL في المشروع تُطبَّق **بالترتيب الزمني** (بادئة التاريخ في اسم الملف)، وهي موزعة على ثلاثة مجلدات:
+`supabase/migrations` ثم `sql` ثم `db` — الترتيب الدقيق في **`db/MANIFEST.txt`**.
+
+## التطبيق
+```bash
+DATABASE_URL="postgres://..." ./db/apply_all.sh      # من الصفر أو فوق قاعدة موجودة
+```
+أو الصق الملفات بالترتيب في Supabase → SQL Editor. كل الملفات **آمنة لإعادة التشغيل** (if not exists / create or replace / drop policy if exists) ولا تحذف بيانات.
+
+## ملف الأساس
+`db/20260810175000_baseline_reconstructed_tables.sql` يعيد بناء 8 جداول كان التطبيق يستعملها دون أن يكون لها ملف إنشاء
+(`announcements, curriculum_subject_overrides, master_subjects, shared_subject_groups, shared_subject_members, site_settings, student_results, study_schedules`)
+ودالة `cleanup_expired_push_subscriptions`. **على قاعدتك الحالية لا يفعل شيئاً** (ينشئ فقط ما هو غير موجود)؛ فائدته لبناء قاعدة جديدة من الصفر.
+أعمدتها استُخرجت من استعمالها في الكود، فإن كان جدولك الحالي يحمل أعمدة إضافية فهي لا تتأثر.
+
+## الاختبار
+```bash
+PGURL=postgres://postgres@localhost/postgres tests/db/run.sh
+```
+ينشئ قاعدة مؤقتة + مُحاكي Supabase (`tests/db/supabase_stub.sql`)، يطبّق كل الملفات مرتين (للتأكد من إعادة التشغيل)، ثم يشغّل `tests/db/checks.sql`
+(منشورات/تعليقات/رسائل وصلاحيات التعديل، المراسلة بين التخصصات، البحث برقم التسجيل وحده، تثبيت وتمديد المشرف، سقف قائمة المشرف، إحصاءات الصفحة الرئيسية).
