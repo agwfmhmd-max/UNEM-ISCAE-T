@@ -2,7 +2,7 @@
 import { closeBrowser } from './e2e/helpers.mjs';
 import { spawnSync } from 'node:child_process';
 
-const suites = ['app-load', 'subjects', 'community', 'home', 'gate-login', 'upload'];
+const suites = ['app-load', 'subjects', 'community', 'home', 'prompts-admin', 'gate-login', 'upload'];
 let bad = 0;
 for (const name of suites) {
   try { const mod = await import(`./e2e/${name}.test.mjs`); bad += await mod.default(); }
