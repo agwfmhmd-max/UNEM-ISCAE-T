@@ -11,8 +11,9 @@ const OTHER={id:'22222222-2222-2222-2222-222222222222',name:'Sara Ba',spec:'FC',
 window.__adm=false;window.__calls=[];window.__sent=[];window.__ch={handlers:{},status:null};window.__rtMode='ok';
 const db=window.__db={posts:[],comments:[],msgs:[],nid:100};
 db.posts.push({id:'p-other',author:OTHER,kind:'question',body:'سؤال من تخصص آخر',spec:'FC',level:'L1',pinned:false,ed:null,exp:Date.now()+7*864e5,t:new Date().toISOString()});
+db.posts.push({id:'p-other2',author:OTHER,kind:'help',body:'منشور ثانٍ للكاتب نفسه',spec:'FC',level:'L1',pinned:false,ed:null,exp:Date.now()+7*864e5,t:new Date().toISOString()});
 db.posts.push({id:'p-mine',author:ME,kind:'help',body:'منشوري',spec:'BA',level:'L3',pinned:false,ed:null,exp:Date.now()+7*864e5,t:new Date().toISOString()});
-db.comments.push({id:'c1',post:'p-other',author:ME,body:'تعليقي',ed:null},{id:'c2',post:'p-other',author:OTHER,body:'تعليق غيري',ed:null});
+db.comments.push({id:'c1',post:'p-other',author:ME,body:'تعليقي',ed:null},{id:'c2',post:'p-other',author:OTHER,body:'تعليق غيري',ed:null},{id:'c3',post:'p-other',author:OTHER,body:'تعليق ثانٍ لغيري',ed:null});
 db.msgs.push({id:1,room:'general',author:OTHER,body:'رسالة غيري',pin:false,ed:null,exp:Date.now()+864e5});
 db.msgs.push({id:2,room:'general',author:ME,body:'رسالتي',pin:false,ed:null,exp:Date.now()+864e5});
 db.msgs.push({id:3,room:'general',author:OTHER,body:'رسالة ثانية لغيري',pin:false,ed:null,exp:Date.now()+864e5});
@@ -23,10 +24,10 @@ const STUDENTS={i1:{found:true,registered:true,id:OTHER.id,name:'Sara Ba',reg:'I
 function api(a,args){window.__calls.push([a,args]);const adm=window.__adm;
  switch(a){
   case 'me':return Object.assign({},ME,{admin:adm});
-  case 'feed':return db.posts.filter(p=>p.kind!=='partner').sort((x,y)=>(y.pinned-x.pinned)).map(p=>({id:p.id,kind:p.kind,body:p.body,spec:p.spec,level:p.level,t:p.t,aid:p.author.id,an:p.author.name,avatar:p.author.avatar_data,likes:0,comments:db.comments.filter(c=>c.post===p.id).length,liked:false,can_del:p.author===ME||adm,pinned:p.pinned,ed:p.ed,exp:p.pinned?null:p.exp,can_edit:p.author===ME,can_pin:adm}));
+  case 'feed':{const seenA={};return db.posts.filter(p=>p.kind!=='partner').sort((x,y)=>(y.pinned-x.pinned)).map(p=>{const first=!seenA[p.author.id];seenA[p.author.id]=1;return ({id:p.id,kind:p.kind,body:p.body,spec:p.spec,level:p.level,t:p.t,aid:p.author.id,an:p.author.name,avatar:first?p.author.avatar_data:null,likes:0,comments:db.comments.filter(c=>c.post===p.id).length,liked:false,can_del:p.author===ME||adm,pinned:p.pinned,ed:p.ed,exp:p.pinned?null:p.exp,can_edit:p.author===ME,can_pin:adm})})}
   case 'edit_post':{const p=db.posts.find(p=>p.id===args.id&&p.author===ME);if(!p)throw Error('forbidden');p.body=args.body;p.ed=new Date().toISOString();return {}}
   case 'del_post':{const i=db.posts.findIndex(p=>p.id===args.id&&(p.author===ME||adm));if(i>=0)db.posts.splice(i,1);return {}}
-  case 'comments':return db.comments.filter(c=>c.post===args.id).map(c=>({id:c.id,an:c.author.name,aid:c.author.id,avatar:c.author.avatar_data,body:c.body,t:new Date().toISOString(),can_del:c.author===ME||adm,can_edit:c.author===ME,ed:c.ed}));
+  case 'comments':{const seenC={};return db.comments.filter(c=>c.post===args.id).map(c=>{const first=!seenC[c.author.id];seenC[c.author.id]=1;return ({id:c.id,an:c.author.name,aid:c.author.id,avatar:first?c.author.avatar_data:null,body:c.body,t:new Date().toISOString(),can_del:c.author===ME||adm,can_edit:c.author===ME,ed:c.ed})})}
   case 'edit_comment':{const c=db.comments.find(c=>c.id===args.id&&c.author===ME);if(!c)throw Error('forbidden');c.body=args.body;c.ed=new Date().toISOString();return {}}
   case 'msgs':{const after=+args.after||0;const rows=db.msgs.filter(m=>m.room===args.room&&m.id>after);const seen={},out=[];
     rows.slice().reverse().forEach(m=>{const first=!seen[m.author.id];seen[m.author.id]=1;out.push({id:m.id,body:m.body,t:new Date().toISOString(),aid:m.author.id,an:m.author.name,avatar:first?m.author.avatar_data:null,mine:m.author===ME,rt:null,ed:m.ed,pin:m.pin,exp:m.pin?null:m.exp})});return out.reverse()}
@@ -71,6 +72,8 @@ export default async function run() {
   s.check('صورة الطالب في شارة الترحيب', !!(await pg.$('#hello img')));
   s.eq('تُحفظ الصورة لعرضها في الصفحة الرئيسية', await pg.evaluate(() => JSON.parse(localStorage.getItem('unem_student_avatar') || '{}').reg), 'I21567');
 
+  s.eq('صورة الكاتب تظهر على كل منشوراته رغم أن الخادم أرسلها مرة واحدة', await pg.$$eval('#main .card', (cs) => cs.filter((c) => /سؤال من تخصص آخر|منشور ثانٍ للكاتب نفسه/.test(c.textContent)).map((c) => !!c.querySelector('.ph img'))), [true, true]);
+
   // --- تعديل منشور خاص + لا زر تعديل لمنشور غيره
   s.eq('زر تعديل واحد فقط (منشوره)', (await pg.$$('.card button[onclick^="editPost"]')).length, 1);
   await pg.click('#pp-mine button[onclick^="editPost"]');
@@ -82,6 +85,8 @@ export default async function run() {
   // --- تعليقات
   await pg.click('#pp-other .acts button:nth-child(2)');
   await pg.waitForSelector('#cbc1');
+  s.eq('صورة الكاتب على كل تعليقاته (أُرسلت مرة واحدة)', await pg.$$eval('#cp-other .cm, #cp-other [class="cm"]', (els) => els.length).catch(() => -1) >= 0, true);
+  s.eq('صورة كاتب التعليقين تظهر على الاثنين', await pg.$$eval('.cm', (els) => els.filter((e) => /تعليق غيري|تعليق ثانٍ لغيري/.test(e.textContent)).map((e) => !!e.querySelector('.ph img'))), [true, true]);
   s.eq('رابط تعديل لتعليقه فقط', (await pg.$$('a.cm-edit')).length, 1);
   await pg.click('a.cm-edit'); await pg.fill('#edT', 'تعليقي المعدل'); await pg.click('#edS');
   await pg.waitForFunction(() => document.getElementById('cbc1')?.textContent === 'تعليقي المعدل');

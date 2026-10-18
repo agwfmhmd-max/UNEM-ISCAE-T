@@ -1,0 +1,230 @@
+/* ---- <style id="mda-layer-css"> ---- */
+
+/* MDA layer — polish, responsive, performance (isolated; last in cascade) */
+:root{--mda-g1:#0b3d2a;--mda-g2:#0f5132;--mda-g3:#198754;--mda-gold:#f5b942;--mda-r:18px;--mda-shadow:0 8px 28px rgba(15,81,50,.12);--mda-shadow-h:0 16px 40px rgba(15,81,50,.22)}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{text-rendering:optimizeLegibility}
+.main-header{background:linear-gradient(135deg,var(--mda-g1) 0%,var(--mda-g2) 45%,var(--mda-g3) 100%)!important;position:relative;overflow:hidden;box-shadow:0 12px 34px rgba(11,61,42,.32)!important}
+.main-header::before{content:"";position:absolute;inset:0;z-index:0;background:radial-gradient(600px 180px at 85% -20%,rgba(245,185,66,.28),transparent 70%),radial-gradient(420px 160px at 10% 120%,rgba(255,255,255,.14),transparent 70%);pointer-events:none}
+.main-header h1,.main-header p{position:relative;z-index:1}.main-header .theme-btn,.main-header .lang-btn{z-index:3}
+.semester-card,.category-card,.specialization-card,.study-cycle-card,.admin-dash-card,.kpi-card{border-radius:var(--mda-r)!important;box-shadow:var(--mda-shadow);transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s,border-color .25s!important;will-change:transform}
+@media (hover:hover){.semester-card:hover,.category-card:hover,.specialization-card:hover,.study-cycle-card:hover,.admin-dash-card:hover{transform:translateY(-4px);box-shadow:var(--mda-shadow-h);border-color:var(--mda-g3)}}
+.semester-card:active,.category-card:active,.specialization-card:active,.study-cycle-card:active,.admin-dash-card:active,.btn-submit:active{transform:scale(.97)}
+.icon-box{border-radius:16px!important;background:linear-gradient(145deg,rgba(25,135,84,.16),rgba(245,185,66,.16))!important}
+.btn-submit,.back-btn{border-radius:14px!important;min-height:46px;letter-spacing:.2px}
+.btn-submit{background:linear-gradient(135deg,var(--mda-g2),var(--mda-g3))!important;box-shadow:0 8px 20px rgba(15,81,50,.28)}
+#dynamic-subjects-list button{border-radius:14px!important;min-height:52px;transition:transform .2s,box-shadow .2s,border-color .2s}
+#dynamic-subjects-list{content-visibility:auto;contain-intrinsic-size:auto 600px}
+input,select,textarea{font-family:inherit;border-radius:12px;max-width:100%}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:3px solid rgba(245,185,66,.55);outline-offset:2px}
+.modal-content{border-radius:22px!important}
+.container{scrollbar-width:thin;scrollbar-color:var(--mda-g3) transparent;-webkit-overflow-scrolling:touch}
+.main-footer{background:linear-gradient(135deg,var(--mda-g1),var(--mda-g2))!important}
+.social-btn{border-radius:14px!important;min-height:44px}
+@media (max-width:480px){.semesters-grid,.category-grid{gap:9px}.semester-card,.category-card{padding:14px 8px}.main-header{border-radius:0 0 22px 22px!important}}
+@media (min-width:768px){.semesters-grid,.category-grid{grid-template-columns:repeat(3,1fr);gap:16px}.container{width:92%}}
+@media (min-width:1100px){.semesters-grid,.category-grid{grid-template-columns:repeat(4,1fr);gap:20px}.container{max-width:1240px}#dynamic-subjects-list{display:grid!important;grid-template-columns:repeat(2,1fr);gap:12px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+body.dark-mode .semester-card,body.dark-mode .category-card,body.dark-mode .specialization-card{box-shadow:0 8px 24px rgba(0,0,0,.35)}
+/* ختم MDA — توقيع المطوّر */
+.mda-sign{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto;user-select:none;cursor:default;-webkit-user-select:none}
+.mda-sign::before,.mda-sign::after{content:"";flex:0 1 44px;height:1px;background:linear-gradient(90deg,transparent,rgba(245,185,66,.28))}
+.mda-sign::after{transform:scaleX(-1)}
+.mda-seal{width:22px;height:22px;display:block;flex:none;opacity:.42;filter:none;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .3s,filter .3s}
+.mda-sign:hover .mda-seal{transform:rotate(360deg);opacity:.9}
+.mda-toast{position:fixed;inset-inline:0;bottom:calc(24px + env(safe-area-inset-bottom));margin:auto;width:max-content;max-width:88vw;background:rgba(11,61,42,.96);color:#fff;padding:10px 18px;border-radius:999px;font-size:.85rem;font-weight:700;border:1px solid rgba(245,185,66,.5);z-index:99999;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:fadeUp .35s ease-out}
+/* لوحة إضافة المواد */
+.mda-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:20px;padding:18px;box-shadow:var(--mda-shadow)}
+.mda-box h3{margin:0 0 4px;font-size:1.15rem;color:var(--primary-color)}
+.mda-box small{color:var(--text-secondary);display:block;margin-bottom:12px}
+.mda-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+.mda-box label{display:block;font-weight:700;font-size:.85rem;margin:8px 0 4px}
+.mda-box input,.mda-box select,.mda-box textarea{width:100%;padding:11px 12px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-primary);font-size:.95rem}
+.mda-box textarea{min-height:110px;resize:vertical}
+.mda-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.mda-row .btn-submit{flex:1 1 180px;margin:0}
+.mda-list{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.mda-list li{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:9px 12px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-color);font-weight:700;font-size:.9rem}
+.mda-tag{font-size:.7rem;padding:2px 8px;border-radius:99px;background:rgba(25,135,84,.15);color:var(--primary-color)}
+.mda-tag.new{background:rgba(245,185,66,.25);color:#8a5a00}
+.mda-del{border:0;background:#fee2e2;color:#b91c1c;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:800}
+.mda-msg{margin-top:10px;font-weight:700;font-size:.9rem}.mda-msg.ok{color:#15803d}.mda-msg.err{color:#b91c1c}
+
+/* زر الإدارة العائم: فوق التذييل حتى لا يغطي أزرار التواصل */
+#admin-quick-access{bottom:calc(env(safe-area-inset-bottom,0px) + 138px)!important}
+@media (max-width:600px){#admin-quick-access{bottom:calc(env(safe-area-inset-bottom,0px) + 148px)!important}}
+
+/* نتائج المعهد — خيارات المشرف وشريط العارض */
+.mda-opt{display:flex;align-items:flex-start;gap:10px;padding:12px;margin:8px 0;border:1px solid var(--border-color);border-radius:14px;background:var(--bg-color);cursor:pointer;transition:border-color .2s,background .2s}
+.mda-opt:has(input:checked){border-color:var(--mda-g3);background:rgba(25,135,84,.09)}
+.mda-opt input{width:auto!important;margin-top:5px;accent-color:#198754}
+.mda-opt b{display:block;font-size:.95rem}.mda-opt em{display:block;font-style:normal;font-size:.8rem;color:var(--text-secondary);margin-top:2px;line-height:1.5}
+#mda-web-hint{display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:7px 12px;background:#fff8e1;color:#7a5200;font-size:.78rem;font-weight:700;border-bottom:1px solid #f3dc9a}
+#mda-web-hint a{color:#0f5132;font-weight:800;text-decoration:underline}
+.mda-box .mda-opt{display:flex;flex-direction:row;align-items:flex-start;text-align:right;margin:8px 0}
+.mda-box .mda-opt input{flex:none;width:18px!important;height:18px;padding:0}
+.mda-box .mda-opt span{flex:1;min-width:0}
+.mda-row .btn-cancel{background:var(--bg-color)!important;color:var(--text-primary)!important;border:1px solid var(--border-color)!important;box-shadow:none!important}
+
+/* ---- <style id="responsive-fit-final-2026"> ---- */
+
+/* ===== طبقة التوافق النهائية: تظهر المنصة كاملة على كل الأجهزة دون مساحات فارغة غير ضرورية ===== */
+html{height:100%;max-width:100%;overflow-x:hidden;}
+@supports (height:100dvh){html{height:100%;}}
+body{max-width:100%;}
+@media(max-width:1023.98px){body{width:100%!important;}}
+img,svg,video,canvas,iframe{max-width:100%;}
+table{max-width:100%;}
+.container{width:min(96%,1240px)!important;max-width:1240px;padding-top:10px!important;padding-bottom:8px!important;}
+@media(min-width:1024px){.container{max-width:1500px;width:min(94%,1240px)!important;}}
+.search-box{margin-bottom:8px!important;}
+
+/* القائمة الرئيسية: 7 بطاقات؛ وبطاقة المجتمع تمتد على خانتين مع الحفاظ على المفضلة أعلى الشبكة. */
+#main-menu{flex:1 1 auto!important;justify-content:center!important;align-items:stretch!important;padding:clamp(8px,1.6vw,20px)!important;}
+#main-menu .semesters-grid{
+  flex:1 1 auto!important;
+  width:100%!important;max-width:min(100%,1000px)!important;
+  height:100%!important;max-height:560px!important;min-height:0!important;
+  margin:auto!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(0,1fr)!important;
+  gap:clamp(8px,1.5vw,18px)!important;
+  align-content:stretch!important;
+  overflow:visible!important;
+}
+#main-menu .semesters-grid .semester-card.wide-card,
+#main-menu .semesters-grid .archive-card{
+  grid-column:auto!important;
+  aspect-ratio:auto!important;
+  width:100%!important;height:100%!important;
+  min-height:0!important;
+  padding:clamp(6px,1.2vw,14px)!important;
+  border-radius:clamp(12px,2vw,20px)!important;
+  justify-content:center!important;align-items:center!important;text-align:center!important;
+  overflow:hidden;
+}
+/* الاستثناء يجب أن يأتي بعد إعادة ضبط البطاقات العريضة إلى عمود واحد. */
+#main-menu .semesters-grid .semester-card.wide-card.community-card{grid-column:span 2!important;}
+#main-menu .semesters-grid .semester-card.wide-card .icon-box,
+#main-menu .semesters-grid .archive-card .icon-box{
+  width:clamp(34px,5.4vw,58px)!important;height:clamp(34px,5.4vw,58px)!important;
+  font-size:clamp(.9rem,2.2vw,1.45rem)!important;flex:none;
+}
+#main-menu .semesters-grid .semester-card.wide-card h3,
+#main-menu .semesters-grid .archive-card h3{
+  font-size:clamp(.78rem,1.7vw,1.08rem)!important;line-height:1.3!important;margin:clamp(6px,1vw,12px) 0 2px!important;
+}
+#main-menu .semesters-grid .semester-card.wide-card p,
+#main-menu .semesters-grid .archive-card p{
+  font-size:clamp(.58rem,1.15vw,.8rem)!important;line-height:1.4!important;max-width:28ch!important;
+}
+@media(max-width:600px){
+  #main-menu{padding:8px!important;}
+  #main-menu .semesters-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:repeat(4,minmax(96px,1fr))!important;
+    grid-auto-rows:minmax(96px,1fr)!important;
+    max-height:none!important;gap:8px!important;
+  }
+  /* تبرز بطاقة المجتمع بعد المفضلة مباشرة، فتأخذ عرض الصف دون دفع بطاقة أخيرة خارج الشاشة. */
+  #main-menu .semesters-grid .semester-card.wide-card.community-card{grid-column:1/-1!important;order:-1!important;}
+  #main-menu .semesters-grid .semester-card.wide-card h3,
+  #main-menu .semesters-grid .archive-card h3{font-size:.8rem!important;}
+  #main-menu .semesters-grid .semester-card.wide-card p,
+  #main-menu .semesters-grid .archive-card p{font-size:.6rem!important;}
+}
+/* هواتف بوضع أفقي أو شاشات قصيرة: ضغط الرأس والتذييل لإظهار المحتوى كاملاً */
+@media(max-height:560px){
+  .main-header{padding:6px 10px 10px!important;}
+  .main-header .logo-container{width:34px!important;height:34px!important;margin-bottom:2px!important;}
+  .main-header h1{font-size:1rem!important;}
+  .main-header p{font-size:.72rem!important;}
+  .main-footer{padding:6px 10px!important;}
+  .main-footer .social-btn{min-height:34px!important;padding:5px 10px!important;}
+  #main-menu .semesters-grid{grid-template-rows:repeat(3,minmax(64px,1fr))!important;grid-auto-rows:minmax(64px,1fr)!important;}
+}
+@media(max-width:600px) and (min-height:561px){
+  .main-header{padding:10px 10px 12px!important;}
+  .main-footer{padding:8px 10px!important;}
+  .main-footer .social-buttons-container{margin-bottom:0!important;}
+  .main-footer .copyright{margin-top:6px!important;}
+}
+@media(max-width:360px){
+  .container{width:97%!important;}
+  .search-box{padding:9px 14px!important;}
+  .main-header h1{font-size:1.1rem!important;}
+}
+
+/* النوافذ المنبثقة تتسع لكل الشاشات */
+.modal-overlay{padding:clamp(8px,2vw,20px)!important;overflow:hidden;}
+.modal-content{max-width:min(100%,500px);max-height:min(92dvh,92vh)!important;}
+@media(max-width:480px){.modal-content{padding:18px 14px!important;}}
+#admin-dashboard-overlay .modal-content{max-width:min(96%,1050px)!important;}
+#admin-dashboard-home{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))!important;padding:clamp(12px,3vw,22px)!important;}
+@media(max-width:480px){#admin-dashboard-home{gap:10px!important;}.admin-dash-card{padding:14px!important;}}
+
+/* شبكات الصفحات الداخلية (الأطوار، التخصصات، الفئات) */
+.study-cycle-grid{width:min(100%,620px)!important;}
+@media(max-width:380px){.study-cycle-grid,.category-grid,#category-grid{grid-template-columns:1fr!important;}}
+.section-box{padding:clamp(8px,2vw,16px);}
+
+/* ---- <style id="unem-schedules-admin-css"> ---- */
+
+/* ===== إدارة الجداول الدراسية داخل لوحة المشرف الرئيسي ===== */
+.usa-wrap{grid-template-columns:minmax(0,1fr)}
+.usa-card,.usa-item,.usa-item-head>div,.usa-detail,.usa-li-main{min-width:0;max-width:100%}
+.usa-items,.usa-list{grid-template-columns:minmax(0,1fr)}
+.usa-item-head{grid-template-columns:auto minmax(0,1fr)}
+.usa-item-fields>*{min-width:0}
+.usa-wrap{display:grid;gap:16px;text-align:right;direction:rtl}
+.usa-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:18px;padding:clamp(12px,2.5vw,20px);box-shadow:var(--shadow-sm)}
+.usa-card h3{margin:0 0 6px;font-size:1.05rem;color:var(--primary-color);font-weight:900}
+.usa-hint{font-size:.78rem;color:var(--text-secondary);line-height:1.7;margin:0 0 12px}
+.usa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:10px;margin-bottom:10px}
+.usa-f label{display:block;font-size:.76rem;font-weight:800;color:var(--text-secondary);margin:0 0 5px}
+.usa-f input,.usa-f select{width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-color);color:var(--text-primary);font:inherit;font-size:.9rem}
+.usa-chk{display:flex;align-items:flex-start;gap:8px;font-size:.84rem;font-weight:700;margin:8px 0;cursor:pointer;color:var(--text-primary)}
+.usa-chk input{width:18px;height:18px;margin-top:2px;accent-color:#198754;flex:none}
+.usa-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.usa-btn{border:0;border-radius:12px;padding:10px 16px;font:inherit;font-size:.86rem;font-weight:800;cursor:pointer;background:#e2e8f0;color:#1e293b;min-height:40px}
+.usa-btn.p{background:linear-gradient(135deg,#0f5132,#198754);color:#fff}
+.usa-btn.b{background:#2563eb;color:#fff}
+.usa-btn.d{background:#fee2e2;color:#b91c1c}
+.usa-btn.g{background:#f8efd1;color:#7c5a00}
+.usa-btn.s{padding:7px 11px;min-height:34px;font-size:.78rem}
+.usa-btn:disabled{opacity:.55;cursor:not-allowed}
+body.dark-mode .usa-btn{background:#334155;color:#f1f5f9}
+body.dark-mode .usa-btn.p{background:linear-gradient(135deg,#047857,#10b981)}
+.usa-status{display:none;margin-top:10px;padding:10px 12px;border-radius:12px;font-size:.82rem;font-weight:800;line-height:1.6;white-space:pre-line}
+.usa-status.show{display:block}
+.usa-status.ok{background:#dcfce7;color:#166534}.usa-status.err{background:#fee2e2;color:#991b1b}.usa-status.info{background:#e0f2fe;color:#075985}.usa-status.warn{background:#fef3c7;color:#92400e}
+.usa-items{display:grid;gap:10px;margin-top:12px}
+.usa-item{border:1px solid var(--border-color);border-radius:14px;padding:11px;background:var(--bg-color)}
+.usa-item.off{opacity:.6}
+.usa-item-head{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.usa-item-head>input[type=checkbox]{width:20px;height:20px;margin-top:8px;accent-color:#198754}
+.usa-item-fields{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px}
+.usa-item-fields input,.usa-item-fields select{width:100%;padding:8px 10px;border:1px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:var(--text-primary);font:inherit;font-size:.84rem;min-width:0}
+.usa-item-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:.74rem;font-weight:800}
+.usa-tag{padding:2px 9px;border-radius:99px;background:rgba(25,135,84,.14);color:var(--primary-color)}
+.usa-tag.new{background:#dbeafe;color:#1d4ed8}.usa-tag.rep{background:#fef3c7;color:#92400e}.usa-tag.bad{background:#fee2e2;color:#b91c1c}
+.usa-detail{margin-top:10px}
+.usa-rows{display:grid;gap:7px}
+.usa-row{display:grid;grid-template-columns:1.1fr 1fr 2.6fr 1fr 1.8fr auto;gap:6px;align-items:center}
+.usa-row input,.usa-row select{width:100%;min-width:0;padding:8px 9px;border:1px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:var(--text-primary);font:inherit;font-size:.82rem}
+.usa-gridwrap{overflow-x:auto;margin-top:10px;border:1px solid var(--border-color);border-radius:12px;-webkit-overflow-scrolling:touch}
+.usa-table{border-collapse:collapse;width:100%;min-width:640px;font-size:.74rem}
+.usa-table th,.usa-table td{border:1px solid var(--border-color);padding:6px;vertical-align:top;text-align:center}
+.usa-table th{background:rgba(25,135,84,.12);color:var(--primary-color);font-weight:900}
+.usa-table td b{display:block;font-size:.76rem}.usa-table td small{display:block;color:var(--text-secondary)}
+.usa-list{display:grid;gap:8px;margin-top:10px}
+.usa-li{border:1px solid var(--border-color);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--bg-color)}
+.usa-li.off{opacity:.65}
+.usa-li-main{flex:1 1 220px;min-width:0}.usa-li-main b{display:block;font-size:.88rem;overflow-wrap:anywhere}.usa-li-main small{color:var(--text-secondary);font-size:.74rem}
+.usa-li-act{display:flex;flex-wrap:wrap;gap:6px}
+.usa-filter{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px;margin-top:6px}
+.usa-empty{padding:18px;text-align:center;color:var(--text-secondary);font-weight:700;font-size:.85rem}
+@media(max-width:760px){
+  .usa-item-fields{grid-template-columns:1fr 1fr}.usa-item-fields>:first-child{grid-column:1/-1}
+  .usa-row{grid-template-columns:1fr 1fr}.usa-row .usa-subj{grid-column:1/-1}.usa-row .usa-teach{grid-column:1/-1}
+}

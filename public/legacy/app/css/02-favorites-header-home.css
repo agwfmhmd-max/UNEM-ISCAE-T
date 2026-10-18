@@ -1,0 +1,346 @@
+/* ---- <style id="unem-favorites-style"> ---- */
+
+/* ===================== المفضلة (Favorites) ===================== */
+/* شريط المفضلة في الصفحة الرئيسية — خارج شبكة البطاقات حتى لا يتأثر ترتيب/ألوان البطاقات الحالية */
+#main-menu .fav-home-bar{display:flex;align-items:center;gap:12px;width:min(100%,760px);max-width:100%;margin:0 auto 12px;padding:10px 14px;border:1px solid rgba(225,29,72,.22);border-bottom:4px solid #e11d48;border-inline-end:4px solid #e11d48;border-radius:16px;background:linear-gradient(145deg,#fff1f2,#ffffff);color:#0f172a;cursor:pointer;font-family:inherit;text-align:start;position:relative;z-index:1;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease;-webkit-tap-highlight-color:transparent}
+#main-menu .fav-home-bar:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+#main-menu .fav-home-bar:active{transform:scale(.985)}
+#main-menu .fav-home-bar:focus-visible{outline:3px solid rgba(225,29,72,.35);outline-offset:2px}
+#main-menu .fav-bar-icon{flex:none;width:42px;height:42px;border-radius:14px;background:rgba(225,29,72,.12);color:#e11d48;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+#main-menu .fav-bar-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#main-menu .fav-bar-text b{font-weight:900;font-size:.98rem;color:#0f172a;line-height:1.3}
+#main-menu .fav-bar-text small{font-weight:700;font-size:.72rem;color:#64748b;line-height:1.4}
+#main-menu .fav-bar-count{flex:none;min-width:26px;height:26px;padding:0 8px;border-radius:999px;background:#e11d48;color:#fff;font-weight:900;font-size:.78rem;display:inline-flex;align-items:center;justify-content:center}
+#main-menu .fav-bar-count.is-zero{display:none}
+#main-menu .fav-bar-arrow{flex:none;color:#e11d48;font-size:.85rem}
+html[dir="ltr"] #main-menu .fav-bar-arrow{transform:scaleX(-1)}
+@media(max-width:900px){#main-menu .fav-home-bar{width:min(100%,620px)}}
+@media(max-width:600px){#main-menu .fav-home-bar{width:min(100%,430px);padding:8px 11px;gap:10px;border-radius:14px}#main-menu .fav-bar-icon{width:36px;height:36px;font-size:1rem;border-radius:12px}#main-menu .fav-bar-text b{font-size:.86rem}#main-menu .fav-bar-text small{font-size:.62rem}}
+
+/* زر القلب داخل قوائم الملفات */
+.action-btn.fav-btn{color:#e11d48}
+.action-btn.fav-btn.is-fav{background:#fff1f2;border-color:#fda4af;color:#e11d48}
+.action-btn.fav-btn:hover{background:#e11d48;border-color:#e11d48;color:#fff}
+body.dark-mode .action-btn.fav-btn.is-fav{background:rgba(225,29,72,.18);border-color:rgba(251,113,133,.5);color:#fb7185}
+body.dark-mode .action-btn.fav-btn:hover{background:#e11d48;border-color:#e11d48;color:#fff}
+.action-btn.fav-btn.fav-pop i{animation:unemFavPop .35s ease}
+@keyframes unemFavPop{0%{transform:scale(1)}45%{transform:scale(1.45)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.action-btn.fav-btn.fav-pop i{animation:none}}
+
+/* صفحة المفضلة */
+#favorites-container .fav-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+#favorites-container .fav-tabs{display:flex;gap:6px;flex-wrap:wrap}
+#favorites-container .fav-tab{border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-secondary);padding:7px 14px;border-radius:999px;font-family:inherit;font-weight:800;font-size:.82rem;cursor:pointer;transition:var(--transition)}
+#favorites-container .fav-tab:hover{border-color:#e11d48;color:#e11d48}
+#favorites-container .fav-tab.active{background:#e11d48;border-color:#e11d48;color:#fff}
+#favorites-container .fav-tab .fav-tab-n{opacity:.85;margin-inline-start:4px;font-weight:900}
+#favorites-container .fav-clear-btn{border:1px solid #fca5a5;background:transparent;color:#ef4444;padding:7px 14px;border-radius:999px;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer;transition:var(--transition)}
+#favorites-container .fav-clear-btn:hover{background:#ef4444;color:#fff;border-color:#ef4444}
+#favorites-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr;gap:8px}
+@media(min-width:650px){#favorites-list{grid-template-columns:repeat(2,1fr);gap:12px}}
+#favorites-list li{background:var(--card-bg);padding:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--border-color);box-shadow:var(--shadow-sm);transition:var(--transition);cursor:pointer}
+#favorites-list li:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:#e11d48}
+#favorites-list li.fav-removing{opacity:0;transform:scale(.96)}
+#favorites-list .file-info{min-width:0}
+#favorites-list .file-info .fav-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+#favorites-list .file-info .fav-sub{font-size:.7rem;font-weight:700;color:var(--text-secondary);line-height:1.4;word-break:break-word}
+#favorites-list .file-info i.fa-calendar-alt{color:#0f766e;background:rgba(15,118,110,.1)}
+#favorites-list .fav-kind{display:inline-block;margin-inline-start:6px;padding:1px 8px;border-radius:999px;background:rgba(15,118,110,.12);color:#0f766e;font-size:.64rem;font-weight:900;vertical-align:middle}
+#favorites-empty{text-align:center;padding:34px 20px;border-radius:15px;margin-top:15px;background:rgba(225,29,72,.04);border:2px dashed rgba(225,29,72,.25)}
+#favorites-empty i{font-size:3rem;color:#e11d48;opacity:.85;margin-bottom:12px;display:block}
+#favorites-empty p{margin:0;color:var(--text-primary);font-weight:800;font-size:1.05rem;line-height:1.6}
+#favorites-empty span{display:block;margin-top:6px;color:var(--text-secondary);font-weight:700;font-size:.85rem;line-height:1.6}
+#unem-fav-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:#0f172a;color:#fff;padding:10px 18px;border-radius:999px;font-weight:800;font-size:.85rem;z-index:2147483000;max-width:90vw;text-align:center;transition:opacity .25s ease,transform .25s ease;box-shadow:0 10px 30px rgba(15,23,42,.35)}
+#unem-fav-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---- <style id="unem-home-responsive-final"> ---- */
+
+/* =====================================================================
+   تحسين التجاوب والتصميم النهائي للصفحة الرئيسية (CSS فقط — بدون أي تأثير على الوظائف)
+   ===================================================================== */
+
+/* ---- 1) المناطق الآمنة (النتوء/شريط الحالة) حتى لا تختفي الأزرار العلوية ---- */
+body{padding-left:env(safe-area-inset-left,0px)!important;padding-right:env(safe-area-inset-right,0px)!important}
+body .main-header{padding-top:calc(15px + env(safe-area-inset-top,0px))}
+body .main-header .theme-btn,body .main-header .lang-btn{top:calc(14px + env(safe-area-inset-top,0px));width:40px;height:40px;flex:none}
+#announcement-bar.show{padding-top:calc(9px + env(safe-area-inset-top,0px))}
+#announcement-bar.show ~ .main-header{padding-top:15px}
+#announcement-bar.show ~ .main-header .theme-btn,#announcement-bar.show ~ .main-header .lang-btn{top:14px}
+#open-in-app-banner{padding-top:calc(12px + env(safe-area-inset-top,0px))}
+body .main-footer{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+body .main-header h1,body .main-header p{overflow-wrap:anywhere}
+body .main-header p{line-height:1.45}
+
+/* ---- 2) القائمة الرئيسية: تمرير عمودي بدل القص (سبب اختفاء البطاقات السفلية) ---- */
+body #main-menu{--unem-menu-max:820px;width:min(100% - 18px,880px)!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:thin;padding-bottom:calc(clamp(14px,2.5vw,24px) + 6px)!important}
+body #main-menu::-webkit-scrollbar{width:5px}
+body #main-menu::-webkit-scrollbar-thumb{background:rgba(15,118,110,.45);border-radius:10px}
+body #main-menu .semesters-grid{flex:0 0 auto!important;min-height:auto!important;width:100%!important;max-width:var(--unem-menu-max)!important;margin-inline:auto!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:auto!important;gap:12px!important;align-content:start}
+@media(min-width:601px){body #main-menu .semesters-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important}}
+/* 6 بطاقات = 3×2 على الشاشات الكبيرة و 2×3 على الهاتف — توزيع متوازن دون فراغات */
+body #main-menu .semesters-grid .semester-card.about-card,body #main-menu .semesters-grid .about-card{grid-column:auto!important}
+
+/* ---- 3) البطاقات: أحجام متساوية ونصوص مقروءة تلتف بدل أن تُقص ---- */
+body #main-menu .semester-card.wide-card{min-height:clamp(128px,22vw,160px)!important;height:auto!important;aspect-ratio:auto!important;padding:clamp(12px,2.4vw,18px) clamp(8px,2vw,14px)!important;min-width:0}
+body #main-menu .semester-card.wide-card .icon-box{width:clamp(40px,9vw,48px)!important;height:clamp(40px,9vw,48px)!important;font-size:clamp(1.05rem,3.2vw,1.3rem)!important;flex:none}
+body #main-menu .semester-card.wide-card h3{font-size:clamp(.82rem,3.3vw,1rem)!important;line-height:1.35!important;margin:10px 0 4px!important;overflow-wrap:anywhere;hyphens:auto}
+body #main-menu .semester-card.wide-card p{font-size:clamp(.66rem,2.7vw,.76rem)!important;line-height:1.5!important;max-width:none!important;width:100%;overflow-wrap:anywhere;hyphens:auto}
+html[lang="fr"] body #main-menu .semester-card.wide-card h3{font-size:clamp(.78rem,3.1vw,.94rem)!important}
+html[lang="fr"] body #main-menu .semester-card.wide-card p{font-size:clamp(.62rem,2.5vw,.72rem)!important}
+
+/* ---- 4) شريط المفضلة: نفس عرض الشبكة وبدون أي قص ---- */
+body #main-menu .fav-home-bar{flex:0 0 auto;box-sizing:border-box;width:100%;max-width:var(--unem-menu-max);min-height:56px;margin:0 auto 14px;padding:10px 14px}
+body #main-menu .fav-bar-text small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+body #main-menu .fav-bar-text b{overflow-wrap:anywhere}
+
+/* ---- 5) الهواتف: رأس وتذييل أنحف ليبقى مكان أكبر للقائمة ---- */
+@media(max-width:600px){
+  body .main-header{padding-bottom:12px}
+  body .main-header .logo-container{width:44px;height:44px;margin-bottom:3px}
+  body .main-header h1{font-size:1.12rem;letter-spacing:.5px}
+  body .main-header p{font-size:.8rem}
+  body .search-box{padding:9px 16px;margin-bottom:8px}
+  body .main-footer{padding-top:8px}
+  body .main-footer .social-buttons-container{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  body .main-footer .social-btn{flex:1 1 140px;min-width:0;margin:0;padding:7px 8px;font-size:.76rem;line-height:1.3;text-align:center;white-space:normal}
+  body .main-footer .copyright{margin-top:6px;font-size:.72rem;line-height:1.4}
+  body #main-menu .fav-home-bar{min-height:52px;padding:8px 11px;gap:10px;margin-bottom:12px}
+}
+@media(max-width:360px){
+  body #main-menu .semesters-grid{gap:9px!important}
+  body #main-menu .semester-card.wide-card{padding:10px 6px!important}
+}
+/* الهواتف في الوضع الأفقي أو الشاشات القصيرة */
+@media(max-height:560px){
+  body .main-header{padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:6px}
+  body .main-header .logo-container{width:34px;height:34px;margin-bottom:2px}
+  body .main-header h1{font-size:1rem}
+  body .main-header p{font-size:.7rem}
+  body .main-header .theme-btn,body .main-header .lang-btn{top:calc(6px + env(safe-area-inset-top,0px));width:34px;height:34px}
+  body .search-box{padding:6px 14px;margin-bottom:6px}
+  body .main-footer{padding-top:5px}
+  body .main-footer .copyright{margin-top:3px}
+  body #main-menu .semester-card.wide-card{min-height:112px!important}
+}
+
+/* ---- 6) عارض الجدول المحفوظ (داخل الصفحة) ---- */
+html.fso-lock{overflow:hidden}
+#fav-schedule-overlay{position:fixed;inset:0;z-index:100000;display:none;flex-direction:column;background:#f8fafc;color:#0f172a;font-family:'Tajawal',sans-serif;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+#fav-schedule-overlay.open{display:flex}
+body.dark-mode #fav-schedule-overlay{background:#0b1d1a;color:#e2e8f0}
+#fav-schedule-overlay .fso-head{flex:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:linear-gradient(135deg,#0f5132,#198754);color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#fav-schedule-overlay .fso-close{flex:none;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:rgba(255,255,255,.2);color:#fff;padding:8px 14px;font-family:inherit;font-weight:800;font-size:.85rem;cursor:pointer}
+#fav-schedule-overlay .fso-close:hover{background:rgba(255,255,255,.32)}
+#fav-schedule-overlay .fso-titles{flex:1 1 160px;min-width:0;display:flex;flex-direction:column;gap:1px}
+#fav-schedule-overlay .fso-titles b{font-size:1rem;font-weight:900;line-height:1.35;overflow-wrap:anywhere}
+#fav-schedule-overlay .fso-titles small{font-size:.74rem;font-weight:700;opacity:.9;overflow-wrap:anywhere}
+#fav-schedule-overlay .fso-tools{display:flex;gap:6px;flex-wrap:wrap}
+#fav-schedule-overlay .fso-btn{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#fff;color:#0f5132;padding:7px 12px;font-weight:800;font-size:.76rem;text-decoration:none;line-height:1.2}
+#fav-schedule-overlay .fso-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,0px)}
+#fav-schedule-overlay .fso-frame{display:block;width:100%;height:100%;min-height:60vh;border:0;background:#fff}
+#fav-schedule-overlay .fso-grid{padding:12px;overflow:auto}
+#fav-schedule-overlay .fso-tt{border-collapse:separate;border-spacing:0;min-width:100%;width:max-content;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 18px rgba(15,23,42,.08);font-size:.8rem;color:#0f172a}
+#fav-schedule-overlay .fso-tt th,#fav-schedule-overlay .fso-tt td{border:1px solid #e2e8f0;padding:6px;vertical-align:top;text-align:center;min-width:110px}
+#fav-schedule-overlay .fso-tt th{background:#0f5132;color:#fff;font-weight:800;position:sticky;top:0}
+#fav-schedule-overlay .fso-tt th.dy,#fav-schedule-overlay .fso-tt th.c0{background:#0f766e;position:sticky;inset-inline-start:0;z-index:1;min-width:84px}
+#fav-schedule-overlay .fso-tt .ent{border-inline-start:4px solid #0f766e;border-radius:8px;padding:5px 7px;margin:2px 0;text-align:start;display:flex;flex-direction:column;gap:2px}
+#fav-schedule-overlay .fso-tt .ent b{font-weight:900}
+#fav-schedule-overlay .fso-tt .ent span{font-size:.72rem;font-weight:700;color:#475569}
+#fav-schedule-overlay .fso-msg{height:100%;min-height:50vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center}
+#fav-schedule-overlay .fso-msg i{font-size:2.4rem;color:#0f766e}
+#fav-schedule-overlay .fso-msg p{margin:0;font-weight:800;line-height:1.7;max-width:34ch}
+@media(max-width:600px){#fav-schedule-overlay .fso-head{gap:8px}#fav-schedule-overlay .fso-tools{width:100%}#fav-schedule-overlay .fso-btn{flex:1 1 0;justify-content:center}}
+/* ---- 7) شريط البحث: يظهر فقط داخل الملخصات والأرشيف (لا يظهر في الرئيسية) ---- */
+html.unem-search-off .search-box{display:none!important}
+html.unem-search-off body .container{padding-top:22px!important}
+/* ---- 8) زر المفضلة يبقى ظاهراً بالكامل أعلى القائمة حتى عند التمرير ---- */
+body #main-menu .fav-home-bar{position:relative;top:auto;z-index:1;margin-bottom:12px}
+@media(max-width:600px){
+  body #main-menu .semester-card.wide-card{min-height:clamp(112px,16.5vh,148px)!important;padding:10px 7px!important}
+  body #main-menu .semesters-grid{gap:10px!important}
+}
+@media(max-width:600px) and (max-height:900px){
+  body #main-menu .fav-home-bar{min-height:46px;padding:6px 11px;margin-bottom:9px}
+  body #main-menu .fav-bar-icon{width:32px;height:32px;font-size:.9rem;border-radius:10px}
+  body #main-menu .fav-bar-text b{font-size:.84rem}
+  body #main-menu .fav-bar-text small{font-size:.6rem}
+  body #main-menu .semesters-grid{gap:8px!important}
+  body #main-menu .semester-card.wide-card{min-height:104px!important;padding:8px 6px!important}
+  body #main-menu .semester-card.wide-card .icon-box{width:36px!important;height:36px!important;font-size:1.05rem!important}
+  body #main-menu .semester-card.wide-card h3{margin:7px 0 3px!important}
+  body .main-footer{padding-top:6px}
+  body .main-footer .social-btn{padding:5px 8px}
+  body .main-footer .copyright{margin-top:4px}
+}
+
+/* ---- <style id="unem-header-final"> ---- */
+
+/* =====================================================================
+   رأس الصفحة الجديد: شريط أبيض (الشعار + الاسم) وعلى الجانب الآخر (الترجمة، الإشعارات، الوضع الليلي، القائمة)
+   CSS فقط — نفس الأزرار والمعرّفات والوظائف السابقة. الانتقاءات قوية لتتغلب على قواعد التنسيق المتأخرة.
+   ===================================================================== */
+html body header.main-header{display:block!important;position:relative!important;overflow:visible!important;
+  background:linear-gradient(#0b3d2a,#0b3d2a) top/100% env(safe-area-inset-top,0px) no-repeat,#ffffff!important;
+  color:#0f172a!important;padding:env(safe-area-inset-top,0px) 0 0!important;margin-bottom:-15px!important;
+  border-radius:0 0 22px 22px!important;box-shadow:0 8px 24px rgba(15,23,42,.14)!important;text-align:start!important}
+html body header.main-header::before,html body header.main-header::after{display:none!important}
+html body.dark-mode header.main-header{background:linear-gradient(#022c22,#022c22) top/100% env(safe-area-inset-top,0px) no-repeat,#0f1f1c!important;color:#e2e8f0!important;box-shadow:0 8px 24px rgba(0,0,0,.45)!important}
+html body #announcement-bar.show ~ header.main-header{padding-top:0!important;background:#ffffff!important}
+html body.dark-mode #announcement-bar.show ~ header.main-header{background:#0f1f1c!important}
+
+html body header.main-header .hdr-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;direction:ltr;padding:8px 12px;min-height:62px}
+html body header.main-header .hdr-brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto}
+html body header.main-header .logo-container{width:46px!important;height:46px!important;margin:0!important;flex:none;border:2px solid rgba(15,118,110,.18)!important;box-shadow:0 3px 10px rgba(15,23,42,.14)!important}
+html body header.main-header .hdr-titles{display:flex;flex-direction:column;min-width:0;text-align:left;direction:ltr}
+html body header.main-header h1{margin:0!important;font-size:1.22rem!important;line-height:1.1!important;font-weight:900!important;letter-spacing:.4px!important;color:#0f172a!important;text-shadow:none!important;text-align:left!important;white-space:nowrap}
+html body.dark-mode header.main-header h1{color:#f1f5f9!important}
+html body header.main-header h1 .hdr-iscae{display:block;font-size:.8rem;font-weight:800;letter-spacing:.9px;color:#d97706;margin-top:3px;line-height:1.1}
+html body.dark-mode header.main-header h1 .hdr-iscae{color:#fbbf24}
+
+html body header.main-header .hdr-actions{display:flex;align-items:center;gap:2px;flex:none;direction:ltr}
+html body header.main-header .hdr-actions .theme-btn,html body header.main-header .hdr-actions .lang-btn{position:static!important;inset:auto!important;top:auto!important;z-index:auto!important;width:40px!important;height:40px!important;min-width:40px;padding:0!important;margin:0;border:0!important;border-radius:14px!important;background:transparent!important;color:#475569!important;box-shadow:none!important;transform:none!important;display:inline-flex!important;align-items:center;justify-content:center;font-size:1.18rem!important;cursor:pointer;flex:none}
+html body header.main-header .hdr-actions .theme-btn:hover,html body header.main-header .hdr-actions .lang-btn:hover,html body header.main-header .hdr-actions .theme-btn:focus-visible,html body header.main-header .hdr-actions .lang-btn:focus-visible{background:#f1f5f9!important;color:#0f172a!important;transform:none!important;outline:none}
+html body header.main-header .hdr-actions .theme-btn[style*="display: none"],html body header.main-header .hdr-actions .theme-btn[style*="display:none"]{display:none!important}
+html body header.main-header .hdr-actions .theme-btn:active,html body header.main-header .hdr-actions .lang-btn:active{transform:scale(.92)!important}
+html body header.main-header .hdr-actions #push-toggle-btn.active{background:#fef3c7!important;color:#b45309!important}
+html body header.main-header .hdr-actions .lang-btn{width:auto!important;min-width:52px;padding:0 10px!important;gap:5px;font-size:.78rem!important;font-weight:900;letter-spacing:.6px;background:#ecfdf5!important;color:#0f766e!important}
+html body header.main-header .hdr-actions .lang-btn::before{font-family:"Font Awesome 6 Free";font-weight:900;content:"\f1ab";font-size:1.05rem;letter-spacing:0}
+html body header.main-header .hdr-actions .lang-btn:hover{background:#d1fae5!important;color:#0f766e!important}
+html body.dark-mode header.main-header .hdr-actions .theme-btn{color:#cbd5e1!important}
+html body.dark-mode header.main-header .hdr-actions .theme-btn:hover{background:rgba(255,255,255,.1)!important;color:#fff!important}
+html body.dark-mode header.main-header .hdr-actions .lang-btn{background:rgba(16,185,129,.16)!important;color:#6ee7b7!important}
+html body.dark-mode header.main-header .hdr-actions #push-toggle-btn.active{background:rgba(251,191,36,.2)!important;color:#fbbf24!important}
+
+html body header.main-header > p{margin:0!important;padding:5px 14px!important;text-align:center!important;font-size:.74rem!important;font-weight:800!important;line-height:1.45!important;color:#ffffff!important;opacity:1!important;background:linear-gradient(135deg,#0b3d2a 0%,#0f5132 45%,#198754 100%)!important;border-radius:0 0 22px 22px;position:relative;z-index:1;overflow-wrap:anywhere}
+html body.dark-mode header.main-header > p{background:linear-gradient(135deg,#022c22,#064e3b 55%,#047857)!important}
+
+/* القائمة المنسدلة (زر الثلاث شرطات) */
+html body header.main-header .hdr-menu{display:none;position:absolute;top:calc(env(safe-area-inset-top,0px) + 56px);right:10px;z-index:1200;min-width:230px;max-width:min(88vw,300px);max-height:min(70vh,520px);overflow:auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 18px 44px rgba(15,23,42,.24);padding:6px;text-align:start}
+html body header.main-header .hdr-menu.open{display:block}
+html body header.main-header .hdr-menu button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;padding:11px 12px;border-radius:12px;font-family:inherit;font-weight:800;font-size:.92rem;color:#0f172a;cursor:pointer;text-align:start;line-height:1.35}
+html body header.main-header .hdr-menu button:hover,html body header.main-header .hdr-menu button:focus-visible{background:#f1f5f9;outline:none}
+html body header.main-header .hdr-menu button i{width:22px;text-align:center;color:#0f766e;flex:none}
+html body header.main-header .hdr-menu .hdr-sep{height:1px;background:#e2e8f0;margin:4px 6px}
+html body.dark-mode header.main-header .hdr-menu{background:#13302b;border-color:rgba(255,255,255,.1)}
+html body.dark-mode header.main-header .hdr-menu button{color:#e2e8f0}
+html body.dark-mode header.main-header .hdr-menu button:hover{background:rgba(255,255,255,.08)}
+html body.dark-mode header.main-header .hdr-menu button i{color:#6ee7b7}
+html body.dark-mode header.main-header .hdr-menu .hdr-sep{background:rgba(255,255,255,.12)}
+
+/* هواتف صغيرة */
+@media(max-width:380px){
+  html body header.main-header .hdr-bar{padding:7px 9px;gap:4px;min-height:56px}
+  html body header.main-header .hdr-brand{gap:8px}
+  html body header.main-header .logo-container{width:40px!important;height:40px!important}
+  html body header.main-header h1{font-size:1.05rem!important}
+  html body header.main-header h1 .hdr-iscae{font-size:.7rem}
+  html body header.main-header .hdr-actions .theme-btn{width:36px!important;height:36px!important;min-width:36px;font-size:1.08rem!important}
+  html body header.main-header .hdr-actions .lang-btn{min-width:46px;padding:0 7px!important;height:36px!important}
+  html body header.main-header > p{font-size:.68rem!important;padding:4px 10px!important}
+}
+/* شاشات قصيرة / وضع أفقي */
+@media(max-height:560px){
+  html body header.main-header .hdr-bar{min-height:50px;padding-top:5px;padding-bottom:5px}
+  html body header.main-header .logo-container{width:38px!important;height:38px!important}
+  html body header.main-header h1{font-size:1.02rem!important}
+  html body header.main-header > p{padding:3px 12px!important;font-size:.68rem!important}
+}
+@media(min-width:900px){
+  html body header.main-header .hdr-bar{padding-inline:max(18px,calc((100% - 1200px)/2))}
+  html body header.main-header .hdr-menu{right:max(14px,calc((100% - 1200px)/2))}
+}
+
+/* ---- <style id="unem-header-green"> ---- */
+
+/* ===== الرأس بالأخضر (بدل الأبيض) + أزرار أصغر قليلاً ليظهر زر المفضلة كاملاً ===== */
+html body header.main-header,html body #announcement-bar.show ~ header.main-header{background:linear-gradient(135deg,#0b3d2a 0%,#0f5132 45%,#198754 100%)!important;color:#ffffff!important;box-shadow:0 10px 26px rgba(11,61,42,.35)!important}
+html body.dark-mode header.main-header,html body.dark-mode #announcement-bar.show ~ header.main-header{background:linear-gradient(135deg,#022c22 0%,#064e3b 50%,#047857 100%)!important;color:#ffffff!important;box-shadow:0 10px 26px rgba(0,0,0,.5)!important}
+html body header.main-header h1,html body.dark-mode header.main-header h1{color:#ffffff!important;text-shadow:0 2px 4px rgba(0,0,0,.25)!important}
+html body header.main-header h1 .hdr-iscae,html body.dark-mode header.main-header h1 .hdr-iscae{color:#f5b942}
+html body header.main-header .logo-container{border:2px solid rgba(255,255,255,.55)!important;box-shadow:0 3px 12px rgba(0,0,0,.28)!important}
+html body header.main-header .hdr-actions .theme-btn,html body.dark-mode header.main-header .hdr-actions .theme-btn{background:rgba(255,255,255,.16)!important;color:#ffffff!important}
+html body header.main-header .hdr-actions .theme-btn:hover,html body header.main-header .hdr-actions .theme-btn:focus-visible,html body.dark-mode header.main-header .hdr-actions .theme-btn:hover{background:rgba(255,255,255,.3)!important;color:#ffffff!important}
+html body header.main-header .hdr-actions .lang-btn,html body.dark-mode header.main-header .hdr-actions .lang-btn{background:rgba(255,255,255,.22)!important;color:#ffffff!important}
+html body header.main-header .hdr-actions .lang-btn:hover,html body header.main-header .hdr-actions .lang-btn:focus-visible{background:rgba(255,255,255,.34)!important;color:#ffffff!important}
+html body header.main-header .hdr-actions #push-toggle-btn.active,html body.dark-mode header.main-header .hdr-actions #push-toggle-btn.active{background:#eab308!important;color:#1e293b!important}
+html body header.main-header > p{background:rgba(0,0,0,.2)!important;color:#ffffff!important}
+html body.dark-mode header.main-header > p{background:rgba(0,0,0,.3)!important}
+html body header.main-header .hdr-actions .theme-btn[style*="display: none"],html body header.main-header .hdr-actions .theme-btn[style*="display:none"]{display:none!important}
+
+/* ---- أحجام أصغر على الهواتف ---- */
+@media(max-width:600px){
+  html body header.main-header .hdr-bar{min-height:54px;padding-top:6px;padding-bottom:6px;gap:6px}
+  html body header.main-header .logo-container{width:42px!important;height:42px!important}
+  html body header.main-header h1{font-size:1.12rem!important}
+  html body header.main-header h1 .hdr-iscae{font-size:.74rem}
+  html body header.main-header .hdr-actions .theme-btn{width:37px!important;height:37px!important;min-width:37px;font-size:1.08rem!important;border-radius:12px!important}
+  html body header.main-header .hdr-actions .lang-btn{height:37px!important;min-width:48px;padding:0 8px!important;font-size:.74rem!important;border-radius:12px!important}
+  html body header.main-header > p{padding:4px 12px!important;font-size:.7rem!important}
+}
+@media(max-width:380px){
+  html body header.main-header .hdr-bar{min-height:50px;padding-left:8px;padding-right:8px;gap:4px}
+  html body header.main-header .logo-container{width:38px!important;height:38px!important}
+  html body header.main-header h1{font-size:1rem!important}
+  html body header.main-header h1 .hdr-iscae{font-size:.68rem}
+  html body header.main-header .hdr-actions .theme-btn{width:34px!important;height:34px!important;min-width:34px;font-size:1rem!important}
+  html body header.main-header .hdr-actions .lang-btn{height:34px!important;min-width:44px;padding:0 6px!important;font-size:.7rem!important}
+}
+@media(max-width:600px) and (max-height:900px){
+  body #main-menu .fav-home-bar{min-height:42px;padding:5px 10px;margin-bottom:7px;border-radius:13px;gap:9px}
+  body #main-menu .fav-bar-icon{width:30px;height:30px;font-size:.85rem;border-radius:9px}
+  body #main-menu .fav-bar-text b{font-size:.8rem}
+  body #main-menu .fav-bar-text small{font-size:.58rem;line-height:1.3}
+  body #main-menu .fav-bar-count{min-width:22px;height:22px;font-size:.7rem}
+  body #main-menu .semesters-grid{gap:7px!important}
+  body #main-menu .semester-card.wide-card{min-height:96px!important;padding:6px 5px!important;border-radius:16px!important}
+  body #main-menu .semester-card.wide-card .icon-box{width:32px!important;height:32px!important;font-size:.95rem!important;border-radius:11px!important}
+  body #main-menu .semester-card.wide-card h3{font-size:.78rem!important;margin:5px 0 2px!important}
+  body #main-menu .semester-card.wide-card p{font-size:.6rem!important;line-height:1.4!important}
+  body .main-footer{padding-top:5px}
+  body .main-footer .social-btn{padding:4px 8px;font-size:.72rem}
+  body .main-footer .copyright{margin-top:3px;font-size:.68rem}
+}
+
+/* ---- <style id="unem-home-fit"> ---- */
+
+/* ===== الهاتف: البطاقات تتقاسم المساحة المتبقية تحت زر المفضلة، فيظهر الزر كاملاً دائماً ===== */
+@media(max-width:600px){
+  body #main-menu{overflow-anchor:none}
+  body #main-menu .fav-home-bar{flex:0 0 auto;min-height:40px;padding:5px 10px;margin-bottom:6px}
+  body #main-menu .semesters-grid{flex:1 1 0!important;min-height:auto!important;grid-template-rows:repeat(3,minmax(min-content,1fr))!important;grid-auto-rows:minmax(min-content,1fr)!important;gap:6px!important}
+  body #main-menu .semester-card.wide-card{min-height:0!important;padding:5px 4px!important;border-radius:15px!important}
+  body #main-menu .semester-card.wide-card .icon-box{width:30px!important;height:30px!important;font-size:.9rem!important;border-radius:10px!important}
+  body #main-menu .semester-card.wide-card h3{font-size:.74rem!important;margin:4px 0 2px!important;line-height:1.3!important}
+  body #main-menu .semester-card.wide-card p{font-size:.58rem!important;line-height:1.35!important}
+}
+
+/* ---- <style id="home-welcome-style"> ---- */
+
+.home-welcome{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:15px 18px;border-radius:20px;color:#fff;background:linear-gradient(135deg,#0a3d2a 0%,#0f5132 50%,#15803d 100%);box-shadow:0 12px 30px rgba(15,81,50,.22);border:1px solid rgba(245,185,66,.35);animation:hwIn .5s cubic-bezier(.2,.8,.2,1) both}
+.home-welcome .hw-glow{position:absolute;width:180px;height:180px;top:-90px;inset-inline-end:-50px;border-radius:50%;background:radial-gradient(circle,rgba(245,185,66,.35),transparent 68%);pointer-events:none}
+.home-welcome .hw-hi{position:relative;display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 220px}
+.home-welcome .hw-emoji{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:15px;font-size:1.5rem;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22)}
+.home-welcome .hw-text{min-width:0}
+.home-welcome .hw-text b{display:block;font-size:1.05rem;font-weight:900;line-height:1.5;word-break:break-word}
+.home-welcome .hw-text b em{font-style:normal;color:#fde7a6}
+.home-welcome .hw-text small{display:block;opacity:.85;font-size:.78rem;font-weight:600;margin-top:2px}
+.home-welcome .hw-text small:empty{display:none}
+.home-welcome .hw-emoji{position:relative;color:#fde7a6}
+.home-welcome .hw-emoji svg{width:58%;height:58%;display:block}
+.home-welcome .hw-emoji.is-student{background:linear-gradient(135deg,#f9cf6a,#e2a022);color:#3b2a00;border-color:rgba(255,255,255,.55);font-size:1.05rem;font-weight:900;letter-spacing:.02em;box-shadow:0 6px 16px rgba(0,0,0,.22)}
+.home-welcome .hw-emoji.is-student::after{content:"";position:absolute;bottom:-5px;inset-inline-end:-5px;width:17px;height:17px;border-radius:50%;border:2px solid #0f5132;background:#22c55e url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'><path d='M5 13l4 4L19 7'/></svg>") center/10px no-repeat}
+.home-welcome .hw-kicker{display:block;font-size:.72rem;font-weight:800;letter-spacing:.05em;color:#a7f3d0;line-height:1.4}
+.home-welcome .hw-kicker:empty{display:none}
+.home-welcome .hw-emoji.has-photo{background:#fff;padding:0}
+.home-welcome .hw-emoji img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+.home-welcome .hw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.home-welcome .hw-chips:empty{display:none}
+.home-welcome .hw-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:800;line-height:1.5;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);direction:ltr}
+.home-welcome .hw-chip i{font-size:.68rem;color:#fde7a6}
+.home-welcome .hw-visits{position:relative;display:flex;align-items:center;gap:10px;flex:none;padding:9px 15px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px)}
+.home-welcome .hw-visits i{font-size:1.15rem;color:#fde7a6}
+.home-welcome .hw-visits b{display:block;font-size:1.3rem;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.home-welcome .hw-visits small{display:block;font-size:.68rem;opacity:.85;font-weight:700}
+@keyframes hwIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(max-width:480px){.home-welcome{padding:13px 14px;border-radius:18px}.home-welcome .hw-visits{width:100%;justify-content:center}}
+@media(prefers-reduced-motion:reduce){.home-welcome{animation:none}}

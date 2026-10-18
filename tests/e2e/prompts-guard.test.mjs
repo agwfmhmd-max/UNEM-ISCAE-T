@@ -4,6 +4,9 @@ import path from 'node:path';
 import { suite, read, ROOT } from './helpers.mjs';
 import { loadApp } from './load-app.mjs';
 
+// الملف الذي يحوي منطق النافذتين (يتغير اسمه إن أُعيد تقسيم الشيفرة)
+const MAIN_FILE = fs.readdirSync(path.join(ROOT, 'public/legacy/app')).filter((f) => f.endsWith('.js'))
+  .find((f) => fs.readFileSync(path.join(ROOT, 'public/legacy/app', f), 'utf8').includes('showPushOnboardingNow'));
 const flagsInit = (data) => `window.__rpc = { get_public_platform_stats: { data: ${JSON.stringify(data)}, error: null } };`;
 const styleOf = (pg, sel) => pg.evaluate((s) => getComputedStyle(document.querySelector(s)).display, sel);
 
@@ -46,10 +49,10 @@ export default async function run() {
 
   // 5) كاشف عدم التطابق: ملف قديم/مختلف على الخادم (السيناريو الحقيقي: رُفع app.html ولم يُرفع 03-main.js الجديد)
   pg = await loadApp(raw, { extraRoutes: async (r, u) => {
-    if (u.pathname === '/legacy/app/03-main.js' && u.searchParams.has('chk')) { await r.fulfill({ status: 200, contentType: 'application/javascript', body: '/* نسخة قديمة */' }); return true; }
+    if (u.pathname === '/legacy/app/' + MAIN_FILE && u.searchParams.has('chk')) { await r.fulfill({ status: 200, contentType: 'application/javascript', body: '/* نسخة قديمة */' }); return true; }
     return false; } });
   const bad = await pg.evaluate(() => window.unemVerifyBuild());
-  s.eq('ملف قديم على الخادم → يُكتشف باسمه', bad, ['03-main.js']);
+  s.eq('ملف قديم على الخادم → يُكتشف باسمه', bad, [MAIN_FILE]);
   await pg.evaluate(() => {   // نحاكي فتح المشرف للوحة الإعدادات: نُظهر البطاقة وكل ما يحويها
     const c = document.getElementById('admin-onboarding-prompts-setting');
     for (let e = c; e && e !== document.body; e = e.parentElement) { if (getComputedStyle(e).display === 'none') e.style.setProperty('display', 'block', 'important'); e.classList.remove('hidden'); }
@@ -57,7 +60,7 @@ export default async function run() {
   });
   await pg.waitForTimeout(800);
   const shown = await pg.evaluate(() => { const b = document.getElementById('unem-build-warning'); return { vis: b.style.display, txt: b.textContent }; });
-  s.check('التحذير يظهر في بطاقة المشرف عند فتحها', shown.vis === 'block' && /03-main\.js/.test(shown.txt) && /public\/legacy/.test(shown.txt), shown);
+  s.check('التحذير يظهر في بطاقة المشرف عند فتحها', shown.vis === 'block' && shown.txt.includes(MAIN_FILE) && /public\/legacy/.test(shown.txt), shown);
   await pg.context().close();
 
   // 6) نهايات الأسطر: CRLF لا تُحدث إنذاراً كاذباً
@@ -68,14 +71,14 @@ export default async function run() {
   await pg.context().close();
 
   // 7) السيناريو الحقيقي: app.html جديد + 03-main.js قديم يتجاهل الإعدادات ويحاول إظهار النافذتين دائماً
-  const stale = fs.readFileSync(path.join(ROOT, 'public/legacy/app/03-main.js'), 'utf8')
+  const stale = fs.readFileSync(path.join(ROOT, 'public/legacy/app', MAIN_FILE), 'utf8')
     .replace('whenFlags.then((f) => { if (f.push) showPushOnboardingNow(); })', 'Promise.resolve(showPushOnboardingNow())')
     .replace('if (f.install) installToast.classList.add(\'show\');', 'if (true) installToast.classList.add(\'show\');');
   s.check('تحضير نسخة «قديمة» تتجاهل الإعدادات (للاختبار)', !stale.includes('if (f.install) installToast') && !stale.includes('f.push) showPushOnboardingNow'));
   pg = await loadApp(raw, {
     initScript: flagsInit({ show_visitors: true, show_registered: true, show_install_prompt: false, show_push_prompt: false, prompts_reset_at: 0 }),
     extraRoutes: async (r, u) => {
-      if (u.pathname === '/legacy/app/03-main.js' && !u.searchParams.has('chk')) { await r.fulfill({ status: 200, contentType: 'application/javascript', body: stale }); return true; }
+      if (u.pathname === '/legacy/app/' + MAIN_FILE && !u.searchParams.has('chk')) { await r.fulfill({ status: 200, contentType: 'application/javascript', body: stale }); return true; }
       return false; } });
   await pg.evaluate(() => { const e = new Event('beforeinstallprompt', { cancelable: true }); e.prompt = () => {}; e.userChoice = Promise.resolve({ outcome: 'dismissed' }); window.dispatchEvent(e); });
   await pg.waitForTimeout(2500);

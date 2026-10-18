@@ -1,0 +1,75 @@
+# فحص تلقائي عند كل رفع (push) وكل طلب دمج (pull request):
+#   1) legacy-check : صياغة كل سكربتات الواجهة + أرقام الإصدار ?v= (يلتقط ملفاً منسياً أو خطأ صياغة خلال ثوانٍ)
+#   2) e2e          : اختبارات الواجهة بـ Playwright (تسجيل الدخول، رفع الملف، فتح مادة، المجتمع، النوافذ، تحميل الصفحة كاملة)
+#   3) database     : بناء قاعدة بيانات PostgreSQL فارغة من كل ملفات SQL مرتين + الفحوص الوظيفية
+# لمنع دمج/نشر كود فاشل: Settings ← Branches ← Add rule للفرع الرئيسي ← Require status checks (الثلاثة أعلاه) + Require a pull request.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  legacy-check:
+    name: legacy-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: صياغة السكربتات + أرقام الإصدار
+        run: node tools/check-legacy.mjs
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - name: تثبيت اعتماديات الاختبارات
+        working-directory: tests
+        run: npm ci
+      - name: تثبيت متصفح Chromium
+        working-directory: tests
+        run: npx playwright install --with-deps chromium
+      - name: اختبارات الواجهة
+        working-directory: tests
+        run: node run-all.mjs --e2e-only
+
+  database:
+    name: database
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGURL: postgres://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: عميل PostgreSQL
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: بناء القاعدة من الصفر + الفحوص الوظيفية
+        run: bash tests/db/run.sh

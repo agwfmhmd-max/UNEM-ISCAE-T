@@ -27,7 +27,7 @@ export async function loadApp(html, { extraRoutes, initScript } = {}) {
     if (u.host === 'localhost') {
       if (u.pathname === '/') return r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html });
       const f = path.join(ROOT, 'public', u.pathname);
-      if (fs.existsSync(f) && fs.statSync(f).isFile()) { pg.loaded.push(u.pathname); const t = u.pathname.endsWith('.js') ? 'application/javascript' : 'application/octet-stream'; return r.fulfill({ status: 200, contentType: t, body: fs.readFileSync(f) }); }
+      if (fs.existsSync(f) && fs.statSync(f).isFile()) { pg.loaded.push(u.pathname); const t = u.pathname.endsWith('.js') ? 'application/javascript' : u.pathname.endsWith('.css') ? 'text/css' : 'application/octet-stream'; return r.fulfill({ status: 200, contentType: t, body: fs.readFileSync(f) }); }
       pg.failed.push(u.pathname); return r.fulfill({ status: 404, body: '' });
     }
     if (u.pathname.includes('/rest/v1/') || u.pathname.includes('/auth/v1/')) return r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '[]' });

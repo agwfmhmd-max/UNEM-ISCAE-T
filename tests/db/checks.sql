@@ -191,5 +191,22 @@ begin
   perform pg_temp.must((select value_boolean from public.platform_settings where key='show_push_prompt'), 'اختيار المشرف لم يُحفظ');
   perform set_config('request.jwt.claim.sub', '', true);
 
+
+  ------------------------------------------------------------ K) حجم الاستجابات: صورة الكاتب مرة واحدة فقط
+  perform pg_temp.api(tA,'avatar',jsonb_build_object('data','data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////'));
+  perform pg_temp.api(tA,'post','{"kind":"help","body":"منشور ثانٍ لـ A"}');
+  perform pg_temp.api(tA,'post','{"kind":"help","body":"منشور ثالث لـ A"}');
+  r := pg_temp.api(tB,'feed');
+  perform pg_temp.must((select count(*) from jsonb_array_elements(r) x where x->>'aid'=pa::text) >= 3, 'يجب أن يوجد 3 منشورات أو أكثر لـ A');
+  perform pg_temp.must((select count(*) from jsonb_array_elements(r) x where x->>'aid'=pa::text and x->>'avatar' is not null) = 1, 'صورة A يجب أن تُرسل مرة واحدة فقط في feed');
+  perform pg_temp.must((select (x->>'avatar') is not null from jsonb_array_elements(r) with ordinality t(x,i) where x->>'aid'=pa::text order by i limit 1), 'الصورة يجب أن تكون على أول منشور لـ A في ترتيب العرض');
+  perform pg_temp.api(tA,'comment',jsonb_build_object('id',pid,'body','تعليق إضافي 1'));
+  perform pg_temp.api(tA,'comment',jsonb_build_object('id',pid,'body','تعليق إضافي 2'));
+  r := pg_temp.api(tB,'comments',jsonb_build_object('id',pid));
+  perform pg_temp.must((select count(*) from jsonb_array_elements(r) x where x->>'aid'=pa::text) >= 3, 'تعليقات A غير كافية للاختبار');
+  perform pg_temp.must((select count(*) from jsonb_array_elements(r) x where x->>'aid'=pa::text and x->>'avatar' is not null) = 1, 'صورة A يجب أن تُرسل مرة واحدة فقط في comments');
+  perform pg_temp.must((select (x->>'avatar') is not null from jsonb_array_elements(r) with ordinality t(x,i) where x->>'aid'=pa::text order by i limit 1), 'صورة التعليقات على أول تعليق');
+  perform pg_temp.must((select count(*) from jsonb_array_elements(r) x where x->>'aid'=pb::text and x->>'avatar' is null) >= 1, 'B بلا صورة: لا خطأ');
+
   raise notice '✅ كل اختبارات القاعدة نجحت';
 end $$;

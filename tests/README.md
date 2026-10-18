@@ -22,3 +22,5 @@ PGURL=postgres://postgres@localhost/postgres npm test     # + اختبارات �
 
 الاختبارات تستعمل خادماً وهمياً، فلا تلمس قاعدة بياناتك الحقيقية ولا Cloudinary.
 متغير `CHROME_PATH` اختياري لتحديد متصفح Chromium موجود مسبقاً.
+
+**تلقائياً على GitHub:** `.github/workflows/ci.yml` يشغّل هذه الاختبارات (واختبارات القاعدة) عند كل رفع — انظر `README.md` في الجذر.

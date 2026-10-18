@@ -7,8 +7,9 @@ import path from 'node:path';
 export default async function run() {
   const s = suite('تحميل الصفحة الرئيسية كاملة (السكربتات المنفصلة)');
   const raw = read('src/legacy/app.html');
-  const srcs = [...raw.matchAll(/<script[^>]*\bsrc="(\/legacy\/[^"?]+)\?v=[0-9a-f]+"/g)].map((m) => m[1]);
-  s.check('18 سكربتاً مفصولاً مرجعاً في app.html', srcs.length === 18, srcs.length);
+  const srcs = [...raw.matchAll(/<(?:script|link|img)[^>]*\b(?:src|href)="(\/legacy\/[^"?]+)\?v=[0-9a-f]+"/g)].map((m) => m[1]);
+  const nJs = srcs.filter((x) => x.endsWith('.js')).length, nCss = srcs.filter((x) => x.endsWith('.css')).length;
+  s.check('ملفات JS وCSS والصور المفصولة مرجعة في app.html بأرقام إصدار', nJs >= 18 && nCss === 5 && srcs.some((x) => x.endsWith('.png')), { nJs, nCss });
   const chk = spawnSync('node', [path.join(ROOT, 'tools/bump-legacy.mjs'), '--check']);
   s.check('أرقام الإصدار ?v= حديثة (وإلا شغّل: node tools/bump-legacy.mjs)', chk.status === 0, String(chk.stderr));
   const pg = await loadApp(raw);
@@ -18,8 +19,8 @@ export default async function run() {
   s.check('لا أخطاء جافاسكربت عند التحميل', pg.errors.length === 0, pg.errors);
   s.check('العناصر الأساسية موجودة (أزرار وبطاقات)', snap.buttons > 50 && snap.cards > 40, snap);
   s.check('الدوال العامة محمّلة (>1000)', snap.fnCount > 1000, snap.fnCount);
-  s.check('حجم HTML أقل من 800KB (كان 1.5MB قبل التقسيم)', Buffer.byteLength(raw) < 800 * 1024, Buffer.byteLength(raw));
-  s.check('نسخة «inline» المدمجة للاختبارات تحتوي كل الشيفرة', legacy('app.html').length > 1.4e6);
+  s.check('حجم HTML أقل من 500KB (كان 1.5MB قبل التقسيم)', Buffer.byteLength(raw) < 500 * 1024, Buffer.byteLength(raw));
+  s.check('نسخة «inline» المدمجة للاختبارات تحتوي كل الشيفرة', legacy('app.html').length > 0.8e6);
   await pg.context().close();
   return s.done();
 }

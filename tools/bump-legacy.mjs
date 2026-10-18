@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// يحدّث رقم الإصدار ?v=… في وسوم <script src="/legacy/…"> داخل src/legacy/*.html حسب محتوى الملف الفعلي.
+// يحدّث رقم الإصدار ?v=… في وسوم <script src="/legacy/…"> و<link href="/legacy/….css"> و<img src="/legacy/…"> داخل src/legacy/*.html حسب محتوى الملف الفعلي.
 // السبب: تُحمَّل سكربتات الواجهة كملفات منفصلة قابلة للتخزين المؤقت في المتصفح؛ تغيّر الرقم يجبر المتصفح على جلب النسخة الجديدة.
 // الاستعمال:   node tools/bump-legacy.mjs          (تحديث)        |   node tools/bump-legacy.mjs --check   (فحص فقط؛ يفشل إن كان هناك رقم قديم)
 import fs from 'node:fs';
@@ -14,7 +14,7 @@ let stale = 0, updated = 0;
 for (const f of fs.readdirSync(htmlDir).filter((x) => x.endsWith('.html'))) {
   const p = path.join(htmlDir, f);
   const html = fs.readFileSync(p, 'utf8');
-  const next = html.replace(/(<script\b[^>]*\bsrc=")(\/legacy\/[^"?]+)(?:\?v=[0-9a-f]+)?(")/g, (all, a, src, c) => {
+  const next = html.replace(/(<(?:script|link|img)\b[^>]*\b(?:src|href)=")(\/legacy\/[^"?]+)(?:\?v=[0-9a-f]+)?(")/g, (all, a, src, c) => {
     const file = path.join(root, 'public', src);
     if (!fs.existsSync(file)) { console.error('❌ ملف مفقود:', src, 'في', f); process.exitCode = 1; return all; }
     // نتجاهل CR قبل LF حتى لا يتغير الرقم إن حوّل Git/Windows نهايات الأسطر (المتصفح يحسب بنفس الطريقة في كاشف عدم التطابق)
