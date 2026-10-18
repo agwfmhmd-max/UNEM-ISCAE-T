@@ -164,5 +164,32 @@ begin
   exception when others then if sqlerrm like 'FAIL:%' then raise; end if; end;
   perform set_config('request.jwt.claim.sub', '', true);
 
+
+  ------------------------------------------------------------ J) تحكّم المشرف بنافذتي التثبيت والإشعارات
+  r := public.get_public_platform_stats();
+  perform pg_temp.must(not (r->>'show_install_prompt')::boolean and not (r->>'show_push_prompt')::boolean and (r->>'prompts_reset_at')::bigint = 0, 'الافتراضي: النافذتان مخفيتان ولا إعادة');
+  begin perform public.set_public_stat_visibility('show_push_prompt', false); raise exception 'FAIL: غير مشرف عدّل إعداد النافذة';
+  exception when others then if sqlerrm like 'FAIL:%' then raise; end if; end;
+  begin perform public.reset_onboarding_prompts(); raise exception 'FAIL: غير مشرف أعاد إظهار النافذتين';
+  exception when others then if sqlerrm like 'FAIL:%' then raise; end if; end;
+  perform set_config('request.jwt.claim.sub', adm::text, true);
+  perform pg_temp.must(public.set_public_stat_visibility('show_push_prompt', true) = true, 'المشرف لم يُظهر نافذة الإشعارات');
+  perform pg_temp.must(public.set_public_stat_visibility('show_install_prompt', true) = true, 'المشرف لم يُظهر نافذة التثبيت');
+  r := public.get_public_platform_stats();
+  perform pg_temp.must((r->>'show_push_prompt')::boolean and (r->>'show_install_prompt')::boolean, 'الإظهار لم ينعكس في الإحصاءات العامة');
+  perform pg_temp.must(public.set_public_stat_visibility('show_push_prompt', false) = false, 'المشرف لم يخفِ نافذة الإشعارات');
+  perform pg_temp.must(public.set_public_stat_visibility('show_install_prompt', false) = false, 'المشرف لم يخفِ نافذة التثبيت');
+  r := public.get_public_platform_stats();
+  perform pg_temp.must(not (r->>'show_push_prompt')::boolean and not (r->>'show_install_prompt')::boolean, 'الإخفاء لم ينعكس في الإحصاءات العامة');
+  perform pg_temp.must((r->>'show_visitors')::boolean and (r->>'show_registered')::boolean, 'إخفاء النافذتين أثّر على عدّادات الصفحة الرئيسية!');
+  n := public.reset_onboarding_prompts();
+  perform pg_temp.must(n > 1700000000, 'reset_onboarding_prompts لم تعد وقتاً صحيحاً');
+  r := public.get_public_platform_stats();
+  perform pg_temp.must((r->>'prompts_reset_at')::bigint = n and not (r->>'show_install_prompt')::boolean, 'وقت الإعادة لا يظهر في الإحصاءات العامة، أو الإعادة غيّرت الإعداد');
+  -- إعادة تشغيل ملف الافتراضي لا تمسّ اختيار المشرف (علامة المرة الواحدة)
+  perform public.set_public_stat_visibility('show_push_prompt', true);
+  perform pg_temp.must((select value_boolean from public.platform_settings where key='show_push_prompt'), 'اختيار المشرف لم يُحفظ');
+  perform set_config('request.jwt.claim.sub', '', true);
+
   raise notice '✅ كل اختبارات القاعدة نجحت';
 end $$;
