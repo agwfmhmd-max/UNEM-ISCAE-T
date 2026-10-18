@@ -1,0 +1,14 @@
+{
+  "name": "unem-iscae-tests",
+  "private": true,
+  "type": "module",
+  "description": "اختبارات واجهة المنصة (Playwright) واختبارات قاعدة البيانات (PostgreSQL). لا تؤثر على بناء الموقع.",
+  "scripts": {
+    "test": "node run-all.mjs",
+    "test:e2e": "node run-all.mjs --e2e-only",
+    "test:db": "bash db/run.sh"
+  },
+  "devDependencies": {
+    "playwright": "^1.45.0"
+  }
+}
