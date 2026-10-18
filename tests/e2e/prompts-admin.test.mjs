@@ -33,10 +33,10 @@ export default async function run() {
       done: localStorage.getItem('unem_push_onboarding_done'), inst: localStorage.getItem('unem_install_state'), seen: localStorage.getItem('unem_prompts_reset_seen') }));
     r.errors = p.errors; await ctx.close(); return r;
   }
-  const ST = (o) => ({ total_visitors: 10, registered_students: 5, show_visitors: true, show_registered: true, show_install_prompt: true, show_push_prompt: true, prompts_reset_at: 0, ...o });
+  const ST = (o) => ({ total_visitors: 10, registered_students: 5, show_visitors: true, show_registered: true, show_install_prompt: true, show_push_prompt: true, prompts_reset_at: 0, ...o });   // المشرف فعّل النافذتين
 
   let r = await visit({ ua: 'android', stats: ST({}) });
-  s.check('الافتراضي (كلاهما مفعّل): أندرويد يرى نافذة التثبيت', r.toast && !r.push, r);
+  s.check('المشرف فعّل النافذتين: أندرويد يرى نافذة التثبيت', r.toast && !r.push, r);
   r = await visit({ ua: 'android', stats: ST({ show_install_prompt: false }) });
   s.check('المشرف أخفى التثبيت: لا نافذة تثبيت وتظهر نافذة الإشعارات مباشرة', !r.toast && r.push, r);
   r = await visit({ ua: 'ios', stats: ST({ show_install_prompt: false }) });
@@ -48,9 +48,13 @@ export default async function run() {
   r = await visit({ ua: 'android', stats: ST({ show_install_prompt: false, show_push_prompt: false }) });
   s.check('إخفاء الاثنين: لا شيء يظهر ولا أخطاء', !r.toast && !r.push && r.errors.length === 0, r);
   r = await visit({ ua: 'android', stats: 'error' });
-  s.check('خلل أو غياب ملف SQL: يبقى السلوك القديم (تظهر النافذة)', r.toast, r);
+  s.check('خلل أو غياب ملف SQL: لا تظهر أي نافذة (لا تظهر إلا بتفعيل صريح)', !r.toast && !r.push, r);
   r = await visit({ ua: 'android', stats: null });
-  s.check('بدون عميل Supabase: يبقى السلوك القديم', r.toast, r);
+  s.check('بدون عميل Supabase: لا تظهر', !r.toast && !r.push, r);
+  r = await visit({ ua: 'standalone', stats: { total_visitors: 1, registered_students: 1, show_visitors: true, show_registered: true } });
+  s.check('الخادم لا يعيد حقلي النافذتين (ملف SQL لم يُشغَّل): تبقى مخفية', !r.toast && !r.push, r);
+  r = await visit({ ua: 'android', stats: ST({ show_install_prompt: false, show_push_prompt: false }) });
+  s.check('الافتراضي الجديد (مخفيتان): لا شيء يظهر للطالب الجديد', !r.toast && !r.push, r);
   // «إعادة الإظهار» من المشرف: من أغلقهما سابقاً تظهران له مجدداً مرة واحدة
   r = await visit({ ua: 'standalone', stats: ST({ prompts_reset_at: 2000000000 }), preset: { unem_push_onboarding_done: '1', unem_prompts_reset_seen: '1900000000' } });
   s.check('إعادة الإظهار: من أغلق نافذة الإشعارات تظهر له من جديد', r.push && r.seen === '2000000000', r);
@@ -67,7 +71,7 @@ export default async function run() {
   await pg.setContent(`<input type=checkbox id="home-visitors-toggle"><input type=checkbox id="home-registered-toggle"><input type=checkbox id="prompt-install-toggle"><input type=checkbox id="prompt-push-toggle"><div id="home-stats-status"></div><div id="prompts-status"></div>`);
   await pg.addScriptTag({ content: `
     let PERM=true;const hasPermission=()=>PERM;window.confirm=()=>true;window.__calls=[];window.FAIL=false;window.__flags=[];
-    let STATE={show_visitors:true,show_registered:true,show_install_prompt:true,show_push_prompt:false};
+    var STATE={show_visitors:true,show_registered:true,show_install_prompt:true,show_push_prompt:false};
     window.unemHomeStatsFlags=(a,b)=>window.__flags.push([a,b]);
     const supabaseClient={rpc:async(fn,a)=>{window.__calls.push([fn,a]);if(window.FAIL)return{data:null,error:{message:'function does not exist'}};
       if(fn==='get_public_platform_stats')return{data:STATE,error:null};
@@ -77,6 +81,10 @@ export default async function run() {
     window.T={loadP:loadPromptSettings,saveP:savePromptSetting,reset:resetOnboardingPrompts,loadH:loadHomeStatsSettings,saveH:saveHomeStatSetting,setPerm:v=>{PERM=v}};` });
   await pg.evaluate(() => T.loadP());
   s.eq('تحميل الإعدادات: التثبيت مفعّل والإشعارات موقوفة', await pg.evaluate(() => [document.getElementById('prompt-install-toggle').checked, document.getElementById('prompt-push-toggle').checked]), [true, false]);
+  await pg.evaluate(() => { STATE = { show_visitors: true, show_registered: true }; });
+  await pg.evaluate(() => T.loadP());
+  s.eq('إن لم يعد الخادم الحقلين: المفتاحان يظهران «مخفي» (لا يوهمان بأنهما مفعّلان)', await pg.evaluate(() => [document.getElementById('prompt-install-toggle').checked, document.getElementById('prompt-push-toggle').checked]), [false, false]);
+  await pg.evaluate(() => { STATE = { show_visitors: true, show_registered: true, show_install_prompt: true, show_push_prompt: false }; });
   await pg.evaluate(() => T.saveP('show_push_prompt', true));
   const sv = await pg.evaluate(() => ({ call: window.__calls.slice(-1)[0], push: document.getElementById('prompt-push-toggle').checked, msg: document.getElementById('prompts-status').textContent }));
   s.check('حفظ مفتاح الإشعارات يرسل المفتاح الصحيح ويؤكد للمشرف', sv.call[1].p_key === 'show_push_prompt' && sv.call[1].p_enabled === true && sv.push && /✅/.test(sv.msg), sv);
@@ -99,6 +107,6 @@ export default async function run() {
 
   // ---------- الجزء 3: بطاقة الإعدادات موجودة وضمن صلاحية «إعدادات المنصة» ----------
   s.check('بطاقة النافذتين موجودة في لوحة المشرف', html.includes('id="admin-onboarding-prompts-setting"') && html.includes('prompt-install-toggle') && html.includes('prompt-push-toggle'));
-  s.eq('المعرّف مدرج في القوائم الثلاث (صلاحية/مسموح/إخفاء)', html.split('admin-onboarding-prompts-setting').length - 1, 4);
+  s.check('المعرّف مدرج في القوائم الثلاث + الكاشف يراقب البطاقة', html.split('admin-onboarding-prompts-setting').length - 1 >= 5);
   return s.done();
 }
