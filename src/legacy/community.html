@@ -263,12 +263,12 @@ Object.assign(I18N.fr,{replyMsg:'Répondre',replyingTo:'Réponse à',cancel:'Ann
  wSpecT:(n,s)=>'Bienvenue '+n+' dans le salon '+s,wSpecD:(s,l)=>'Salon de discussion en direct des étudiants '+s+', tous niveaux confondus. Posez vos questions sur les cours et les examens et aidez ceux qui vous sollicitent. Messages en texte uniquement, supprimés après 24 h.',
  wGroupT:(n,g)=>'Bienvenue '+n+' dans le groupe « '+g+' »',wGroupD:(s,l,subj,mem,max,descr)=>'Groupe d’étude des étudiants '+s+' — '+lvn(l)+(subj?' · Matière : '+subj:'')+'. Membres : '+mem+' sur '+max+'.'+(descr?' Objectif du groupe : '+descr+'.':'')+' Révisez ensemble et échangez questions et résumés dans le respect. Les messages sont supprimés après 24 h.',
  wDmT:o=>'Conversation privée avec '+o,wDmD:'Conversation entre deux étudiants de la même filière et du même niveau. Ne partagez pas de numéros de téléphone ni d’informations personnelles. Utilisez « Répondre » pour répondre à un message précis et « Signaler » en cas d’abus. Les messages sont supprimés après 24 h.'});
-Object.assign(I18N.ar,{edit:'تعديل',save:'حفظ',saved:'تم حفظ التعديل',editedTag:'معدّل',pinned:'مثبّت',pin:'تثبيت',unpin:'إلغاء التثبيت',extend:'تمديد',extendTitle:'زيادة مدة الظهور',
+Object.assign(I18N.ar,{admLimited:n=>'يُعرض آخر '+n+' عنصراً من كل قائمة.',admMore:'عرض المزيد',edit:'تعديل',save:'حفظ',saved:'تم حفظ التعديل',editedTag:'معدّل',pinned:'مثبّت',pin:'تثبيت',unpin:'إلغاء التثبيت',extend:'تمديد',extendTitle:'زيادة مدة الظهور',
  ext1d:'+ يوم',ext3d:'+ 3 أيام',ext7d:'+ 7 أيام',ext30d:'+ 30 يوماً',extOk:'تمت زيادة مدة الظهور',pinOk:'تم التثبيت — سيبقى ظاهراً دون أن يختفي',unpinOk:'أُلغي التثبيت وعادت المدة العادية',
  editPostT:'تعديل المنشور',editMsgT:'تعديل الرسالة',editCmT:'تعديل التعليق',delMsgQ:'حذف هذه الرسالة؟',delCmQ:'حذف هذا التعليق؟',delOk:'تم الحذف',e_forbidden:'غير مسموح بهذا الإجراء',
  expIn:s=>'ينتهي بعد '+s,expDone:'منتهي',dd:n=>n+' يوم',hh:n=>n+' س',mm:n=>n+' د',
  wPostsD:()=>'هذا فضاء طلبة المعهد كلهم. اطرح سؤالاً دراسياً، أو اطلب مساعدة، أو شارك إعلاناً؛ تظهر لك هنا منشورات جميع طلاب المعهد من كل التخصصات والمستويات، ويمكنك تعديل منشوراتك أو حذفها في أي وقت. تنتهي المنشورات بعد 7 أيام ما لم يثبّتها المشرف.'});
-Object.assign(I18N.fr,{edit:'Modifier',save:'Enregistrer',saved:'Modification enregistrée',editedTag:'modifié',pinned:'Épinglé',pin:'Épingler',unpin:'Désépingler',extend:'Prolonger',extendTitle:'Prolonger la durée d’affichage',
+Object.assign(I18N.fr,{admLimited:n=>'Affichage des '+n+' derniers éléments de chaque liste.',admMore:'Afficher plus',edit:'Modifier',save:'Enregistrer',saved:'Modification enregistrée',editedTag:'modifié',pinned:'Épinglé',pin:'Épingler',unpin:'Désépingler',extend:'Prolonger',extendTitle:'Prolonger la durée d’affichage',
  ext1d:'+ 1 jour',ext3d:'+ 3 jours',ext7d:'+ 7 jours',ext30d:'+ 30 jours',extOk:'Durée d’affichage prolongée',pinOk:'Épinglé — il restera affiché sans disparaître',unpinOk:'Désépinglé, durée normale rétablie',
  editPostT:'Modifier la publication',editMsgT:'Modifier le message',editCmT:'Modifier le commentaire',delMsgQ:'Supprimer ce message ?',delCmQ:'Supprimer ce commentaire ?',delOk:'Supprimé',e_forbidden:'Action non autorisée',
  expIn:s=>'Expire dans '+s,expDone:'Expiré',dd:n=>n+' j',hh:n=>n+' h',mm:n=>n+' min',
@@ -371,7 +371,7 @@ const edTag=()=>`<span class="ed-tag">· ${t('editedTag')}</span>`;
 function leftTxt(x){const ms=new Date(x)-Date.now();if(!isFinite(ms))return '';if(ms<=0)return t('expDone');const m=Math.round(ms/6e4);return t('expIn',m<60?t('mm',Math.max(1,m)):m<2880?t('hh',Math.round(m/60)):t('dd',Math.round(m/1440)))}
 const admRet=(type,id,pinned)=>me&&me.admin?`<span class="adm-ret"><button type="button" class="btn sm alt" onclick="adminPin('${type}','${esc(id)}',${pinned?'false':'true'})"><i class="fas fa-thumbtack"></i> ${pinned?t('unpin'):t('pin')}</button>${pinned?'':`<button type="button" class="btn sm alt" onclick="adminExtend('${type}','${esc(id)}')"><i class="fas fa-clock"></i> ${t('extend')}</button>`}</span>`:'';
 const postMeta=p=>{const b=[];if(p.pinned)b.push(pinBadge());if(p.ed)b.push(edTag());if(me&&me.admin&&p.exp)b.push(`<span class="ed-tag"><i class="fas fa-hourglass-half"></i> ${leftTxt(p.exp)}</span>`);return b.length?`<div class="pmeta">${b.join('')}</div>`:''};
-const afterRet=type=>{if(type==='message'&&room)syncMsgs(room);else render()};
+const afterRet=type=>{if(type==='message'&&room){syncMsgs(room);rtPing()}else render()};
 window.adminPin=(type,id,pinned)=>{if(!me?.admin)return;run('admin_pin',{type,id,pinned},()=>{toast(t(pinned?'pinOk':'unpinOk'));afterRet(type)})};
 window.adminExtend=(type,id)=>{if(!me?.admin)return;
   sheet(`<h3><i class="fas fa-clock"></i> ${t('extendTitle')}</h3><div class="ext-opts">${[[24,'ext1d'],[72,'ext3d'],[168,'ext7d'],[720,'ext30d']].map(([h,k])=>`<button type="button" class="btn alt" data-h="${h}">${t(k)}</button>`).join('')}</div><button class="btn alt" id="exC" type="button">${t('cancel')}</button>`);
@@ -389,8 +389,8 @@ function editPost(id){const c=document.getElementById('p'+id),b=c&&c.querySelect
 function editCm(id,pid){const b=document.getElementById('cb'+id);if(!b)return;
   editSheet(t('editCmT'),b.textContent,false,'',body=>run('edit_comment',{id,body},()=>{shut();toast(t('saved'));$('#c'+pid).innerHTML='';cms(pid)}),1000)}
 function editMsgEl(el){const id=String(el.dataset.id),m=MSGS[id];if(!m)return;
-  editSheet(t('editMsgT'),m.body,false,'',body=>run('edit_message',{id,body},()=>{shut();toast(t('saved'));syncMsgs(room)}),1000)}
-function delMsgEl(el){const id=String(el.dataset.id);if(!confirm(t('delMsgQ')))return;run('del_message',{id},()=>{const w=document.querySelector('[data-message-id="'+id.replace(/[^0-9]/g,'')+'"]');if(w)w.remove();delete MSGS[id];toast(t('delOk'))})}
+  editSheet(t('editMsgT'),m.body,false,'',body=>run('edit_message',{id,body},()=>{shut();toast(t('saved'));syncMsgs(room);rtPing()}),1000)}
+function delMsgEl(el){const id=String(el.dataset.id);if(!confirm(t('delMsgQ')))return;run('del_message',{id},()=>{const w=document.querySelector('[data-message-id="'+id.replace(/[^0-9]/g,'')+'"]');if(w)w.remove();delete MSGS[id];toast(t('delOk'));rtPing()})}
 
 const like=id=>run('like',{id},()=>render());
 const save=id=>{saved=saved.includes(id)?saved.filter(x=>x!=id):[...saved,id];localStorage.setItem('unem_community_saved',JSON.stringify(saved));render()};
@@ -428,7 +428,8 @@ let pF={spec:'',level:'',subject:''};
 async function vPartner(){let d;if(me?.admin){const x=await run('admin_list');d=x&&(x.posts||[]).filter(p=>p.kind==='partner').map(p=>({...p,can_del:true,can_pin:true}))||[]}else d=await run('feed',{kind:'partner',...pF});if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;
 if(me?.admin){$('#main').innerHTML=`<p class="note">${t('adminAllNote')}</p><h3>${t('adminAllRequests')}</h3>`+(d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`);return}
 $('#main').innerHTML=`${stCard()}<div class="card"><b><i class="fas fa-handshake"></i> ${t('pFind')}</b><div class="card" style="padding:8px;margin:8px 0"><b>${esc(SPECS[me.spec]||me.spec)} · ${esc(me.level)}</b></div><input id="qSu" maxlength="60" placeholder="${t('pSubjPh')}"><textarea id="qB" maxlength="300" style="margin-top:8px" placeholder="${t('pBodyPh')}"></textarea><button class="btn" style="margin-top:8px" onclick="newPartner()">${t('pPost')}</button><p class="note">${t('pHint')}</p></div><div style="height:10px"></div>${d.length?d.map(p=>postCard(p,1)).join(''):`<div class="empty">${t('noPartner')}</div>`}`;bindFind()}
-async function vAdmin(){if(!me?.admin)return;const d=await run('admin_list');if(!d)return;
+let ADMLIM=200;
+async function vAdmin(){if(!me?.admin)return;const d=await run('admin_list',{limit:ADMLIM});if(!d)return;
 const del=(type,id)=>`<button class="btn sm alt" onclick="adminDelete('${type}','${esc(id)}')"><i class="fas fa-trash"></i> ${t('del')}</button>`;
 const post=(d.posts||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(KINDS()[x.kind]||x.kind)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small><div class="body">${esc(x.body)}</div>${x.pinned?pinBadge():''}${del('post',x.id)} ${admRet('post',x.id,x.pinned)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
 const groups=(d.groups||[]).map(x=>`<div class="card li"><div><b>${esc(x.name)}</b><small>${esc(SPECS[x.spec]||x.spec)} · ${esc(x.level)}</small></div>${del('group',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
@@ -436,10 +437,12 @@ const msgs=(d.messages||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${esc(x
 const comments=(d.comments||[]).map(x=>`<div class="card"><b>${esc(x.an)} · ${ago(x.t)}</b><div class="body">${esc(x.body)}</div>${del('comment',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
 const reports=(d.reports||[]).map(x=>`<div class="card"><b>${esc(x.kind||'')}</b>${x.target_name?` · ${esc(x.target_name)}`:''}<div class="body">${esc(x.target_content||x.target||'')}<br>${esc(x.reason||'')}</div>${del('report',x.id)}</div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
 const rooms=(d.rooms||[]).map(x=>`<div class="card li"><div><b>${esc(x.room)}</b><small>${x.messages} · ${ago(x.last_t)}</small></div><button class="btn sm" onclick="openAdminRoom('${esc(x.room)}')">${t('adminOpenRoom')}</button> <button class="btn sm alt" onclick="adminClearRoom('${esc(x.room)}')">${t('clearRoom')}</button></div>`).join('')||`<p class="empty">${t('noAdmin')}</p>`;
-$('#main').innerHTML=`<button class="btn" onclick="render()">${t('adminRefresh')}</button><h3>${t('adminPosts')}</h3>${post}<h3>${t('adminGroups')}</h3>${groups}<h3>${t('adminMessages')}</h3>${msgs}<h3>${t('adminRooms')}</h3>${rooms}<h3>${t('adminComments')}</h3>${comments}<h3>${t('adminReports')}</h3>${reports}`}
+const tt=d.totals||{},more=['posts','messages','comments','reports','groups'].some(k=>(tt[k]||0)>(d.limit||ADMLIM));
+$('#main').innerHTML=`<button class="btn" onclick="render()">${t('adminRefresh')}</button>${more?`<p class="note">${t('admLimited',d.limit||ADMLIM)} <button class="btn sm alt" onclick="admMore()">${t('admMore')}</button></p>`:''}<h3>${t('adminPosts')}</h3>${post}<h3>${t('adminGroups')}</h3>${groups}<h3>${t('adminMessages')}</h3>${msgs}<h3>${t('adminRooms')}</h3>${rooms}<h3>${t('adminComments')}</h3>${comments}<h3>${t('adminReports')}</h3>${reports}`}
+window.admMore=()=>{ADMLIM=Math.min(ADMLIM+200,1000);render()};
 window.openAdminRoom=function(r){if(!me?.admin)return;openChat(r,r,'');const b=$('#chClear');if(b){b.hidden=false;b.onclick=()=>adminClearRoom(r)}};
-window.adminDelete=(type,id)=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type,id},()=>{if(type==='message'&&room){const el=document.querySelector('[data-message-id="'+CSS.escape(String(id))+'"]');if(el)el.remove();}else render()})};
-window.adminClearRoom=r=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type:'room',room:r},()=>{if(room===r)closeChat();render()})};
+window.adminDelete=(type,id)=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type,id},()=>{if(type==='message')rtPing();if(type==='message'&&room){const el=document.querySelector('[data-message-id="'+CSS.escape(String(id))+'"]');if(el)el.remove();}else render()})};
+window.adminClearRoom=r=>{if(!me?.admin||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type:'room',room:r},()=>{if(room===r){rtPing();closeChat()}render()})};
 async function vDms(){if(me?.admin){const x=await run('admin_list');if(!x)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;const d=(x.rooms||[]).filter(r=>r.room.startsWith('dm:'));$('#main').innerHTML=`<p class="note">${t('adminAllNote')}</p>`+(d.length?d.map(r=>`<div class="card li" data-room="${esc(r.room)}" data-title="${esc(r.title||t('roomDM'))}" data-sub="${esc(t('roomCount',r.messages||0))}" onclick="openChatEl(this)">${roomMark(r.room,r.title||t('roomDM'))}<div><b>${esc(r.title||t('roomDM'))}</b><small>${esc(t('roomCount',r.messages||0))}${r.last_t?' · '+ago(r.last_t):''}</small></div><i class="fas ${nxt()}"></i></div>`).join(''):`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`);return}const d=await run('dms');if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;d.forEach(x=>rem(x.other,x.an,x.avatar));$('#main').innerHTML=d.length?d.map(x=>`<div class="card li" data-id="${esc(x.other)}" data-name="${esc(x.an)}" onclick="openDmEl(this)">${av(x.an,x.avatar)}<div><b>${esc(x.an)}</b><small>${esc(x.body.slice(0,60))} · ${ago(x.t)}</small></div>${repBtn('student',x.other,x.other,x.an)}</div>`).join('')+`<p class="note">${t('dmNote')}</p>`:`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`}
 function openDmEl(el){openDm(el.dataset.id,el.dataset.name)}
 function openDm(id,name){if(id===me.id)return toast(t('itsYou'));openChat('dm:'+[me.id,id].sort().join(':'),name,t('dmSub'))}
@@ -452,8 +455,22 @@ function chatWelcome(r,ti){if(!me||me.admin)return '';const n=me.name,s=SPECS[me
   else return '';
   return `<div class="sysmsg"><i class="fas ${ic}"></i><b>${esc(T)}</b><span>${esc(D)}</span></div>`}
 function refreshHead(){if(room&&room.startsWith('dm:')&&!(me&&me.admin)){const h=$('#chIcon');if(h)h.outerHTML=roomMark(room,$('#chT').textContent,true)}}
-function openChat(r,ti,s){room=r;lastId=0;SYNC_N=0;Object.keys(MSGS).forEach(k=>delete MSGS[k]);cancelReply();$('#chIcon').outerHTML=roomMark(r,ti,true);$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML=chatWelcome(r,ti);const cb=$('#chClear');cb.hidden=!(me&&me.admin);if(me&&me.admin)cb.onclick=()=>adminClearRoom(r);$('#chat').classList.add('open');pull();clearInterval(timer);timer=setInterval(pull,4000)}
-function closeChat(){$('#chat').classList.remove('open');clearInterval(timer);room=null;cancelReply();if(tab==='groups'||tab==='dms')render()}
+
+/* ===== تحديث لحظي للدردشة (Supabase Realtime Broadcast) =====
+   عند أي إرسال/تعديل/حذف/تثبيت يُبثّ «ping» بلا أي محتوى على قناة الغرفة، فيجلب بقية المتصلين التحديث فوراً عبر community_api
+   (فالتحقق والصلاحيات لا تتغير). إن تعذّر الاتصال يستمر الاستطلاع القديم كل 4 ثوانٍ تلقائياً. */
+let RTCH=null,RTOK=false,POLLN=0;
+function rtHash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)+s.length.toString(36)}
+function rtLeave(){try{if(RTCH&&sb&&sb.removeChannel)sb.removeChannel(RTCH)}catch(e){}RTCH=null;RTOK=false}
+function rtJoin(r){rtLeave();POLLN=0;
+  try{if(!sb||!sb.channel)return;
+    const ch=sb.channel('unem-chat-'+rtHash(r),{config:{broadcast:{self:false}}});
+    ch.on('broadcast',{event:'ping'},()=>{if(room===r){pull();syncMsgs(r)}});
+    ch.subscribe(st=>{if(RTCH===ch)RTOK=(st==='SUBSCRIBED')});
+    RTCH=ch}catch(e){RTCH=null;RTOK=false}}
+function rtPing(){try{if(RTCH&&RTOK)RTCH.send({type:'broadcast',event:'ping',payload:{t:Date.now()}})}catch(e){}}
+function openChat(r,ti,s){room=r;lastId=0;SYNC_N=0;Object.keys(MSGS).forEach(k=>delete MSGS[k]);cancelReply();$('#chIcon').outerHTML=roomMark(r,ti,true);$('#chT').textContent=ti;$('#chS').textContent=s;$('#msgs').innerHTML=chatWelcome(r,ti);const cb=$('#chClear');cb.hidden=!(me&&me.admin);if(me&&me.admin)cb.onclick=()=>adminClearRoom(r);$('#chat').classList.add('open');pull();rtJoin(r);clearInterval(timer);timer=setInterval(()=>{if(RTOK&&(++POLLN%4))return;pull()},4000)}
+function closeChat(){$('#chat').classList.remove('open');clearInterval(timer);rtLeave();room=null;cancelReply();if(tab==='groups'||tab==='dms')render()}
 function showReply(){const b=$('#replyBar');if(!RT){b.hidden=true;b.innerHTML='';return}b.hidden=false;b.innerHTML=`<i class="fas fa-reply"></i><div><b>${esc(t('replyingTo'))} ${esc(RT.name)}</b><small>${esc(RT.body)}</small></div><button type="button" aria-label="${esc(t('cancel'))}" onclick="cancelReply()"><i class="fas fa-xmark"></i></button>`}
 function replyEl(el){RT={id:el.dataset.id,name:el.dataset.n,body:el.dataset.b};showReply();$('#chIn').focus()}
 function cancelReply(){RT=null;showReply()}
@@ -482,7 +499,7 @@ async function syncMsgs(r){r=r||room;if(!r||r!==room)return;const ids=Object.key
     if(!x){if(el)el.remove();delete MSGS[id];return}
     const m=MSGS[id];if(!m||!el)return;
     if(m.body!==x.body||(m.ed||null)!==(x.ed||null)||!!m.pin!==!!x.pin||(adm&&(m.exp||null)!==(x.exp||null))){Object.assign(m,{body:x.body,ed:x.ed,pin:x.pin,exp:x.exp});el.outerHTML=msgHtml(m,isDm,adm)}})}
-async function sendMsg(){const i=$('#chIn'),body=i.value.trim();if(!body||!room)return;i.value='';const args={room,body};if(RT)args.reply_to=RT.id;const d=await run('send',args);if(d){cancelReply();pull()}else i.value=body}
+async function sendMsg(){const i=$('#chIn'),body=i.value.trim();if(!body||!room)return;i.value='';const args={room,body};if(RT)args.reply_to=RT.id;const d=await run('send',args);if(d){cancelReply();pull();rtPing()}else i.value=body}
 $('#chIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 /* توقيع MDA: 3 نقرات سريعة تُظهر رسالة (مثل الصفحة الرئيسية) */
 (function(){const s=document.querySelector('.mda-sign');if(!s)return;let n=0,h;s.addEventListener('click',()=>{n++;clearTimeout(h);h=setTimeout(()=>n=0,900);if(n>=3){n=0;toast(t('sign'))}})})();
