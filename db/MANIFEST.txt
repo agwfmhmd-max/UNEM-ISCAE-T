@@ -29,3 +29,4 @@ db/20261023090000_community_find_student_limit.sql
 db/20261025090000_public_platform_stats.sql
 db/20261026090000_community_admin_list_limit.sql
 db/20261027090000_onboarding_prompts_control.sql
+db/20261028090000_onboarding_prompts_default_off.sql
