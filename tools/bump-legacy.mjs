@@ -17,7 +17,9 @@ for (const f of fs.readdirSync(htmlDir).filter((x) => x.endsWith('.html'))) {
   const next = html.replace(/(<script\b[^>]*\bsrc=")(\/legacy\/[^"?]+)(?:\?v=[0-9a-f]+)?(")/g, (all, a, src, c) => {
     const file = path.join(root, 'public', src);
     if (!fs.existsSync(file)) { console.error('❌ ملف مفقود:', src, 'في', f); process.exitCode = 1; return all; }
-    const h = crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex').slice(0, 10);
+    // نتجاهل CR قبل LF حتى لا يتغير الرقم إن حوّل Git/Windows نهايات الأسطر (المتصفح يحسب بنفس الطريقة في كاشف عدم التطابق)
+    const raw = fs.readFileSync(file); const keep = []; for (let i = 0; i < raw.length; i++) { if (raw[i] === 13 && raw[i + 1] === 10) continue; keep.push(raw[i]); }
+    const h = crypto.createHash('sha1').update(Buffer.from(keep)).digest('hex').slice(0, 10);
     return `${a}${src}?v=${h}${c}`;
   });
   if (next !== html) {
