@@ -159,7 +159,8 @@
                 'push-admin-section': 'send_notifications',
                 'types-admin-section': 'manage_document_types',
                 'admin-online-public-setting': 'manage_platform_settings',
-                'admin-home-stats-setting': 'manage_platform_settings'
+                'admin-home-stats-setting': 'manage_platform_settings',
+                'admin-onboarding-prompts-setting': 'manage_platform_settings'
             };
             Object.entries(requirements).forEach(([id, permission]) => {
                 const el = document.getElementById(id);
@@ -4049,7 +4050,7 @@ function escapeHtml(value){
                 allowed = ['upload-form'];
                 if(hasPermission('view_analytics')) allowed.push('admin-only-analytics');
             } else if(section==='settings'){
-                if(hasPermission('manage_platform_settings')) allowed = ['admin-only-analytics','admin-online-public-setting','admin-home-stats-setting'];
+                if(hasPermission('manage_platform_settings')) allowed = ['admin-only-analytics','admin-online-public-setting','admin-home-stats-setting','admin-onboarding-prompts-setting'];
             } else if(section==='types'){
                 if(hasPermission('manage_document_types')) allowed = ['types-admin-section'];
             } else if(section==='curriculum-subjects'){
@@ -4068,7 +4069,7 @@ function escapeHtml(value){
                 section==='settings' ? 'إعدادات المنصة' :
                 section==='announcements' ? 'إدارة الإعلانات' : 'إدارة الإشعارات';
 
-            ['admin-only-analytics','admin-online-public-setting','admin-home-stats-setting','upload-form','types-admin-section','ann-admin-section','push-admin-section'].forEach(id=>{
+            ['admin-only-analytics','admin-online-public-setting','admin-home-stats-setting','admin-onboarding-prompts-setting','upload-form','types-admin-section','ann-admin-section','push-admin-section'].forEach(id=>{
                 const el=document.getElementById(id);
                 if(el) el.style.display=allowed.includes(id)?'':'none';
             });
@@ -4120,7 +4121,7 @@ function escapeHtml(value){
                 loadDynamicRegistries();
             }
             if(section==='announcements') loadAnnouncementsAdmin();
-            if(section==='settings'){ loadPublicOnlineSetting(); loadHomeStatsSettings(); }
+            if(section==='settings'){ loadPublicOnlineSetting(); loadHomeStatsSettings(); loadPromptSettings(); }
             if(section==='notifications') {
                 loadPushHistoryAdmin();
                 loadPushActiveDeviceCount();
@@ -4489,6 +4490,56 @@ function escapeHtml(value){
             }
         }
 
+        /* ===== تحكّم المشرف بنافذتي «ثبّت التطبيق» و«فعّل الإشعارات» ===== */
+        async function loadPromptSettings() {
+            if (!supabaseClient) return;
+            const status = document.getElementById('prompts-status');
+            try {
+                const { data, error } = await supabaseClient.rpc('get_public_platform_stats');
+                if (error) throw error;
+                let d = data; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) {} }
+                if (Array.isArray(d)) d = d[0];
+                const i = document.getElementById('prompt-install-toggle'), p = document.getElementById('prompt-push-toggle');
+                if (i) i.checked = !!(d && d.show_install_prompt === true);
+                if (p) p.checked = !!(d && d.show_push_prompt === true);
+                if (status) { status.textContent = ''; status.className = 'status-msg'; }
+            } catch (e) {
+                if (status) { status.textContent = '⚠️ نفّذ ملف SQL: db/20261027090000_onboarding_prompts_control.sql لتفعيل هذا التحكم.'; status.className = 'status-msg error'; }
+            }
+        }
+
+        async function savePromptSetting(key, enabled) {
+            if (!hasPermission('manage_platform_settings')) return;
+            const status = document.getElementById('prompts-status');
+            const toggle = document.getElementById(key === 'show_install_prompt' ? 'prompt-install-toggle' : 'prompt-push-toggle');
+            try {
+                const { data, error } = await supabaseClient.rpc('set_public_stat_visibility', { p_key: key, p_enabled: !!enabled });
+                if (error) throw error;
+                const on = data !== false;
+                if (toggle) toggle.checked = on;
+                try { if (window.unemPromptFlagsReset) window.unemPromptFlagsReset(); } catch (_) {}
+                const label = key === 'show_install_prompt' ? 'نافذة «ثبّت التطبيق»' : 'نافذة «فعّل الإشعارات»';
+                if (status) { status.textContent = on ? ('✅ ستظهر ' + label + ' للطلاب الجدد ولمن لم يثبّت/يفعّل (خلال لحظات من فتحهم الموقع).') : ('✅ تم إخفاء ' + label + ' عن الجميع.'); status.className = 'status-msg success'; }
+            } catch (e) {
+                if (toggle) toggle.checked = !enabled;
+                if (status) { status.textContent = '❌ تعذر حفظ الإعداد: ' + (e.message || e) + ' — تأكد من تنفيذ db/20261027090000_onboarding_prompts_control.sql'; status.className = 'status-msg error'; }
+            }
+        }
+
+        async function resetOnboardingPrompts() {
+            if (!hasPermission('manage_platform_settings')) return;
+            if (!confirm('إعادة إظهار النافذتين لكل من أغلقهما سابقاً (ولم يثبّت التطبيق أو يفعّل الإشعارات)؟')) return;
+            const status = document.getElementById('prompts-status');
+            try {
+                const { error } = await supabaseClient.rpc('reset_onboarding_prompts');
+                if (error) throw error;
+                try { if (window.unemPromptFlagsReset) window.unemPromptFlagsReset(); localStorage.setItem('unem_prompts_reset_seen', String(Math.floor(Date.now() / 1000))); } catch (_) {}
+                if (status) { status.textContent = '✅ ستظهر النافذتان من جديد لمن أغلقهما عند زيارته القادمة للموقع.'; status.className = 'status-msg success'; }
+            } catch (e) {
+                if (status) { status.textContent = '❌ تعذرت الإعادة: ' + (e.message || e) + ' — تأكد من تنفيذ db/20261027090000_onboarding_prompts_control.sql'; status.className = 'status-msg error'; }
+            }
+        }
+
         function stopPresenceHeartbeat() {
             if (presenceHeartbeat) {
                 clearInterval(presenceHeartbeat);
@@ -4770,6 +4821,36 @@ function escapeHtml(value){
 
             if (!installToast || !installBtn || !laterInstallBtn) return;
 
+            // ===== تحكّم المشرف: إظهار/إخفاء نافذتي التثبيت والإشعارات (الإعدادات من get_public_platform_stats) =====
+            // القاعدة: لا تظهر أي نافذة إلا إذا أعاد الخادم صراحةً true لها (المشرف فعّلها).
+            // غياب الإعداد أو أي خلل أو بطء شديد في الاتصال = مخفية. (حارس CSS في app.html يكرّر هذه القاعدة كطبقة ثانية.)
+            const HIDDEN_FLAGS = { install: false, push: false, reset: 0 };
+            const applyResetIfNeeded = (reset) => {
+                // «إعادة الإظهار» من المشرف: من أغلق النافذتين سابقاً (ولم يثبّت/يفعّل فعلاً) تظهران له من جديد مرة واحدة
+                try {
+                    const seen = Number(localStorage.getItem('unem_prompts_reset_seen') || 0);
+                    if (reset && reset > seen) {
+                        localStorage.setItem('unem_prompts_reset_seen', String(reset));
+                        localStorage.removeItem('unem_push_onboarding_done');
+                        if (localStorage.getItem('unem_install_state') === 'deferred') localStorage.setItem('unem_install_state', 'new');
+                    }
+                } catch (e) {}
+            };
+            const whenFlags = (window.unemPromptFlags ? window.unemPromptFlags() : new Promise((resolve) => {
+                let settled = false;
+                const done = (f) => { if (settled) return; settled = true; resolve(f); };
+                setTimeout(() => done(HIDDEN_FLAGS), 10000);
+                try {
+                    if (typeof supabaseClient === 'undefined' || !supabaseClient) return done(HIDDEN_FLAGS);
+                    supabaseClient.rpc('get_public_platform_stats').then((r) => {
+                        let d = r && r.data; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (e) {} }
+                        if (Array.isArray(d)) d = d[0];
+                        if (!d || (r && r.error)) return done(HIDDEN_FLAGS);
+                        done({ install: d.show_install_prompt === true, push: d.show_push_prompt === true, reset: Number(d.prompts_reset_at) || 0 });
+                    }).catch(() => done(HIDDEN_FLAGS));
+                } catch (e) { done(HIDDEN_FLAGS); }
+            })).then((f) => { applyResetIfNeeded(f.reset); return f; });
+
             const isStandalone = () =>
                 window.matchMedia('(display-mode: standalone)').matches ||
                 window.matchMedia('(display-mode: fullscreen)').matches ||
@@ -4779,7 +4860,12 @@ function escapeHtml(value){
             const getInstallState = () => localStorage.getItem('unem_install_state') || 'new';
             const setInstallState = (state) => localStorage.setItem('unem_install_state', state);
 
-            const showPushOnboarding = () => {
+            const showPushOnboarding = () => whenFlags.then((f) => { if (f.push) showPushOnboardingNow(); });
+            const showInstallToast = () => whenFlags.then((f) => {
+                if (f.install) installToast.classList.add('show');
+                else setTimeout(showPushOnboarding, 300);   // المشرف أخفى نافذة التثبيت: ننتقل لطلب الإشعارات مباشرة
+            });
+            const showPushOnboardingNow = () => {
                 // نافذة الطلب تعتمد على Web Push الحقيقي؛ لا تُعرض داخل Android WebView.
                 if (!pushModal || !webPushSupported()) return;
                 if (Notification.permission === 'granted') {
@@ -4815,7 +4901,7 @@ function escapeHtml(value){
                 }
 
                 // المستخدم الجديد أو من اختار "لاحقاً" يرى نافذة التثبيت في الدخول القادم.
-                setTimeout(() => installToast.classList.add('show'), 1200);
+                setTimeout(showInstallToast, 1200);
             });
 
             // إذا كان التطبيق مثبتاً بالفعل، لا نعرض نافذة التثبيت.
@@ -4834,7 +4920,7 @@ function escapeHtml(value){
             if (isIOS && !isStandalone() &&
                 getInstallState() !== 'installed' &&
                 localStorage.getItem('unem_pwa_installed') !== 'true') {
-                setTimeout(() => installToast.classList.add('show'), 1200);
+                setTimeout(showInstallToast, 1200);
             }
 
             installBtn.addEventListener('click', async () => {
