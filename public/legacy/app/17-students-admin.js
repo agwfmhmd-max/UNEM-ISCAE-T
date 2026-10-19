@@ -10,6 +10,7 @@ function specOpts(sel){return SPECS.map(function(s){return '<option value="'+s[0
 function lvlOpts(spec,sel){var l=lvls(spec);return l.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+x+'</option>'}).join('')}
 function rpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function sessionRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_session_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
+function deviceRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_device_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|student_session_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ترحيلات الطلاب بالترتيب، بما فيها db/20261016090000_supervisor_delegation_and_student_admin.sql في Supabase.';if(/forbidden/.test(m))return 'ليست لديك الصلاحية الممنوحة لهذه العملية.';return m}
 function $(id){return document.getElementById(id)}
 function fmt(d){try{return new Date(d).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
@@ -26,11 +27,12 @@ window.renderStudentsAdmin=async function(){
   '<input id="st-file" type="file" multiple accept=".xlsx,.xls,.csv,.pdf,application/pdf" onchange="stFile(this)"></div><div id="st-prev" style="margin-top:10px"></div></div></div>':'')+
   '<div class="admin-page-box" style="margin-top:14px"><h3>📊 اللوائح وحالة التسجيل</h3><div id="st-stats">⏳ جاري التحميل...</div></div>'+
   '<div class="admin-page-box" style="margin-top:14px"><h3>🟢 نشاط الطلاب وسجل الدخول والخروج</h3><div id="st-session-stats">⏳ جاري التحميل...</div></div>'+
+  '<div class="admin-page-box" style="margin-top:14px"><h3>🚨 بلاغات انتحال حسابات الطلاب</h3><p style="color:#64748b;margin:4px 0 12px">راجع البلاغ قبل الحظر. عند الحظر تُنهى جلسات الجهاز وتُمنع بصمته نهائياً من بوابة الطلاب والمجتمع.</p><div id="st-device-reports">⏳ جاري التحميل...</div></div>'+
   '<div class="admin-page-box" style="margin-top:14px"><h3>🆕 أحدث تسجيلات الطلاب</h3><p style="color:#64748b;margin:4px 0 12px">تُعرض الحسابات الأحدث أولاً، بما فيها الطلبات بانتظار الموافقة والحسابات المعتمدة. يمكن تصفية القائمة حسب الحالة أو البحث بالاسم ورقم التسجيل.</p>'+
   '<div id="st-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>'+
   '<div class="wa-admin-row" style="grid-template-columns:1fr auto"><input id="st-q" placeholder="بحث بالاسم أو رقم التسجيل" onkeydown="if(event.key===\'Enter\')stSearch()"><button class="wa-save" onclick="stSearch()">بحث</button></div>'+
   '<div id="st-list">⏳ جاري التحميل...</div></div>';
-  loadStats();loadList();loadSessions();
+  loadStats();loadList();loadSessions();loadDeviceReports();
 };
 window.stSpecChange=function(){var s=$('st-spec').value;$('st-level').innerHTML=lvlOpts(s,'')};
 window.stRowSpec=function(id){var s=$('sp-'+id).value,l=$('lv-'+id);var cur=l.value;l.innerHTML=lvlOpts(s,cur)};
@@ -227,6 +229,16 @@ async function loadSessions(){
   }catch(e){el.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>'}
 }
 window.stEndSession=async function(id){if(!confirm('إنهاء جلسة هذا الطالب على هذا الجهاز؟'))return;try{await sessionRpc('revoke',{session_id:id});loadSessions()}catch(e){alert('❌ '+errMsg(e))}};
+async function loadDeviceReports(){
+  var el=$('st-device-reports');if(!el)return;
+  try{var rows=await deviceRpc('list_reports');
+    if(!rows||!rows.length){el.innerHTML='<div style="color:#64748b">لا توجد بلاغات معلّقة.</div>';return}
+    var canManage=canManageStudentRecords();
+    el.innerHTML=rows.map(function(x){return '<div class="wa-admin-row" style="grid-template-columns:1fr;margin-bottom:8px"><div><b>'+h(x.full_name)+'</b> · <span dir="ltr">'+h(x.reg_no)+'</span><div style="font-size:.83rem;margin-top:5px;white-space:pre-wrap">'+h(x.message)+'</div><div style="font-size:.74rem;color:#64748b;margin-top:5px">'+(x.device_type==='phone'?'هاتف':'كمبيوتر')+' · البلاغ: '+h(fmt(x.created_at))+' · بصمة الجهاز: <code>'+h(x.target_device_fingerprint||'')+'</code> · '+(x.target_active?'الجهاز نشط':'الجهاز غير نشط')+'</div></div>'+(canManage?'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button class="wa-save" style="background:#b91c1c" onclick="stBanDevice(\''+h(x.id)+'\')">🚫 حظر الجهاز نهائياً</button><button class="wa-save" style="background:#64748b" onclick="stRejectDeviceReport(\''+h(x.id)+'\')">رفض البلاغ</button></div>':'')+'</div>'}).join('');
+  }catch(e){el.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>'}
+}
+window.stBanDevice=async function(id){if(!confirm('حظر هذا الجهاز نهائياً؟ ستُنهى جلساته ولن يستطيع التسجيل أو دخول المجتمع من هذا الجهاز.'))return;try{await deviceRpc('ban_report',{id:id,reason:'انتحال هوية طالب'});loadDeviceReports();loadSessions()}catch(e){alert('❌ '+errMsg(e))}};
+window.stRejectDeviceReport=async function(id){if(!confirm('رفض هذا البلاغ دون حظر الجهاز؟'))return;try{await deviceRpc('reject_report',{id:id});loadDeviceReports()}catch(e){alert('❌ '+errMsg(e))}};
 
 /* ---------- الحسابات ---------- */
 function renderTabs(acc){

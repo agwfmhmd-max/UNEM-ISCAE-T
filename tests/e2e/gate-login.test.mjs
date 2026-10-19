@@ -1,4 +1,4 @@
-// تسجيل دخول الطالب (public/unem-gate.js): طالب موجود، طالب جديد (إنشاء حساب ثم موافقة)، تحقق المدخلات، جهاز مستعمل.
+// تسجيل دخول الطالب (public/unem-gate.js): طالب موجود، طالب جديد، تحقق المدخلات، جهاز مستعمل وبلاغ انتحال.
 import { suite, read, newPage } from './helpers.mjs';
 
 export default async function run() {
@@ -75,10 +75,14 @@ export default async function run() {
   pg = await open((b) => {
     if (b.p_action === 'lookup') return { body: { found: true } };
     if (b.p_action === 'login') return { http: 400, body: { message: 'device_in_use', code: 'P0001' } };
+    if (b.p_action === 'report_device_in_use') return { body: { submitted: true } };
     return { body: { status: 'none' } };
   });
   await pg.fill('#ug-name', 'Mohamed Dah Agove'); await pg.fill('#ug-reg', 'I21567'); await pg.click('#ug-go'); await pg.waitForTimeout(600);
   s.check('device_in_use: رسالة خطأ والبوابة تبقى', (await pg.$eval('#ug-err', (e) => e.style.display)) === 'block' && !!(await pg.$('#ug-form')));
+  pg.once('dialog', (d) => d.accept('شخص آخر يستخدم حسابي دون إذني وأطلب التحقق وحظر الجهاز.'));
+  await pg.click('#ug-report'); await pg.waitForTimeout(250);
+  s.check('device_in_use: إرسال البلاغ للمشرف', pg.rpcCalls.some((c) => c.p_action === 'report_device_in_use') && (await pg.$eval('#ug-err', (e) => e.textContent.includes('تم إرسال البلاغ'))));
   await pg.context().close();
 
   // 5) قفل مؤقت بعد محاولات خاطئة: الرسالة مفهومة ولا تُسقط البوابة.

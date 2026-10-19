@@ -85,6 +85,15 @@
       bad_name_fr: "اكتب الاسم الكامل بالحروف الفرنسية.",
       device_in_use:
         "هذا الحساب مفتوح بالفعل على جهاز آخر من النوع نفسه. سجّل الخروج من ذلك الجهاز أولاً أو اطلب من المشرف إنهاء جلسته.",
+      reportDevice: "إرسال بلاغ للمشرف عن انتحال الحساب",
+      reportPrompt: "اكتب رسالة للمشرف توضّح المشكلة:",
+      reportDefault: "أعتقد أن شخصاً آخر سجّل حسابي على جهاز آخر دون إذني.",
+      reportSending: "جارٍ إرسال البلاغ...",
+      report_sent: "تم إرسال البلاغ للمشرف. سيراجع الجهاز الآخر ويمكنه حظره نهائياً.",
+      report_too_short: "اكتب رسالة أطول قليلاً لتوضيح المشكلة.",
+      report_not_eligible: "تعذّر التحقق من ملكية هذا الحساب لإرسال البلاغ.",
+      no_active_conflict: "لم تعد توجد جلسة أخرى نشطة يمكن الإبلاغ عنها.",
+      device_banned: "تم حظر هذا الجهاز نهائياً من التسجيل في المجتمع.",
       account_exists: "هذا الحساب موجود بالفعل. استخدم تسجيل الدخول.",
       needs_registration: "لم يتم العثور على حسابك. يمكنك إنشاء حساب جديد الآن.",
       bad_reg: "اكتب رقم التسجيل بشكل صحيح.",
@@ -133,6 +142,15 @@
       bad_name_fr: "Saisissez votre nom complet en lettres françaises.",
       device_in_use:
         "Ce compte est déjà connecté sur un autre appareil du même type. Déconnectez-vous de cet appareil ou demandez à un administrateur de fermer sa session.",
+      reportDevice: "Signaler une usurpation à l’administrateur",
+      reportPrompt: "Écrivez un message à l’administrateur pour expliquer le problème :",
+      reportDefault: "Je pense qu’une autre personne a enregistré mon compte sur un autre appareil sans mon autorisation.",
+      reportSending: "Envoi du signalement...",
+      report_sent: "Signalement envoyé. L’administrateur peut vérifier et bannir définitivement l’autre appareil.",
+      report_too_short: "Écrivez un message un peu plus détaillé.",
+      report_not_eligible: "Impossible de vérifier la propriété de ce compte.",
+      no_active_conflict: "Aucune autre session active à signaler.",
+      device_banned: "Cet appareil est définitivement banni de l’inscription à la communauté.",
       account_exists: "Ce compte existe déjà. Utilisez la connexion.",
       needs_registration: "Aucun compte trouvé. Vous pouvez en créer un maintenant.",
       bad_reg: "Saisissez correctement le numéro d’inscription.",
@@ -484,10 +502,39 @@
     lastMsg = k ? t(k) : "";
     var e = document.getElementById("ug-err");
     if (e) {
-      e.textContent = lastMsg;
+      e.innerHTML = esc(lastMsg);
+      if (k === "device_in_use") {
+        e.innerHTML +=
+          '<button type="button" id="ug-report" style="display:block;margin:10px auto 0;padding:8px 12px;border:0;border-radius:10px;background:#b91c1c;color:#fff;font:inherit;font-weight:700;cursor:pointer">' +
+          esc(t("reportDevice")) +
+          "</button>";
+        document.getElementById("ug-report").onclick = window.unemReportDevice;
+      }
       e.style.display = lastMsg ? "block" : "none";
     }
   }
+
+  window.unemReportDevice = function () {
+    if (busy) return;
+    var msg = window.prompt(t("reportPrompt"), t("reportDefault"));
+    if (!msg || !msg.trim()) return;
+    busy = true;
+    showErr("reportSending");
+    rpc("report_device_in_use", {
+      name: window.__unemGateName || "",
+      reg: window.__unemGateReg || "",
+      device_type: deviceType(),
+      message: msg.trim(),
+    })
+      .then(function (d) {
+        busy = false;
+        showErr(d && d.submitted ? "report_sent" : d && d.error ? d.error : "offline");
+      })
+      .catch(function () {
+        busy = false;
+        showErr("offline");
+      });
+  };
 
   function levelListForSpec(spec) {
     return /^MASTER_/.test(spec || "") ? ["M1", "M2"] : ["L1", "L2", "L3"];

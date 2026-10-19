@@ -229,5 +229,26 @@ begin
     perform pg_temp.must(g = '{}'::jsonb, 'الدخول الناجح يجب أن يمسح القفل');
   end;
 
+  ------------------------------------------------------------ M) بلاغ انتحال وحظر الجهاز المعتدي
+  declare target_token text := repeat('e',40); report_token text := repeat('f',40); target_sid uuid := gen_random_uuid(); report_id uuid; banned_result jsonb;
+  begin
+    insert into public.student_devices(token_hash,account)
+      values(encode(sha256(convert_to(target_token,'UTF8')),'hex'),idA)
+      on conflict(token_hash) do update set account=excluded.account;
+    insert into public.student_sessions(session_id,account,device_hash,device_type,login_at,last_seen,logout_at)
+      values(target_sid,idA,encode(sha256(convert_to(target_token,'UTF8')),'hex'),'computer',now(),now(),null);
+    r := public.student_gate(report_token,'report_device_in_use',jsonb_build_object('name','Student Alpha','reg','I1','device_type','computer','message','هذا الجهاز ليس جهازي وقد استُخدم باسمي دون إذني'));
+    perform pg_temp.must((r->>'submitted')::boolean, 'بلاغ انتحال صحيح يجب أن يُرسل');
+    select id into report_id from public.student_device_reports where account=idA and status='pending' order by created_at desc limit 1;
+    perform pg_temp.must(report_id is not null, 'البلاغ لم يُحفظ');
+    perform set_config('request.jwt.claim.sub',adm::text,true);
+    banned_result := public.student_device_admin('ban_report',jsonb_build_object('id',report_id,'reason','انتحال هوية طالب'));
+    perform pg_temp.must((banned_result->>'banned')::boolean, 'المشرف يجب أن يحظر الجهاز');
+    perform set_config('request.jwt.claim.sub','',true);
+    r := public.student_gate(target_token,'status',jsonb_build_object('session_id',gen_random_uuid(),'device_type','computer'));
+    perform pg_temp.must(r->>'error'='device_banned', 'الجهاز المحظور يجب أن يُمنع من البوابة');
+    perform pg_temp.must((select count(*) from public.student_sessions where session_id=target_sid and logout_at is null)=0, 'حظر الجهاز يجب أن ينهي جلسته');
+  end;
+
   raise notice '✅ كل اختبارات القاعدة نجحت';
 end $$;
