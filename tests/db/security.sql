@@ -7,7 +7,7 @@ declare
     'effective_document_types_for_subject','get_my_role','get_public_platform_stats','get_public_visitor_stats','has_role',
     'remove_push_subscription','repair_cloudinary_urls','save_fcm_token','save_push_subscription','student_gate',
     'student_level_rank','student_names_match','student_norm_name','student_norm_reg','student_view','touch_updated_at'];
-  actual text[]; bad text; t text; got text; n int;
+  actual text[]; new_fns text[]; missing_fns text[]; bad text; t text; got text; n int;
   sensitive text[] := array['community_comments','community_groups','community_likes','community_members','community_messages','community_posts',
     'community_profiles','community_reports','community_search_log','student_accounts','student_devices','student_roster','student_sessions',
     'supervisor_permissions','user_roles','fcm_tokens','push_notifications_log','whatsapp_groups'];
@@ -27,10 +27,13 @@ begin
   -- المسموح بها تُدار بأسماء الدوال لا بتواقيعها.
   select array_agg(distinct p.proname order by p.proname) into actual from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace and ns.nspname='public'
    where p.prokind='f' and has_function_privilege('anon', p.oid, 'execute');
-  if actual is distinct from (select array_agg(x order by x) from unnest(expected_anon_fns) x) then
+  select array_agg(x order by x) into new_fns
+    from (select unnest(actual) as x except select unnest(expected_anon_fns)) d;
+  select array_agg(x order by x) into missing_fns
+    from (select unnest(expected_anon_fns) as x except select unnest(actual)) d;
+  if new_fns is not null or missing_fns is not null then
     raise exception 'SECURITY FAIL: قائمة الدوال المتاحة لـ anon تغيّرت. جديدة: %  | مفقودة: %',
-      (select array_agg(x) from unnest(actual) x where x <> all(expected_anon_fns)),
-      (select array_agg(x) from unnest(expected_anon_fns) x where x <> all(actual));
+      new_fns, missing_fns;
   end if;
 
   -- 4) كل دالة SECURITY DEFINER لها search_path ثابت (ضد اختطاف المسار)
