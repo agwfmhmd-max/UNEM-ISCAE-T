@@ -4,7 +4,7 @@ import { suite, legacy, newPage } from './helpers.mjs';
 
 const AV = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=';
 
-const MOCK = `
+export const MOCK = `
 window.__AV=${JSON.stringify(AV)};
 const ME={id:'11111111-1111-1111-1111-111111111111',name:'Mohamed Dah Agove',spec:'BA',level:'L3',avatar_data:window.__AV,account:'acc1'};
 const OTHER={id:'22222222-2222-2222-2222-222222222222',name:'Sara Ba',spec:'FC',level:'L1',avatar_data:window.__AV};
@@ -19,7 +19,7 @@ db.msgs.push({id:2,room:'general',author:ME,body:'رسالتي',pin:false,ed:nul
 db.msgs.push({id:3,room:'general',author:OTHER,body:'رسالة ثانية لغيري',pin:false,ed:null,exp:Date.now()+864e5});
 const STUDENTS={i1:{found:true,registered:true,id:OTHER.id,name:'Sara Ba',reg:'I1',spec:'FC',level:'L1',avatar:window.__AV,self:false,online:true,last_seen:new Date().toISOString(),active:true},
  i2:{found:true,registered:true,id:'33333333-3333-3333-3333-333333333333',name:'Omar Sidi',reg:'I2',spec:'IG',level:'M1',self:false,online:false,last_seen:new Date(Date.now()-3*3600e3).toISOString(),active:true},
- i3:{found:true,registered:false,name:'Aicha Mint',reg:'I3',spec:'TCM',level:'L2',active:false,online:false},
+ i3:{found:true,registered:false,name:'A… M…',reg:'I3',spec:'TCM',level:'L2',active:false,online:false},
  i21567:{found:true,registered:true,id:ME.id,name:ME.name,reg:'I21567',spec:'BA',level:'L3',self:true,online:true,last_seen:new Date().toISOString(),active:true}};
 function api(a,args){window.__calls.push([a,args]);const adm=window.__adm;
  switch(a){
@@ -141,7 +141,7 @@ export default async function run() {
   s.check('متصل الآن', /متصل الآن/.test(await search('I1')) && !!(await pg.$('#stRes .st.on')) && !!(await pg.$('#stRes button[onclick^="openDmEl"]')));
   s.check('آخر ظهور', /آخر ظهور: منذ 3 س/.test(await search('i2')) && !!(await pg.$('#stRes .st.seen')));
   const inactive = await search('I3');
-  s.check('غير نشط بلا زر مراسلة', /غير نشط/.test(inactive) && !(await pg.$('#stRes button')));
+  s.check('غير نشط بلا زر مراسلة، والاسم مقنَّع كما يرسله الخادم', /غير نشط/.test(inactive) && /A… M…/.test(inactive) && !/Aicha/.test(inactive) && !(await pg.$('#stRes button')));
   s.check('رقم غير موجود', /لا يوجد طالب بهذا الرقم/.test(await search('zzz')));
   await search('21567'); // ملاحظة: يطابق المفتاح i21567 بعد التطبيع في الخادم الحقيقي؛ هنا نتحقق من عدم ظهور زر مراسلة للنفس
   s.check('لا زر مراسلة لنفسه', !(await pg.$('#stRes button[onclick^="openDmEl"]')));

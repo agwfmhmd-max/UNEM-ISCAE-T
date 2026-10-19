@@ -51,3 +51,9 @@ unem iscae
 - **لمنع نشر كود فاشل فعلياً:** Settings ← Branches ← Add rule للفرع الرئيسي ← فعّل *Require a pull request* و*Require status checks* واختر `legacy-check` و`e2e` و`database`. بدون هذه القاعدة يبقى الفحص تنبيهاً فقط (يرفع ولا يمنع).
 - نفس الفحوص تُشغَّل يدوياً قبل الرفع: `node tools/check-legacy.mjs --fix` ثم `cd tests && npm ci && npx playwright install chromium && npm test`.
 
+## التشغيل والمراقبة والأمان
+
+دليل كامل في **`docs/OPERATIONS.md`**: إعداد الأسرار، مراقبة الموقع الحي كل 30 دقيقة (`uptime.yml`)، النسخ الاحتياطي اليومي المشفّر والاستعادة (`backup.yml`)، التراجع عن نشر سيئ، جدول «ماذا يعني هذا الفشل؟»، وملاحظات أمنية معروفة وقرارات تنتظر صاحب المشروع.
+
+سيرا العمل في `.github/workflows/`: `ci.yml` (فحص عند كل رفع)، `uptime.yml`، `backup.yml`، `update-visual-baseline.yml` (يدوي).
+

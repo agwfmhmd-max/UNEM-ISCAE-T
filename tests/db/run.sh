@@ -13,6 +13,7 @@ bash db/apply_all.sh "$SCR"
 echo "— إعادة التطبيق فوق قاعدة موجودة (يجب ألا يفشل شيء) —"
 bash db/apply_all.sh "$SCR"
 if [ -f tests/db/checks.sql ]; then psql "$SCR" -q -v ON_ERROR_STOP=1 -f tests/db/checks.sql; fi
+if [ -f tests/db/security.sql ]; then psql "$SCR" -q -v ON_ERROR_STOP=1 -f tests/db/security.sql; fi
 # إعادة تشغيل ملف «الافتراضي مخفي» بعد أن اختار المشرف «ظاهر» يجب ألا تُعيد الإخفاء (إعادة الضبط تُنفَّذ مرة واحدة فقط)
 psql "$SCR" -q -v ON_ERROR_STOP=1 -f db/20261028090000_onboarding_prompts_default_off.sql >/dev/null
 psql "$SCR" -tA -v ON_ERROR_STOP=1 -c "select case when (select value_boolean from public.platform_settings where key='show_push_prompt') then 'OK: اختيار المشرف محفوظ بعد إعادة التشغيل' else 'FAIL: إعادة التشغيل أعادت الإخفاء' end" | tee /dev/stderr | grep -q '^OK'

@@ -1,0 +1,27 @@
+# مراقبة الموقع الحي كل 30 دقيقة: الصفحة تعمل؟ وكل ملفات الواجهة المرفوعة تطابق app.html؟ (يلتقط رفعاً ناقصاً أو قديماً)
+# عند الفشل يفشل التشغيل ويصلك إشعار GitHub بالبريد (تأكد أن إشعارات Actions مفعّلة في حسابك).
+# الإعداد (مرة واحدة): Settings ← Secrets and variables ← Actions ← تبويب Variables ← New repository variable:
+#     الاسم: SITE_URL    القيمة: رابط موقعك، مثل https://unem-iscae2-test.vercel.app
+# ملاحظة: يوقف GitHub الجداول الزمنية تلقائياً بعد 60 يوماً دون أي نشاط في المستودع؛ شغّل الفحص يدوياً (Run workflow) لإعادة تفعيله.
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: فحص الموقع
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ]; then echo "::notice::لم يُضبط المتغير SITE_URL بعد — الفحص متوقف (انظر أعلى الملف)."; fi
+          node tools/uptime-check.mjs

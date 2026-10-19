@@ -1,0 +1,31 @@
+# يولّد خط أساس الأنماط (tests/baselines/styles.json) داخل بيئة GitHub نفسها (نفس إصدار Chromium الذي يشغّل الاختبارات)،
+# فتصبح مقارنة الأنماط في CI صارمة. شغّله يدوياً: Actions ← update-visual-baseline ← Run workflow،
+# ثم نزّل الملف من قسم Artifacts في صفحة التشغيل وضعه في tests/baselines/styles.json وارفعه.
+# استعمله أيضاً بعد أي تغيير تصميمي مقصود في الواجهة.
+name: update-visual-baseline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - working-directory: tests
+        run: npm ci && npx playwright install --with-deps chromium
+      - name: توليد خط الأساس
+        working-directory: tests
+        env:
+          UPDATE_BASELINE: '1'
+        run: node -e "import('./e2e/visual-baseline.test.mjs').then(async (m) => { const bad = await m.default(); const { closeBrowser } = await import('./e2e/helpers.mjs'); await closeBrowser(); process.exit(bad ? 1 : 0); })"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: styles-baseline
+          path: tests/baselines/styles.json

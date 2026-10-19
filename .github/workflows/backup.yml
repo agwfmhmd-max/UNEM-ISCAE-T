@@ -1,0 +1,50 @@
+# نسخة احتياطية يومية مشفّرة لقاعدة البيانات (مخطط public) تُحفظ 30 يوماً كـ Artifact في GitHub.
+# تحوي النسخة بيانات طلاب، لذلك تُشفَّر بعبارة سرية قبل رفعها (AES-256). بدون العبارة لا يمكن فتحها؛ احفظها خارج GitHub أيضاً.
+# الإعداد (مرة واحدة): Settings ← Secrets and variables ← Actions ← تبويب Secrets:
+#     SUPABASE_DB_URL     رابط الاتصال بالقاعدة. استعمل رابط «Session pooler» من Supabase (Project Settings ← Database ← Connection string)
+#                         لأن خوادم GitHub لا تدعم IPv6 الذي يحتاجه الرابط المباشر.
+#     BACKUP_PASSPHRASE   عبارة تشفير طويلة (12 حرفاً على الأقل).
+# إن لم تُضبط الأسرار يتخطى التشغيل بلا فشل. الاستعادة: docs/OPERATIONS.md
+name: Backup
+
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: تحقق من الأسرار
+        id: guard
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::notice::لم تُضبط الأسرار SUPABASE_DB_URL و BACKUP_PASSPHRASE — النسخ الاحتياطي متوقف (انظر أعلى الملف)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: pg_dump الإصدار 17 (يجب ألا يقل عن إصدار خادم Supabase)
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+      - name: نسخة مشفّرة
+        if: steps.guard.outputs.run == 'true'
+        run: OUT_DIR=backups bash tools/backup-db.sh
+      - name: رفع النسخة (محفوظة 30 يوماً)
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backups/*.enc
+          retention-days: 30
+          if-no-files-found: error

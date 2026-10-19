@@ -111,6 +111,11 @@ begin
   delete from public.community_search_log;   -- نحاكي مرور الدقيقة
   r := pg_temp.api(tA,'find_student','{"reg":"I4"}');   -- حساب معلّق = لم يسجّل بعد
   perform pg_temp.must((r->>'found')::boolean and not (r->>'registered')::boolean and not (r->>'active')::boolean, 'حساب معلّق يجب أن يظهر غير نشط');
+  perform pg_temp.must((r->>'name') = 'S… P…', 'اسم غير المسجّل يجب أن يكون مقنَّعاً: ' || (r->>'name'));
+  perform pg_temp.must(position('Pending' in (r->>'name')) = 0, 'الاسم الكامل لغير المسجّل تسرّب');
+  perform pg_temp.must((pg_temp.api(tA,'find_student','{"reg":"I2"}')->>'name') = 'Student Beta', 'اسم المسجّل يجب أن يبقى كاملاً');
+  perform pg_temp.must(public.mask_person_name('  أحمد   محمد  سالم ') = 'أ… م… س…' and public.mask_person_name('A') = 'A' and public.mask_person_name(null) is null and public.mask_person_name('   ') is null, 'mask_person_name: حالات حدّية');
+  delete from public.community_search_log;
   r := pg_temp.api(tA,'find_student','{"reg":"nope999"}');
   perform pg_temp.must(not (r->>'found')::boolean, 'رقم مجهول يجب ألا يوجد');
   r := pg_temp.api(tA,'find_student','{"reg":"I1"}');
