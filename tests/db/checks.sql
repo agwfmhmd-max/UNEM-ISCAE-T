@@ -213,5 +213,21 @@ begin
   perform pg_temp.must((select (x->>'avatar') is not null from jsonb_array_elements(r) with ordinality t(x,i) where x->>'aid'=pa::text order by i limit 1), 'صورة التعليقات على أول تعليق');
   perform pg_temp.must((select count(*) from jsonb_array_elements(r) x where x->>'aid'=pb::text and x->>'avatar' is null) >= 1, 'B بلا صورة: لا خطأ');
 
+  ------------------------------------------------------------ L) قفل محاولات الدخول وإعادة ضبطه
+  declare g jsonb; throttle_key text := md5(random()::text || clock_timestamp()::text);
+  begin
+    for n in 1..4 loop
+      g := public.student_login_throttle(throttle_key, 'failure');
+      perform pg_temp.must(g = '{}'::jsonb, 'المحاولات الأولى يجب ألا تقفل الدخول');
+    end loop;
+    g := public.student_login_throttle(throttle_key, 'failure');
+    perform pg_temp.must(g->>'error' = 'too_many_attempts' and (g->>'retry_after')::int between 14 and 15, 'المحاولة الخامسة يجب أن تقفل 15 دقيقة');
+    g := public.student_login_throttle(throttle_key, 'check');
+    perform pg_temp.must(g->>'error' = 'too_many_attempts', 'القفل يجب أن يستمر في المحاولة التالية');
+    perform public.student_login_throttle(throttle_key, 'success');
+    g := public.student_login_throttle(throttle_key, 'check');
+    perform pg_temp.must(g = '{}'::jsonb, 'الدخول الناجح يجب أن يمسح القفل');
+  end;
+
   raise notice '✅ كل اختبارات القاعدة نجحت';
 end $$;

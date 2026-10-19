@@ -91,6 +91,7 @@
       bad_scope: "اختر التخصص والمستوى الصحيحين.",
       scope_mismatch: "التخصص أو المستوى لا يطابق بيانات حسابك.",
       name_mismatch: "الاسم لا يطابق رقم التسجيل هذا. تأكد من كتابة اسمك الكامل كما هو مسجّل.",
+      too_many_attempts: "محاولات كثيرة غير صحيحة. أعد المحاولة بعد 15 دقيقة.",
       busy: "عدد الطلبات كبير حالياً، حاول بعد قليل.",
       offline: "تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة.",
       setup: "نظام التسجيل قيد التفعيل. يرجى المحاولة لاحقاً.",
@@ -139,6 +140,7 @@
       scope_mismatch: "La filière ou le niveau ne correspond pas à votre compte.",
       name_mismatch:
         "Le nom ne correspond pas à ce numéro d’inscription. Vérifiez votre nom complet tel qu’il est enregistré.",
+      too_many_attempts: "Trop de tentatives incorrectes. Réessayez dans 15 minutes.",
       busy: "Trop de demandes pour le moment, réessayez dans un instant.",
       offline: "Connexion au serveur impossible. Vérifiez Internet puis réessayez.",
       setup: "Le système d’inscription est en cours d’activation. Réessayez plus tard.",

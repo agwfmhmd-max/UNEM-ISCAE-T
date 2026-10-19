@@ -80,5 +80,11 @@ export default async function run() {
   await pg.fill('#ug-name', 'Mohamed Dah Agove'); await pg.fill('#ug-reg', 'I21567'); await pg.click('#ug-go'); await pg.waitForTimeout(600);
   s.check('device_in_use: رسالة خطأ والبوابة تبقى', (await pg.$eval('#ug-err', (e) => e.style.display)) === 'block' && !!(await pg.$('#ug-form')));
   await pg.context().close();
+
+  // 5) قفل مؤقت بعد محاولات خاطئة: الرسالة مفهومة ولا تُسقط البوابة.
+  pg = await open((b) => b.p_action === 'lookup' ? { body: { error: 'too_many_attempts', retry_after: 15 } } : { body: { status: 'none' } });
+  await pg.fill('#ug-name', 'Mohamed Dah Agove'); await pg.fill('#ug-reg', 'I21567'); await pg.click('#ug-go'); await pg.waitForTimeout(250);
+  s.check('قفل المحاولات: رسالة انتظار والبوابة تبقى', (await pg.$eval('#ug-err', (e) => e.textContent.includes('15')) && !!(await pg.$('#ug-form'))));
+  await pg.context().close();
   return s.done();
 }

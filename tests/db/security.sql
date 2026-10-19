@@ -10,7 +10,7 @@ declare
   actual text[]; new_fns text[]; missing_fns text[]; bad text; t text; got text; n int;
   sensitive text[] := array['community_comments','community_groups','community_likes','community_members','community_messages','community_posts',
     'community_profiles','community_reports','community_search_log','student_accounts','student_devices','student_roster','student_sessions',
-    'supervisor_permissions','user_roles','fcm_tokens','push_notifications_log','whatsapp_groups'];
+    'supervisor_permissions','user_roles','fcm_tokens','push_notifications_log','whatsapp_groups','student_login_attempts'];
 begin
   -- 1) RLS مفعّل على كل جداول public
   select string_agg(c.relname, ', ') into bad from pg_class c join pg_namespace ns on ns.oid=c.relnamespace and ns.nspname='public'
