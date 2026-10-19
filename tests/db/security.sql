@@ -23,7 +23,9 @@ begin
   if bad is not null then raise exception 'SECURITY FAIL: anon يملك صلاحية على جداول حساسة: %', bad; end if;
 
   -- 3) قائمة الدوال القابلة للتنفيذ من anon محددة بالاسم؛ أي دالة جديدة تحتاج مراجعة وإضافتها هنا عمداً
-  select array_agg(p.proname order by p.proname) into actual from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace and ns.nspname='public'
+  -- نقارن أسماء الدوال الفريدة؛ قد توجد عدة overloads للاسم نفسه، بينما القائمة
+  -- المسموح بها تُدار بأسماء الدوال لا بتواقيعها.
+  select array_agg(distinct p.proname order by p.proname) into actual from pg_proc p join pg_namespace ns on ns.oid=p.pronamespace and ns.nspname='public'
    where p.prokind='f' and has_function_privilege('anon', p.oid, 'execute');
   if actual is distinct from (select array_agg(x order by x) from unnest(expected_anon_fns) x) then
     raise exception 'SECURITY FAIL: قائمة الدوال المتاحة لـ anon تغيّرت. جديدة: %  | مفقودة: %',

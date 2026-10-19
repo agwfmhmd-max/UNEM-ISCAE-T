@@ -80,7 +80,7 @@ export default async function run() {
     const p = await ctx.newPage();
     await p.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: shell }));
     await p.addInitScript(() => { window.supabaseClient = { rpc: () => Promise.resolve({ data: { show_install_prompt: true, show_push_prompt: true, prompts_reset_at: 0 }, error: null }) }; });
-    await p.addInitScript((u) => { if (u === 'standalone') { const mm = window.matchMedia.bind(window); window.matchMedia = (q) => q.includes('standalone') ? { matches: true, addEventListener() {}, removeEventListener() {} } : mm(q); } window.Notification = window.Notification || { permission: 'default' }; }, ua);
+    await p.addInitScript((u) => { if (u === 'standalone') { const mm = window.matchMedia.bind(window); window.matchMedia = (q) => q.includes('standalone') ? { matches: true, addEventListener() {}, removeEventListener() {} } : mm(q); } Object.defineProperty(window, 'Notification', { configurable: true, value: { permission: 'default' } }); }, ua);
     await p.goto('http://localhost/');
     await p.evaluate((js) => { const sc = document.createElement('script'); sc.textContent = js; document.body.appendChild(sc); window.dispatchEvent(new Event('DOMContentLoaded')); }, onb);
     if (ua === 'android') await p.evaluate(() => { const e = new Event('beforeinstallprompt', { cancelable: true }); e.prompt = () => {}; e.userChoice = Promise.resolve({ outcome: 'dismissed' }); window.dispatchEvent(e); });

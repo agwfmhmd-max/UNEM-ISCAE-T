@@ -19,7 +19,7 @@ export default async function run() {
     await p.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: shell }));
     await p.addInitScript(([u, st, pre]) => {
       if (u === 'standalone') { const mm = window.matchMedia.bind(window); window.matchMedia = (q) => q.includes('standalone') ? { matches: true, addEventListener() {}, removeEventListener() {} } : mm(q); }
-      window.Notification = window.Notification || { permission: 'default' };
+      Object.defineProperty(window, 'Notification', { configurable: true, value: { permission: 'default' } });
       Object.entries(pre).forEach(([k2, v]) => localStorage.setItem(k2, v));
       window.__rpcCalls = 0;
       if (st === 'error') window.supabaseClient = { rpc: () => { window.__rpcCalls++; return Promise.resolve({ data: null, error: { message: 'function does not exist' } }); } };
