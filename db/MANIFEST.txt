@@ -34,3 +34,4 @@ db/20261029090000_community_avatar_payload.sql
 db/20261030090000_find_student_mask_name.sql
 db/20261031090000_student_login_rate_limit.sql
 db/20261101090000_student_device_impersonation_reports.sql
+db/20261102090000_registration_policy_report_status_unban.sql

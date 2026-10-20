@@ -97,6 +97,8 @@
       account_exists: "هذا الحساب موجود بالفعل. استخدم تسجيل الدخول.",
       needs_registration: "لم يتم العثور على حسابك. يمكنك إنشاء حساب جديد الآن.",
       bad_reg: "اكتب رقم التسجيل بشكل صحيح.",
+      bad_reg_format: "رقم التسجيل يجب أن يكون بالشكل Ixxxxx، ويبدأ من I18000 فما فوق.",
+      registration_disabled: "إنشاء الحسابات الجديدة متوقف حالياً. يرجى التواصل مع المشرف.",
       bad_scope: "اختر التخصص والمستوى الصحيحين.",
       scope_mismatch: "التخصص أو المستوى لا يطابق بيانات حسابك.",
       name_mismatch: "الاسم لا يطابق رقم التسجيل هذا. تأكد من كتابة اسمك الكامل كما هو مسجّل.",
@@ -154,6 +156,8 @@
       account_exists: "Ce compte existe déjà. Utilisez la connexion.",
       needs_registration: "Aucun compte trouvé. Vous pouvez en créer un maintenant.",
       bad_reg: "Saisissez correctement le numéro d’inscription.",
+      bad_reg_format: "Le numéro doit être au format Ixxxxx et commencer à partir de I18000.",
+      registration_disabled: "La création de nouveaux comptes est actuellement désactivée. Contactez l’administrateur.",
       bad_scope: "Choisissez une filière et un niveau valides.",
       scope_mismatch: "La filière ou le niveau ne correspond pas à votre compte.",
       name_mismatch:
@@ -269,6 +273,7 @@
     "#unem-gate label{display:block;text-align:start;font-size:.8rem;font-weight:700;margin:10px 0 5px}" +
     "#unem-gate input{width:100%;padding:13px 14px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;font-size:1rem;background:#f8fafc;color:#0f172a;outline:none}" +
     "#unem-gate.dk input{background:#0f172a;color:#f1f5f9;border-color:#334155}#unem-gate input:focus{border-color:#15803d;box-shadow:0 0 0 3px rgba(21,128,61,.18)}" +
+    "#unem-gate select{width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc;color:#0f172a;outline:none}#unem-gate.dk select{background:#0f172a;color:#f1f5f9;border-color:#334155}#unem-gate select option{background:#f8fafc;color:#0f172a}#unem-gate.dk select option{background:#0f172a;color:#f1f5f9}" +
     "#unem-gate .g-btn{width:100%;margin-top:16px;padding:14px;border:0;border-radius:13px;font:inherit;font-weight:800;font-size:1.05rem;cursor:pointer;background:linear-gradient(135deg,#0f5132,#15803d);color:#fff;box-shadow:0 8px 20px rgba(15,81,50,.3)}" +
     "#unem-gate .g-btn:disabled{opacity:.6;cursor:default}" +
     "#unem-gate .g-btn.alt{background:transparent;color:inherit;border:1.5px solid #cbd5e1;box-shadow:none;margin-top:10px;font-size:.92rem;font-weight:700}" +
@@ -421,11 +426,11 @@
       (creating
         ? '<label for="ug-spec">' +
           esc(t("spec")) +
-          '</label><select id="ug-spec" name="spec" autocomplete="off" style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">' +
+          '</label><select id="ug-spec" name="spec" autocomplete="off">' +
           scopeOpts +
           '</select><label for="ug-level">' +
           esc(t("level")) +
-          '</label><select id="ug-level" name="level" autocomplete="off" required style="width:100%;padding:12px;border:1.5px solid #cbd5e1;border-radius:13px;font:inherit;background:#f8fafc">' +
+          '</label><select id="ug-level" name="level" autocomplete="off" required>' +
           (!levelValue
             ? '<option value="" selected disabled>' + esc(t("levelPh")) + "</option>"
             : "") +
@@ -540,6 +545,10 @@
     return /^MASTER_/.test(spec || "") ? ["M1", "M2"] : ["L1", "L2", "L3"];
   }
 
+  function validRegistration(reg) {
+    return /^I(1[89]\d{3}|[2-9]\d{4})$/i.test(String(reg || "").trim());
+  }
+
   function submit(creating) {
     if (busy) return;
     var name = (document.getElementById("ug-name").value || "").replace(/\s+/g, " ").trim();
@@ -551,6 +560,7 @@
     if (name.length < 3) return showErr("bad_name");
     if (!/[A-Za-zÀ-ÖØ-öø-ÿŒœÆæ]/.test(name)) return showErr("bad_name_fr");
     if (reg.length < 2) return showErr("bad_reg");
+    if (!validRegistration(reg)) return showErr("bad_reg_format");
     if (creating && (!level || levelListForSpec(spec).indexOf(level) < 0))
       return showErr("bad_scope");
     ls("unem_student_spec", spec || ls("unem_student_spec") || "BA");
@@ -568,7 +578,7 @@
       : rpc("lookup", { name: name, reg: reg });
     request
       .then(function (d) {
-        if (d && d.needs_registration && !creating) {
+        if (d && d.needs_registration && d.registration_enabled !== false && !creating) {
           state = "create-form";
           lastMsg = "";
           render();
@@ -582,10 +592,14 @@
           });
         }
         busy = false;
-        if (d && d.status === "not_found" && !creating) {
+        if (d && d.status === "not_found" && d.registration_enabled !== false && !creating) {
           state = "create-form";
           lastMsg = "";
           render();
+          return;
+        }
+        if (d && d.status === "not_found" && d.registration_enabled === false && !creating) {
+          handle({ error: "registration_disabled" });
           return;
         }
         handle(d);
@@ -604,7 +618,7 @@
   }
 
   function handle(d) {
-    if (d && d.needs_registration) {
+    if (d && d.needs_registration && d.registration_enabled !== false) {
       state = "create-form";
       render();
       return;

@@ -51,12 +51,12 @@ export default async function run() {
   // 3) طالب جديد: lookup → نموذج إنشاء → create → بانتظار الموافقة → موافقة
   let approved = false;
   pg = await open((b) => {
-    if (b.p_action === 'status') return { body: approved ? { status: 'approved', name: 'New Student', reg: 'N77', spec: 'FC', level: 'L1' } : (pg.created ? { status: 'pending' } : { status: 'none' }) };
+    if (b.p_action === 'status') return { body: approved ? { status: 'approved', name: 'New Student', reg: 'I18077', spec: 'FC', level: 'L1' } : (pg.created ? { status: 'pending' } : { status: 'none' }) };
     if (b.p_action === 'lookup') return { body: { needs_registration: true } };
     if (b.p_action === 'create') { pg.created = true; return { body: { status: 'pending' } }; }
     return { body: {} };
   });
-  await pg.fill('#ug-name', 'New Student'); await pg.fill('#ug-reg', 'N77'); await pg.click('#ug-go');
+  await pg.fill('#ug-name', 'New Student'); await pg.fill('#ug-reg', 'I18077'); await pg.click('#ug-go');
   await pg.waitForSelector('#ug-spec', { timeout: 5000 });
   s.check('طالب غير معروف ينتقل لنموذج إنشاء الحساب', true);
   await pg.selectOption('#ug-spec', 'FC');
@@ -64,7 +64,7 @@ export default async function run() {
   await pg.click('#ug-go');
   await pg.waitForSelector('#ug-chk', { timeout: 5000 });
   const create = pg.rpcCalls.find((c) => c.p_action === 'create');
-  s.check('إنشاء الحساب يرسل الاسم والرقم والتخصص والمستوى', create && create.p_args.name === 'New Student' && create.p_args.reg === 'N77' && create.p_args.spec === 'FC' && create.p_args.level === 'L1', create);
+  s.check('إنشاء الحساب يرسل الاسم والرقم والتخصص والمستوى', create && create.p_args.name === 'New Student' && create.p_args.reg === 'I18077' && create.p_args.spec === 'FC' && create.p_args.level === 'L1', create);
   s.check('شاشة «بانتظار موافقة المشرف»', true);
   approved = true; await pg.click('#ug-chk');
   await pg.waitForFunction(() => !document.getElementById('ug-chk'), null, { timeout: 5000 });

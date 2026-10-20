@@ -3,12 +3,23 @@
 (function(){'use strict';
 var T={ar:{hello:'مرحباً بك في منصة UNEM ISCAE',helloName:'مرحباً بك',kick:'مرحباً بك',welcomeSub:'يسعدنا وجودك معنا — اطّلع على الملخصات والنتائج والجداول والمجتمع.',guestSub:'سجّل في مجتمع الطلاب ليظهر اسمك هنا.',visits:'إجمالي زوار المنصة',regs:'عدد المسجّلين في المنصة'},
 fr:{hello:'Bienvenue sur la plateforme UNEM ISCAE',helloName:'Bienvenue',kick:'Bienvenue',welcomeSub:'Ravis de vous revoir — résumés, résultats, emplois du temps et communauté.',guestSub:'Inscrivez-vous à la communauté pour voir votre nom ici.',visits:'Total des visiteurs de la plateforme',regs:'Étudiants inscrits sur la plateforme'}};
-var visits=null,regs=null,flags={v:true,r:true};
+var visits=null,regs=null,flags={v:true,r:true},reportStatus=null,reportLoading=false;
 function lang(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}catch(e){return 'ar'}}
 function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'null');return s&&s.status==='approved'&&s.name?s:null}catch(e){return null}}
 function $(i){return document.getElementById(i)}
 function initials(n){var w=String(n||'').trim().split(/\s+/).filter(Boolean);if(!w.length)return '?';var a=Array.from(w[0])[0]||'',b=w.length>1?(Array.from(w[w.length-1])[0]||''):'';return (a+b).toUpperCase()}
 function avatarFor(st){try{var a=JSON.parse(localStorage.getItem('unem_student_avatar')||'null');if(a&&a.data&&String(a.reg).trim().toLowerCase()===String(st.reg).trim().toLowerCase()&&/^data:image\/(jpeg|png|webp);base64,/.test(a.data))return a.data}catch(e){}return null}
+function loadReportStatus(){
+  var st=student(),tk=null;if(!st)return;
+  try{tk=localStorage.getItem('unem_community_token')}catch(e){}
+  if(!tk||tk.length<30||reportLoading)return;reportLoading=true;
+  var U='https://cbaswqaufawdsvadizyi.supabase.co',K=(window.SUPABASE_KEY||'');
+  try{if(typeof SUPABASE_URL==='string'&&SUPABASE_URL)U=SUPABASE_URL;if(!K&&typeof SUPABASE_KEY==='string')K=SUPABASE_KEY}catch(e){}
+  if(!K)K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwiaWF0IjoxNzc3ODM4NTE0LCJleHAiOjIwOTM0MTQ1MTJ9.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
+  fetch(U+'/rest/v1/rpc/community_api',{method:'POST',headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K},body:JSON.stringify({p_token:tk,p_action:'report_status',p_args:{}})})
+    .then(function(r){return r.json()}).then(function(d){reportStatus=Array.isArray(d)?d[0]||null:null;reportLoading=false;render()}).catch(function(){reportLoading=false});
+}
+function reportText(r,l){if(!r)return '';var a=l==='fr';if(r.status==='pending')return a?'Votre signalement est en cours d’examen.':'بلاغك قيد المراجعة من طرف المشرف.';if(r.status==='banned')return a?'Le signalement a été traité : l’autre appareil a été bloqué.':'تمت معالجة البلاغ: تم حظر الجهاز الآخر.';if(r.status==='rejected')return a?'Votre signalement a été rejeté après examen.':'تم رفض البلاغ بعد المراجعة.';if(r.status==='unbanned')return a?'Le blocage de l’appareil a été annulé.':'ألغى المشرف حظر الجهاز المرتبط بالبلاغ.';return a?'Votre signalement a été traité.':'تمت معالجة البلاغ.'}
 function syncAvatar(n){
   n=n||0;var st=student();if(!st)return;var tk=null;try{tk=localStorage.getItem('unem_community_token')}catch(e){}if(!tk||tk.length<30)return;
   var U='https://cbaswqaufawdsvadizyi.supabase.co',K=(window.SUPABASE_KEY||'');
@@ -46,6 +57,8 @@ function render(){
     line.textContent=t.hello;sub.textContent=t.guestSub;if(kick)kick.textContent='';if(chips)chips.textContent='';
     if(av.classList.contains('is-student')){av.classList.remove('is-student','has-photo');av.innerHTML=av.__cap}
   }
+  var rb=$('hw-report-status');
+  if(st&&reportStatus){if(!rb){rb=document.createElement('div');rb.id='hw-report-status';box.appendChild(rb)}rb.textContent=reportText(reportStatus,l);rb.style.cssText='margin:10px auto 0;padding:9px 12px;border-radius:12px;font-size:.8rem;font-weight:800;background:'+(document.body.classList.contains('dark-mode')?'rgba(245,185,66,.14)':'#fffbeb')+';color:'+(document.body.classList.contains('dark-mode')?'#fde68a':'#92400e')+';border:1px solid rgba(245,185,66,.45)'}else if(rb)rb.remove();
   var v=$('hw-visits'),rg=$('hw-regs'),sx=$('hw-stats');
   var showV=visits!==null&&flags.v,showR=regs!==null&&flags.r;
   if(v){v.style.display=showV?'':'none';if(showV){$('hw-visits-l').textContent=t.visits;v.title=t.visits;$('hw-visits-n').textContent=fmt(visits)}}
@@ -100,10 +113,10 @@ window.unemHomeStatsFlags=function(fv,fr){
   if((visits===null&&flags.v)||(regs===null&&flags.r))loadVisits();
 };
 function init(){
-  render();loadVisits();syncAvatar();
+  render();loadVisits();syncAvatar();loadReportStatus();
   window.addEventListener('unem:student',function(){render();syncAvatar()});
   window.addEventListener('unem:avatar',function(){render()});
-  window.addEventListener('pageshow',function(){render();syncAvatar()});
+  window.addEventListener('pageshow',function(){render();syncAvatar();loadReportStatus()});
   var lastSync=Date.now();
   function softSync(){if(Date.now()-lastSync<15000)return;lastSync=Date.now();syncAvatar()}
   document.addEventListener('visibilitychange',function(){if(!document.hidden)softSync()});

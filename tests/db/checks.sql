@@ -42,10 +42,10 @@ begin
   perform pg_temp.must(to_regprocedure('public.cleanup_expired_push_subscriptions(integer)') is not null, 'دالة تنظيف الإشعارات غير موجودة');
 
   ------------------------------------------------------------ B) حسابات
-  idA := pg_temp.mk_student('I1','Student Alpha','BA','L3','approved',tA);
-  accB := pg_temp.mk_student('I2','Student Beta','FC','L1','approved',tB);  idB := accB;
-  idC := pg_temp.mk_student('I3','Student Gamma','TCM','L2','approved',tC);
-  perform pg_temp.mk_student('I4','Student Pending','IG','L1','pending',tD);
+  idA := pg_temp.mk_student('I18001','Student Alpha','BA','L3','approved',tA);
+  accB := pg_temp.mk_student('I18002','Student Beta','FC','L1','approved',tB);  idB := accB;
+  idC := pg_temp.mk_student('I18003','Student Gamma','TCM','L2','approved',tC);
+  perform pg_temp.mk_student('I18004','Student Pending','IG','L1','pending',tD);
   pa := (pg_temp.api(tA,'me')->>'id')::uuid; pb := (pg_temp.api(tB,'me')->>'id')::uuid; pc := (pg_temp.api(tC,'me')->>'id')::uuid;
   perform pg_temp.must(pa is not null and pb is not null and pc is not null and pa<>pb, 'تعذر إنشاء ملفات المجتمع');
   r := pg_temp.api(tD,'me'); perform pg_temp.must((r->>'need_register')::boolean, 'حساب معلّق يجب ألا يدخل المجتمع');
@@ -102,29 +102,29 @@ begin
   r := pg_temp.api(tA,'find_student','{"reg":" i2 "}');
   perform pg_temp.must((r->>'found')::boolean and (r->>'registered')::boolean and (r->>'id')::uuid=pb and not (r->>'online')::boolean and (r->>'active')::boolean, 'نتيجة البحث لطالب مسجّل (بلا جلسة نشطة): غير صحيحة');
   insert into public.student_sessions(session_id, account, device_hash, last_seen) values (gen_random_uuid(), accB, 'x', now());
-  r := pg_temp.api(tA,'find_student','{"reg":"I2"}');
+  r := pg_temp.api(tA,'find_student','{"reg":"I18002"}');
   perform pg_temp.must((r->>'online')::boolean and (r->>'active')::boolean, 'حالة متصل الآن غير صحيحة');
   update public.student_sessions set last_seen = now() - interval '2 hours' where account = accB;
   update public.student_devices set last_seen = now() - interval '2 hours' where account = accB;
-  r := pg_temp.api(tA,'find_student','{"reg":"I2"}');
+  r := pg_temp.api(tA,'find_student','{"reg":"I18002"}');
   perform pg_temp.must(not (r->>'online')::boolean and (r->>'active')::boolean and (r->>'last_seen') is not null, 'حالة آخر ظهور غير صحيحة');
   delete from public.community_search_log;   -- نحاكي مرور الدقيقة
-  r := pg_temp.api(tA,'find_student','{"reg":"I4"}');   -- حساب معلّق = لم يسجّل بعد
+  r := pg_temp.api(tA,'find_student','{"reg":"I18004"}');   -- حساب معلّق = لم يسجّل بعد
   perform pg_temp.must((r->>'found')::boolean and not (r->>'registered')::boolean and not (r->>'active')::boolean, 'حساب معلّق يجب أن يظهر غير نشط');
   perform pg_temp.must((r->>'name') = 'S… P…', 'اسم غير المسجّل يجب أن يكون مقنَّعاً: ' || (r->>'name'));
   perform pg_temp.must(position('Pending' in (r->>'name')) = 0, 'الاسم الكامل لغير المسجّل تسرّب');
-  perform pg_temp.must((pg_temp.api(tA,'find_student','{"reg":"I2"}')->>'name') = 'Student Beta', 'اسم المسجّل يجب أن يبقى كاملاً');
+  perform pg_temp.must((pg_temp.api(tA,'find_student','{"reg":"I18002"}')->>'name') = 'Student Beta', 'اسم المسجّل يجب أن يبقى كاملاً');
   perform pg_temp.must(public.mask_person_name('  أحمد   محمد  سالم ') = 'أ… م… س…' and public.mask_person_name('A') = 'A' and public.mask_person_name(null) is null and public.mask_person_name('   ') is null, 'mask_person_name: حالات حدّية');
   delete from public.community_search_log;
   r := pg_temp.api(tA,'find_student','{"reg":"nope999"}');
   perform pg_temp.must(not (r->>'found')::boolean, 'رقم مجهول يجب ألا يوجد');
-  r := pg_temp.api(tA,'find_student','{"reg":"I1"}');
+  r := pg_temp.api(tA,'find_student','{"reg":"I18001"}');
   perform pg_temp.must((r->>'self')::boolean, 'البحث عن نفسه يجب أن يشير self');
   delete from public.community_search_log;
   -- الحد: 4 عمليات في الدقيقة (A أجرى 5 بالفعل أعلاه → الخامسة فما بعد مرفوضة؛ نتحقق بطالب جديد)
-  perform pg_temp.api(tC,'find_student','{"reg":"I1"}'); perform pg_temp.api(tC,'find_student','{"reg":"I1"}');
-  perform pg_temp.api(tC,'find_student','{"reg":"I1"}'); perform pg_temp.api(tC,'find_student','{"reg":"I1"}');
-  perform pg_temp.expect_err(tC,'find_student','{"reg":"I1"}','rate');
+  perform pg_temp.api(tC,'find_student','{"reg":"I18001"}'); perform pg_temp.api(tC,'find_student','{"reg":"I18001"}');
+  perform pg_temp.api(tC,'find_student','{"reg":"I18001"}'); perform pg_temp.api(tC,'find_student','{"reg":"I18001"}');
+  perform pg_temp.expect_err(tC,'find_student','{"reg":"I18001"}','rate');
 
   ------------------------------------------------------------ H) المشرف: تثبيت وتمديد وقائمة محدودة
   insert into auth.users(id,email) values (gen_random_uuid(),'admin@test.local') returning id into adm;
@@ -237,7 +237,7 @@ begin
       on conflict(token_hash) do update set account=excluded.account;
     insert into public.student_sessions(session_id,account,device_hash,device_type,login_at,last_seen,logout_at)
       values(target_sid,idA,encode(sha256(convert_to(target_token,'UTF8')),'hex'),'computer',now(),now(),null);
-    r := public.student_gate(report_token,'report_device_in_use',jsonb_build_object('name','Student Alpha','reg','I1','device_type','computer','message','هذا الجهاز ليس جهازي وقد استُخدم باسمي دون إذني'));
+    r := public.student_gate(report_token,'report_device_in_use',jsonb_build_object('name','Student Alpha','reg','I18001','device_type','computer','message','هذا الجهاز ليس جهازي وقد استُخدم باسمي دون إذني'));
     perform pg_temp.must((r->>'submitted')::boolean, 'بلاغ انتحال صحيح يجب أن يُرسل');
     select id into report_id from public.student_device_reports where account=idA and status='pending' order by created_at desc limit 1;
     perform pg_temp.must(report_id is not null, 'البلاغ لم يُحفظ');
@@ -248,7 +248,33 @@ begin
     r := public.student_gate(target_token,'status',jsonb_build_object('session_id',gen_random_uuid(),'device_type','computer'));
     perform pg_temp.must(r->>'error'='device_banned', 'الجهاز المحظور يجب أن يُمنع من البوابة');
     perform pg_temp.must((select count(*) from public.student_sessions where session_id=target_sid and logout_at is null)=0, 'حظر الجهاز يجب أن ينهي جلسته');
+    insert into public.student_devices(token_hash,account)
+      values(encode(sha256(convert_to(report_token,'UTF8')),'hex'),idA)
+      on conflict(token_hash) do update set account=excluded.account;
+    r := pg_temp.api(report_token,'report_status');
+    perform pg_temp.must(jsonb_array_length(r)=1 and r->0->>'status'='banned', 'يجب أن تظهر حالة البلاغ للطالب داخل المنصة');
+    perform set_config('request.jwt.claim.sub',adm::text,true);
+    r := public.student_device_admin('unban_report',jsonb_build_object('id',report_id));
+    perform pg_temp.must((r->>'unbanned')::boolean, 'المشرف يجب أن يستطيع إلغاء حظر الجهاز');
+    perform set_config('request.jwt.claim.sub','',true);
+    r := public.student_gate(target_token,'status',jsonb_build_object('session_id',gen_random_uuid(),'device_type','computer'));
+    perform pg_temp.must(r->>'error' is distinct from 'device_banned', 'إلغاء الحظر يجب أن يرفع المنع الفعّال');
   end;
+
+  ------------------------------------------------------------ N) سياسة أرقام التسجيل والتحكم في إنشاء الحساب
+  perform pg_temp.must(public.student_reg_allowed('I18000') and public.student_reg_allowed('I99999'), 'I18000 و I99999 يجب أن يكونا صالحين');
+  perform pg_temp.must(not public.student_reg_allowed('I17999') and not public.student_reg_allowed('I01') and not public.student_reg_allowed('I1800'), 'الأرقام القديمة أو الناقصة يجب أن تُرفض');
+  perform set_config('request.jwt.claim.sub',adm::text,true);
+  r := public.student_device_admin('set_registration_enabled',jsonb_build_object('enabled',false));
+  perform pg_temp.must((r->>'enabled')::boolean=false, 'المشرف يجب أن يستطيع إيقاف إنشاء الحساب');
+  perform set_config('request.jwt.claim.sub','',true);
+  r := public.student_gate(repeat('q',40),'lookup',jsonb_build_object('name','New Student','reg','I18099'));
+  perform pg_temp.must((r->>'registration_enabled')::boolean=false, 'الاستعلام يجب أن يعيد حالة التسجيل للمستخدم');
+  r := public.student_gate(repeat('q',40),'create',jsonb_build_object('session_id',gen_random_uuid(),'name','New Student','reg','I18099','spec','BA','level','L1'));
+  perform pg_temp.must(r->>'error'='registration_disabled', 'التسجيل المباشر يجب أن يُرفض عند إيقافه');
+  perform set_config('request.jwt.claim.sub',adm::text,true);
+  perform public.student_device_admin('set_registration_enabled',jsonb_build_object('enabled',true));
+  perform set_config('request.jwt.claim.sub','',true);
 
   raise notice '✅ كل اختبارات القاعدة نجحت';
 end $$;

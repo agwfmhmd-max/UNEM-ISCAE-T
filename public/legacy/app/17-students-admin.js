@@ -15,6 +15,7 @@ function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|student_ses
 function $(id){return document.getElementById(id)}
 function fmt(d){try{return new Date(d).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
 function canManageStudentRecords(){return typeof hasPermission==='function'&&hasPermission('manage_students')}
+function canManagePlatformSettings(){return typeof hasPermission==='function'&&hasPermission('manage_platform_settings')}
 
 window.renderStudentsAdmin=async function(){
   var c=$('admin-dashboard-page-content');if(!c)return;
@@ -26,13 +27,14 @@ window.renderStudentsAdmin=async function(){
   '<select id="st-spec" onchange="stSpecChange()">'+specOpts('BA')+'</select><select id="st-level">'+lvlOpts('BA','L1')+'</select>'+
   '<input id="st-file" type="file" multiple accept=".xlsx,.xls,.csv,.pdf,application/pdf" onchange="stFile(this)"></div><div id="st-prev" style="margin-top:10px"></div></div></div>':'')+
   '<div class="admin-page-box" style="margin-top:14px"><h3>📊 اللوائح وحالة التسجيل</h3><div id="st-stats">⏳ جاري التحميل...</div></div>'+
+  (canManagePlatformSettings()?'<div class="admin-page-box" style="margin-top:14px"><h3>⚙️ إنشاء حسابات الطلاب</h3><label style="display:flex;align-items:center;gap:10px;font-weight:800"><input id="st-registration-toggle" type="checkbox" onchange="stToggleRegistration(this)"> السماح للطلاب بإنشاء حساب جديد عند عدم العثور على حساب</label><p style="color:#64748b;margin:8px 0 0">عند الإيقاف لن يظهر نموذج إنشاء الحساب، وستظهر للطالب رسالة التواصل مع المشرف.</p></div>':'')+
   '<div class="admin-page-box" style="margin-top:14px"><h3>🟢 نشاط الطلاب وسجل الدخول والخروج</h3><div id="st-session-stats">⏳ جاري التحميل...</div></div>'+
-  '<div class="admin-page-box" style="margin-top:14px"><h3>🚨 بلاغات انتحال حسابات الطلاب</h3><p style="color:#64748b;margin:4px 0 12px">راجع البلاغ قبل الحظر. عند الحظر تُنهى جلسات الجهاز وتُمنع بصمته نهائياً من بوابة الطلاب والمجتمع.</p><div id="st-device-reports">⏳ جاري التحميل...</div></div>'+
+  '<div class="admin-page-box" style="margin-top:14px"><h3>🚨 بلاغات انتحال حسابات الطلاب</h3><p style="color:#64748b;margin:4px 0 12px">راجع البلاغ قبل الحظر. عند الحظر تُنهى جلسات الجهاز وتُمنع بصمته من بوابة الطلاب والمجتمع. لا يستطيع الموقع العادي قراءة IMEI الحقيقي من الهاتف.</p><div id="st-device-reports">⏳ جاري التحميل...</div><hr style="margin:16px 0;border:0;border-top:1px solid #cbd5e1"><h4>الأجهزة المحظورة</h4><div id="st-device-bans">⏳ جاري التحميل...</div></div>'+
   '<div class="admin-page-box" style="margin-top:14px"><h3>🆕 أحدث تسجيلات الطلاب</h3><p style="color:#64748b;margin:4px 0 12px">تُعرض الحسابات الأحدث أولاً، بما فيها الطلبات بانتظار الموافقة والحسابات المعتمدة. يمكن تصفية القائمة حسب الحالة أو البحث بالاسم ورقم التسجيل.</p>'+
   '<div id="st-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>'+
   '<div class="wa-admin-row" style="grid-template-columns:1fr auto"><input id="st-q" placeholder="بحث بالاسم أو رقم التسجيل" onkeydown="if(event.key===\'Enter\')stSearch()"><button class="wa-save" onclick="stSearch()">بحث</button></div>'+
   '<div id="st-list">⏳ جاري التحميل...</div></div>';
-  loadStats();loadList();loadSessions();loadDeviceReports();
+  loadStats();loadList();loadSessions();loadDeviceReports();loadDeviceBans();loadRegistrationSetting();
 };
 window.stSpecChange=function(){var s=$('st-spec').value;$('st-level').innerHTML=lvlOpts(s,'')};
 window.stRowSpec=function(id){var s=$('sp-'+id).value,l=$('lv-'+id);var cur=l.value;l.innerHTML=lvlOpts(s,cur)};
@@ -239,6 +241,25 @@ async function loadDeviceReports(){
 }
 window.stBanDevice=async function(id){if(!confirm('حظر هذا الجهاز نهائياً؟ ستُنهى جلساته ولن يستطيع التسجيل أو دخول المجتمع من هذا الجهاز.'))return;try{await deviceRpc('ban_report',{id:id,reason:'انتحال هوية طالب'});loadDeviceReports();loadSessions()}catch(e){alert('❌ '+errMsg(e))}};
 window.stRejectDeviceReport=async function(id){if(!confirm('رفض هذا البلاغ دون حظر الجهاز؟'))return;try{await deviceRpc('reject_report',{id:id});loadDeviceReports()}catch(e){alert('❌ '+errMsg(e))}};
+async function loadRegistrationSetting(){
+  var el=$('st-registration-toggle');if(!el||!canManagePlatformSettings())return;
+  try{var d=await deviceRpc('registration_status');el.checked=!!(d&&d.enabled)}catch(e){el.checked=true;console.warn(e)}
+}
+window.stToggleRegistration=async function(el){
+  if(!el||!canManagePlatformSettings())return;
+  var want=!!el.checked;
+  try{var d=await deviceRpc('set_registration_enabled',{enabled:want});el.checked=!!(d&&d.enabled)}
+  catch(e){el.checked=!want;alert('❌ '+errMsg(e))}
+};
+async function loadDeviceBans(){
+  var el=$('st-device-bans');if(!el)return;
+  try{var rows=await deviceRpc('list_bans');
+    if(!rows||!rows.length){el.innerHTML='<div style="color:#64748b">لا توجد أجهزة محظورة.</div>';return}
+    var canManage=canManageStudentRecords();
+    el.innerHTML=rows.map(function(x){return '<div class="wa-admin-row" style="grid-template-columns:1fr;margin-bottom:8px"><div><b>'+h(x.full_name||'—')+'</b> · <span dir="ltr">'+h(x.reg_no||'')+'</span><div style="font-size:.76rem;color:#64748b;margin-top:4px">بصمة غير قابلة للعكس: <code>'+h(x.device_fingerprint||'')+'</code> · '+h(fmt(x.banned_at))+' · '+(x.active?'حظر فعّال':'أُلغي الحظر')+'</div><div style="font-size:.82rem;margin-top:4px">'+h(x.reason||'')+'</div></div>'+(canManage&&x.active&&x.report_id?'<button class="wa-save" style="background:#15803d" onclick="stUnbanDevice(\''+h(x.report_id)+'\')">✅ إلغاء الحظر</button>':'')+'</div>'}).join('');
+  }catch(e){el.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>'}
+}
+window.stUnbanDevice=async function(id){if(!confirm('إلغاء حظر هذا الجهاز؟ سيستطيع التسجيل من جديد من نفس المتصفح فقط.'))return;try{await deviceRpc('unban_report',{id:id});loadDeviceBans();loadDeviceReports()}catch(e){alert('❌ '+errMsg(e))}};
 
 /* ---------- الحسابات ---------- */
 function renderTabs(acc){
