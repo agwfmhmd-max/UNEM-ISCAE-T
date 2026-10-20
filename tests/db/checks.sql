@@ -99,7 +99,7 @@ begin
   perform pg_temp.expect_err(tC,'send',jsonb_build_object('room',room,'body','تطفل'),'forbidden');
 
   ------------------------------------------------------------ G) البحث برقم التسجيل
-  r := pg_temp.api(tA,'find_student','{"reg":" i2 "}');
+  r := pg_temp.api(tA,'find_student','{"reg":" i18002 "}');
   perform pg_temp.must((r->>'found')::boolean and (r->>'registered')::boolean and (r->>'id')::uuid=pb and not (r->>'online')::boolean and (r->>'active')::boolean, 'نتيجة البحث لطالب مسجّل (بلا جلسة نشطة): غير صحيحة');
   insert into public.student_sessions(session_id, account, device_hash, last_seen) values (gen_random_uuid(), accB, 'x', now());
   r := pg_temp.api(tA,'find_student','{"reg":"I18002"}');
