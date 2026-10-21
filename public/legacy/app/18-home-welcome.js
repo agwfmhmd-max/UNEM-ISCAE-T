@@ -9,6 +9,12 @@ function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'n
 function $(i){return document.getElementById(i)}
 function initials(n){var w=String(n||'').trim().split(/\s+/).filter(Boolean);if(!w.length)return '?';var a=Array.from(w[0])[0]||'',b=w.length>1?(Array.from(w[w.length-1])[0]||''):'';return (a+b).toUpperCase()}
 function avatarFor(st){try{var a=JSON.parse(localStorage.getItem('unem_student_avatar')||'null');if(a&&a.data&&String(a.reg).trim().toLowerCase()===String(st.reg).trim().toLowerCase()&&/^data:image\/(jpeg|png|webp);base64,/.test(a.data))return a.data}catch(e){}return null}
+function isDeviceBanned(d){return !!(d&&(d.code==='device_banned'||d.error==='device_banned'||String(d.message||'').toLowerCase().indexOf('device_banned')>=0))}
+function clearBannedStudent(){
+  try{localStorage.removeItem('unem_student');localStorage.removeItem('unem_student_avatar')}catch(e){}
+  window.UNEM_STUDENT=null;reportStatus=null;render();
+  try{window.dispatchEvent(new CustomEvent('unem:student',{detail:null,reason:'device_banned'}))}catch(e){}
+}
 function loadReportStatus(){
   var st=student(),tk=null;if(!st)return;
   try{tk=localStorage.getItem('unem_community_token')}catch(e){}
@@ -17,7 +23,8 @@ function loadReportStatus(){
   try{if(typeof SUPABASE_URL==='string'&&SUPABASE_URL)U=SUPABASE_URL;if(!K&&typeof SUPABASE_KEY==='string')K=SUPABASE_KEY}catch(e){}
   if(!K)K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwiaWF0IjoxNzc3ODM4NTE0LCJleHAiOjIwOTM0MTQ1MTJ9.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
   fetch(U+'/rest/v1/rpc/community_api',{method:'POST',headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K},body:JSON.stringify({p_token:tk,p_action:'report_status',p_args:{}})})
-    .then(function(r){return r.json()}).then(function(d){reportStatus=Array.isArray(d)?d[0]||null:null;reportLoading=false;render()}).catch(function(){reportLoading=false});
+    .then(function(r){return r.json().then(function(d){return {ok:r.ok,data:d}})})
+    .then(function(x){reportLoading=false;if(isDeviceBanned(x.data)){clearBannedStudent();return}var d=x.data;reportStatus=Array.isArray(d)?d[0]||null:null;render()}).catch(function(){reportLoading=false});
 }
 function reportText(r,l){if(!r)return '';var a=l==='fr';if(r.status==='pending')return a?'Votre signalement est en cours d’examen.':'بلاغك قيد المراجعة من طرف المشرف.';if(r.status==='banned')return a?'Le signalement a été traité : l’autre appareil a été bloqué.':'تمت معالجة البلاغ: تم حظر الجهاز الآخر.';if(r.status==='rejected')return a?'Votre signalement a été rejeté après examen.':'تم رفض البلاغ بعد المراجعة.';if(r.status==='unbanned')return a?'Le blocage de l’appareil a été annulé.':'ألغى المشرف حظر الجهاز المرتبط بالبلاغ.';return a?'Votre signalement a été traité.':'تمت معالجة البلاغ.'}
 function syncAvatar(n){
@@ -32,6 +39,7 @@ function syncAvatar(n){
   var k=key();if(!k)return;
   fetch(U+'/rest/v1/rpc/community_api',{method:'POST',headers:{'Content-Type':'application/json',apikey:k,Authorization:'Bearer '+k},body:JSON.stringify({p_token:tk,p_action:'me',p_args:{}})})
     .then(function(r){return r.json()}).then(function(d){
+      if(isDeviceBanned(d)){clearBannedStudent();return}
       if(!d||d.need_register||d.code||d.message)return;if(d.admin&&!d.account)return;
       try{if(d.avatar_data)localStorage.setItem('unem_student_avatar',JSON.stringify({reg:st.reg,data:d.avatar_data}));else localStorage.removeItem('unem_student_avatar')}catch(e){}
       render();

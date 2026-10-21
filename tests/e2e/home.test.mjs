@@ -19,6 +19,7 @@ export default async function run() {
   async function scenario(name, rpcFn, opts = {}) {
     const pg = await newPage({ viewport: { width: opts.width || 390, height: 500 } });
     await pg.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: page }));
+    if (opts.banned) await pg.route('**/rest/v1/rpc/community_api', (r) => r.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: 'device_banned', message: 'device_banned' }) }));
     await pg.addInitScript(([rpcSrc, student, av]) => {
       window.supabaseClient = { rpc: (fn) => Promise.resolve(eval('(' + rpcSrc + ')')(fn)) };
       window.matchMedia = (q) => ({ matches: /reduced-motion/.test(q), addEventListener() {}, removeEventListener() {} });
@@ -42,6 +43,10 @@ export default async function run() {
   s.check('إخفاء الاثنين يخفي الحاوية', (await state(pg)).wrap === false);
   await pg.evaluate(() => window.unemHomeStatsFlags(true, true)); await pg.waitForTimeout(80);
   s.check('إعادة الإظهار', (await state(pg)).regs !== null);
+  await pg.context().close();
+
+  pg = await scenario('blocked device', both, { banned: true, student: { status: 'approved', name: 'Blocked Student', reg: 'I21567', spec: 'BA', level: 'L3' } });
+  s.check('الجهاز المحظور: الصفحة الرئيسية تمسح الاسم فوراً', await pg.evaluate(() => !localStorage.getItem('unem_student') && !document.getElementById('hw-line').textContent.includes('Blocked Student')));
   await pg.context().close();
 
   pg = await scenario('regs hidden', (fn) => fn === 'get_public_platform_stats' ? { data: { total_visitors: 3037, registered_students: null, show_visitors: true, show_registered: false }, error: null } : { data: null, error: { message: 'x' } });
