@@ -581,15 +581,16 @@
 
   function checkReportStatus() {
     if (document.hidden || busy) return;
-    rpc("status").then(function (d) {
+    rpc("report_status").then(function (rows) {
+      var d = Array.isArray(rows) ? rows[0] : null;
       if (!d) return;
-      if (d.report_status === "banned") {
+      if (d.status === "banned") {
         clearInterval(reportTimer);
         showErr("report_banned");
-      } else if (d.report_status === "unbanned") {
+      } else if (d.status === "unbanned") {
         clearInterval(reportTimer);
         showErr("report_unbanned");
-      } else if (d.report_status === "rejected") {
+      } else if (d.status === "rejected") {
         clearInterval(reportTimer);
         showErr("report_rejected");
       }

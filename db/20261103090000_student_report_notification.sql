@@ -23,6 +23,19 @@ begin
   v_nn:=public.student_norm_name(v_name); v_rn:=public.student_norm_reg(v_reg);
   v_registration_enabled:=coalesce((select value_boolean from public.platform_settings where key='student_registration_enabled'),true);
 
+  -- قناة حالة مستقلة لا تعتمد على وجود الجهاز في student_devices.
+  -- هذا مهم خصوصاً للكمبيوتر الذي قد يكون قد فقد جلسته المحلية بعد الإبلاغ.
+  if p_action='report_status' then
+    return coalesce((select jsonb_agg(x order by x.created_at desc) from (
+      select r.id,r.status,r.message,r.created_at,r.resolved_at,
+             case when r.status='banned' then true
+                  when r.status='unbanned' then true else false end as can_login
+      from public.student_device_reports r
+      where r.reporter_device_hash=v_hash
+      order by r.created_at desc limit 10
+    ) x),'[]'::jsonb);
+  end if;
+
   -- قفل مؤقت مرتبط بجلسة المتصفح ورقم التسجيل؛ لا يمكن به حجب الطالب من جهاز آخر.
   if p_action in ('lookup','login') then
     v_attempt_key:=encode(sha256(convert_to('student-login:'||v_hash||':'||v_rn,'UTF8')),'hex');

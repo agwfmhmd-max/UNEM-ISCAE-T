@@ -245,6 +245,9 @@ begin
     banned_result := public.student_device_admin('ban_report',jsonb_build_object('id',report_id,'reason','انتحال هوية طالب'));
     perform pg_temp.must((banned_result->>'banned')::boolean, 'المشرف يجب أن يحظر الجهاز');
     perform set_config('request.jwt.claim.sub','',true);
+    r := public.student_gate(report_token,'report_status','{}'::jsonb);
+    perform pg_temp.must(jsonb_array_length(r)=1 and r->0->>'status'='banned' and (r->0->>'can_login')::boolean,
+      'قناة حالة البلاغ المستقلة يجب أن تعمل لصاحب البلاغ على الكمبيوتر');
     r := public.student_gate(report_token,'status',jsonb_build_object('session_id',gen_random_uuid(),'device_type','computer'));
     perform pg_temp.must(r->>'status'='none' and r->>'report_status'='banned' and (r->>'can_login')::boolean,
       'صاحب البلاغ يجب أن تصله حالة الحظر وأن يُسمح له بإعادة الدخول');
