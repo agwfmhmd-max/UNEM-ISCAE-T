@@ -5,9 +5,13 @@ export default async function run() {
   const s = suite('تسجيل دخول الطالب (البوابة)');
   const gate = read('public/unem-gate.js');
 
-  async function open(handler) {
+  async function open(handler, opts = {}) {
     const pg = await newPage({ viewport: { width: 390, height: 800 } });
     pg.rpcCalls = [];
+    if (opts.student) await pg.addInitScript((student) => {
+      localStorage.setItem('unem_student', JSON.stringify(student));
+      localStorage.setItem('unem_community_token', 'x'.repeat(40));
+    }, opts.student);
     await pg.route('**/*', async (r) => {
       const u = r.request().url();
       if (u.includes('/rest/v1/rpc/student_gate')) {
@@ -85,7 +89,15 @@ export default async function run() {
   s.check('device_in_use: إرسال البلاغ للمشرف', pg.rpcCalls.some((c) => c.p_action === 'report_device_in_use') && (await pg.$eval('#ug-err', (e) => e.textContent.includes('تم إرسال البلاغ'))));
   await pg.context().close();
 
-  // 5) قفل مؤقت بعد محاولات خاطئة: الرسالة مفهومة ولا تُسقط البوابة.
+  // 5) الجهاز المحظور: تُمسح البطاقة المحلية فوراً ولا تبقى معلومات الطالب في الصفحة.
+  pg = await open((b) => b.p_action === 'status' ? { body: { error: 'device_banned' } } : { body: { status: 'none' } }, {
+    student: { status: 'approved', name: 'Blocked Student', reg: 'I21567', spec: 'BA', level: 'L3' },
+  });
+  s.check('الجهاز المحظور: مسح الطالب المحلي وإظهار رسالة الحظر',
+    await pg.evaluate(() => !localStorage.getItem('unem_student') && document.getElementById('ug-err')?.textContent.includes('حظر')));
+  await pg.context().close();
+
+  // 6) قفل مؤقت بعد محاولات خاطئة: الرسالة مفهومة ولا تُسقط البوابة.
   pg = await open((b) => b.p_action === 'lookup' ? { body: { error: 'too_many_attempts', retry_after: 15 } } : { body: { status: 'none' } });
   await pg.fill('#ug-name', 'Mohamed Dah Agove'); await pg.fill('#ug-reg', 'I21567'); await pg.click('#ug-go'); await pg.waitForTimeout(250);
   s.check('قفل المحاولات: رسالة انتظار والبوابة تبقى', (await pg.$eval('#ug-err', (e) => e.textContent.includes('15')) && !!(await pg.$('#ug-form'))));

@@ -504,7 +504,7 @@ $('#chIn').addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
 /* توقيع MDA: 3 نقرات سريعة تُظهر رسالة (مثل الصفحة الرئيسية) */
 (function(){const s=document.querySelector('.mda-sign');if(!s)return;let n=0,h;s.addEventListener('click',()=>{n++;clearTimeout(h);h=setTimeout(()=>n=0,900);if(n>=3){n=0;toast(t('sign'))}})})();
 applyLang();
-async function boot(){try{const d=await api('me');if(d&&!d.need_register){me=d;cacheAvatar();if(me.admin){try{window.UNEM_GATE&&window.UNEM_GATE.staffPass&&window.UNEM_GATE.staffPass()}catch(e){}}applyLang();render()}else{try{localStorage.removeItem('unem_gate_staff')}catch(e){}needLogin()}}catch(e){const m=String(e.message||e);$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?t('setupFail'):t('connFail')}</p></div>`}}
+async function boot(){try{const d=await api('me');if(d&&!d.need_register){me=d;cacheAvatar();if(me.admin){try{window.UNEM_GATE&&window.UNEM_GATE.staffPass&&window.UNEM_GATE.staffPass()}catch(e){}}applyLang();render()}else{try{localStorage.removeItem('unem_gate_staff')}catch(e){}needLogin()}}catch(e){const m=String(e.message||e);if(/device_banned/i.test(m)){try{localStorage.removeItem('unem_student');localStorage.removeItem('unem_student_avatar')}catch(x){}me=null;needLogin();return}$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?t('setupFail'):t('connFail')}</p></div>`}}
 window.addEventListener('unem:student',()=>{if(!me)boot()});   /* بعد دخول الطالب من البوابة */
 boot();
 </script></body></html>

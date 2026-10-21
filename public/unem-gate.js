@@ -250,6 +250,19 @@
       return null;
     }
   }
+  function evictBannedStudent() {
+    // لا نحذف K_TOKEN: إبقاؤه ضرورّي حتى لا يحصل الجهاز المحظور على بصمة جديدة.
+    ls(K_STUDENT, null);
+    ls("unem_student_avatar", null);
+    window.UNEM_STUDENT = null;
+    passed = false;
+    clearInterval(pollTimer);
+    try { window.dispatchEvent(new CustomEvent("unem:student", { detail: null, reason: "device_banned" })); } catch (e) {}
+    state = "form";
+    lastMsg = t("device_banned");
+    if (IS_COMMUNITY) render();
+    else if (root && root.parentNode) { root.parentNode.removeChild(root); root = null; }
+  }
   function staffOk() {
     return !!ls(K_STAFF);
   }
@@ -623,6 +636,10 @@
       render();
       return;
     }
+    if (d && d.error === "device_banned") {
+      evictBannedStudent();
+      return;
+    }
     if (d && d.error) {
       render();
       return showErr(d.error);
@@ -677,6 +694,10 @@
     if (document.hidden && pollTimer) return;
     rpc("status")
       .then(function (d) {
+        if (d && d.error === "device_banned") {
+          evictBannedStudent();
+          return;
+        }
         if (d && d.status === "approved") {
           clearInterval(pollTimer);
           pass(d, true);
@@ -849,6 +870,10 @@
       // تحقق في الخلفية: قد يكون المشرف رفض الحساب أو حذفه
       rpc("status")
         .then(function (d) {
+          if (d && d.error === "device_banned") {
+            evictBannedStudent();
+            return;
+          }
           if (!d || d.error) return;
           if (d.status === "approved") {
             c.spec = d.spec;
@@ -941,10 +966,14 @@
     /* Keep the browser session id stable across tabs on this device. */
   });
   document.addEventListener("visibilitychange", function () {
-    if (!document.hidden && passed) rpc("status").catch(function () {});
+    if (!document.hidden && passed) rpc("status").then(function (d) {
+      if (d && d.error === "device_banned") evictBannedStudent();
+    }).catch(function () {});
   });
   setInterval(function () {
-    if (passed && !document.hidden) rpc("status").catch(function () {});
+    if (passed && !document.hidden) rpc("status").then(function (d) {
+      if (d && d.error === "device_banned") evictBannedStudent();
+    }).catch(function () {});
   }, 60000);
   start();
 })();
