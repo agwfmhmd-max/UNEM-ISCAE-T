@@ -90,6 +90,10 @@
       reportDefault: "أعتقد أن شخصاً آخر سجّل حسابي على جهاز آخر دون إذني.",
       reportSending: "جارٍ إرسال البلاغ...",
       report_sent: "تم إرسال البلاغ للمشرف. سيراجع الجهاز الآخر ويمكنه حظره نهائياً.",
+      report_banned: "تمت معالجة بلاغك: حظر المشرف الجهاز الآخر. يمكنك الآن إعادة تسجيل الدخول بهذا الحساب.",
+      report_unbanned: "ألغى المشرف حظر الجهاز المرتبط بالبلاغ. يمكنك الآن إعادة تسجيل الدخول.",
+      report_rejected: "تم رفض البلاغ بعد مراجعته. إذا كانت المشكلة مستمرة، تواصل مع المشرف.",
+      retry_login: "إعادة تسجيل الدخول الآن",
       report_too_short: "اكتب رسالة أطول قليلاً لتوضيح المشكلة.",
       report_not_eligible: "تعذّر التحقق من ملكية هذا الحساب لإرسال البلاغ.",
       no_active_conflict: "لم تعد توجد جلسة أخرى نشطة يمكن الإبلاغ عنها.",
@@ -149,6 +153,10 @@
       reportDefault: "Je pense qu’une autre personne a enregistré mon compte sur un autre appareil sans mon autorisation.",
       reportSending: "Envoi du signalement...",
       report_sent: "Signalement envoyé. L’administrateur peut vérifier et bannir définitivement l’autre appareil.",
+      report_banned: "Votre signalement a été traité : l’autre appareil a été bloqué. Vous pouvez maintenant vous reconnecter.",
+      report_unbanned: "L’administrateur a annulé le blocage lié au signalement. Vous pouvez vous reconnecter.",
+      report_rejected: "Le signalement a été rejeté après examen. Contactez l’administrateur si le problème persiste.",
+      retry_login: "Se reconnecter maintenant",
       report_too_short: "Écrivez un message un peu plus détaillé.",
       report_not_eligible: "Impossible de vérifier la propriété de ce compte.",
       no_active_conflict: "Aucune autre session active à signaler.",
@@ -270,6 +278,7 @@
   var root = null,
     state = "form",
     pollTimer = null,
+    reportTimer = null,
     busy = false,
     passed = false,
     lastMsg = "";
@@ -528,6 +537,17 @@
           "</button>";
         document.getElementById("ug-report").onclick = window.unemReportDevice;
       }
+      if (k === "report_banned" || k === "report_unbanned") {
+        e.innerHTML +=
+          '<button type="button" id="ug-retry-login" style="display:block;margin:10px auto 0;padding:8px 12px;border:0;border-radius:10px;background:#15803d;color:#fff;font:inherit;font-weight:700;cursor:pointer">' +
+          esc(t("retry_login")) +
+          "</button>";
+        document.getElementById("ug-retry-login").onclick = function () {
+          var f = document.getElementById("ug-form");
+          if (f) f.requestSubmit();
+          else { state = "form"; lastMsg = ""; render(); }
+        };
+      }
       e.style.display = lastMsg ? "block" : "none";
     }
   }
@@ -546,13 +566,35 @@
     })
       .then(function (d) {
         busy = false;
-        showErr(d && d.submitted ? "report_sent" : d && d.error ? d.error : "offline");
+        if (d && d.submitted) {
+          showErr("report_sent");
+          clearInterval(reportTimer);
+          reportTimer = setInterval(checkReportStatus, 8000);
+          setTimeout(checkReportStatus, 300);
+        } else showErr(d && d.error ? d.error : "offline");
       })
       .catch(function () {
         busy = false;
         showErr("offline");
       });
   };
+
+  function checkReportStatus() {
+    if (document.hidden || busy) return;
+    rpc("status").then(function (d) {
+      if (!d) return;
+      if (d.report_status === "banned") {
+        clearInterval(reportTimer);
+        showErr("report_banned");
+      } else if (d.report_status === "unbanned") {
+        clearInterval(reportTimer);
+        showErr("report_unbanned");
+      } else if (d.report_status === "rejected") {
+        clearInterval(reportTimer);
+        showErr("report_rejected");
+      }
+    }).catch(function () {});
+  }
 
   function levelListForSpec(spec) {
     return /^MASTER_/.test(spec || "") ? ["M1", "M2"] : ["L1", "L2", "L3"];
@@ -915,6 +957,24 @@
     rpc("status")
       .then(function (d) {
         if (passed) return;
+        if (d && d.report_status === "banned") {
+          state = "form";
+          render();
+          showErr("report_banned");
+          return;
+        }
+        if (d && d.report_status === "unbanned") {
+          state = "form";
+          render();
+          showErr("report_unbanned");
+          return;
+        }
+        if (d && d.report_status === "rejected") {
+          state = "form";
+          render();
+          showErr("report_rejected");
+          return;
+        }
         if (d && d.status === "approved") pass(d, false);
         else if (d && d.status === "pending") {
           state = "pending";
