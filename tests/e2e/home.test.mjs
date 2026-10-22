@@ -20,12 +20,14 @@ export default async function run() {
     const pg = await newPage({ viewport: { width: opts.width || 390, height: 500 } });
     await pg.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: page }));
     if (opts.banned) await pg.route('**/rest/v1/rpc/community_api', (r) => r.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ code: 'device_banned', message: 'device_banned' }) }));
-    await pg.addInitScript(([rpcSrc, student, av]) => {
+    if (opts.report) await pg.route('**/rest/v1/rpc/community_api', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(opts.report) }));
+    await pg.addInitScript(([rpcSrc, student, av, reportSeen]) => {
       window.supabaseClient = { rpc: (fn) => Promise.resolve(eval('(' + rpcSrc + ')')(fn)) };
       window.matchMedia = (q) => ({ matches: /reduced-motion/.test(q), addEventListener() {}, removeEventListener() {} });
       if (student) { localStorage.setItem('unem_student', JSON.stringify(student)); localStorage.setItem('unem_community_token', 'x'.repeat(40)); }
+      if (reportSeen) localStorage.setItem('unem_report_notice:report-once-1:banned', '1');
       if (av) window.__AV = av;
-    }, [rpcFn.toString(), opts.student || null, AV]);
+    }, [rpcFn.toString(), opts.student || null, AV, !!opts.reportSeen]);
     await pg.goto('http://localhost/');
     await pg.addScriptTag({ content: hwJs });
     await pg.waitForTimeout(500);
@@ -47,6 +49,17 @@ export default async function run() {
 
   pg = await scenario('blocked device', both, { banned: true, student: { status: 'approved', name: 'Blocked Student', reg: 'I21567', spec: 'BA', level: 'L3' } });
   s.check('الجهاز المحظور: الصفحة الرئيسية تمسح الاسم فوراً', await pg.evaluate(() => !localStorage.getItem('unem_student') && !document.getElementById('hw-line').textContent.includes('Blocked Student')));
+  await pg.context().close();
+
+  // --- نتيجة البلاغ النهائية تُعرض مرة واحدة فقط لكل بلاغ وحالة
+  const reportRpc = (fn) => fn === 'get_public_platform_stats'
+    ? { data: { total_visitors: 1, registered_students: 1, show_visitors: true, show_registered: true }, error: null }
+    : { data: [{ id: 'report-once-1', status: 'banned' }], error: null };
+  pg = await scenario('report notice first visit', reportRpc, { report: [{ id: 'report-once-1', status: 'banned' }], student: { status: 'approved', name: 'Reporter', reg: 'I21567', spec: 'BA', level: 'L3' } });
+  s.check('إشعار البلاغ يظهر أول مرة', await pg.evaluate(() => document.getElementById('hw-report-status')?.textContent.includes('تمت معالجة البلاغ')));
+  await pg.context().close();
+  pg = await scenario('report notice repeated visit', reportRpc, { report: [{ id: 'report-once-1', status: 'banned' }], reportSeen: true, student: { status: 'approved', name: 'Reporter', reg: 'I21567', spec: 'BA', level: 'L3' } });
+  s.check('إشعار البلاغ لا يتكرر بعد عرضه', await pg.evaluate(() => !document.getElementById('hw-report-status')));
   await pg.context().close();
 
   pg = await scenario('regs hidden', (fn) => fn === 'get_public_platform_stats' ? { data: { total_visitors: 3037, registered_students: null, show_visitors: true, show_registered: false }, error: null } : { data: null, error: { message: 'x' } });

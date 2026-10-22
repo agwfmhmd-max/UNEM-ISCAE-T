@@ -4,6 +4,9 @@
 var T={ar:{hello:'مرحباً بك في منصة UNEM ISCAE',helloName:'مرحباً بك',kick:'مرحباً بك',welcomeSub:'يسعدنا وجودك معنا — اطّلع على الملخصات والنتائج والجداول والمجتمع.',guestSub:'سجّل في مجتمع الطلاب ليظهر اسمك هنا.',visits:'إجمالي زوار المنصة',regs:'عدد المسجّلين في المنصة'},
 fr:{hello:'Bienvenue sur la plateforme UNEM ISCAE',helloName:'Bienvenue',kick:'Bienvenue',welcomeSub:'Ravis de vous revoir — résumés, résultats, emplois du temps et communauté.',guestSub:'Inscrivez-vous à la communauté pour voir votre nom ici.',visits:'Total des visiteurs de la plateforme',regs:'Étudiants inscrits sur la plateforme'}};
 var visits=null,regs=null,flags={v:true,r:true},reportStatus=null,reportLoading=false;
+function reportNoticeKey(r){return r&&r.id&&r.status?'unem_report_notice:'+String(r.id)+':'+String(r.status):''}
+function reportNoticeSeen(r){var k=reportNoticeKey(r);if(!k)return false;try{return localStorage.getItem(k)==='1'}catch(e){return false}}
+function markReportNoticeSeen(r){var k=reportNoticeKey(r);if(!k)return;try{localStorage.setItem(k,'1')}catch(e){}}
 function lang(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}catch(e){return 'ar'}}
 function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'null');return s&&s.status==='approved'&&s.name?s:null}catch(e){return null}}
 function $(i){return document.getElementById(i)}
@@ -24,7 +27,7 @@ function loadReportStatus(){
   if(!K)K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwiaWF0IjoxNzc3ODM4NTE0LCJleHAiOjIwOTM0MTQ1MTJ9.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
   fetch(U+'/rest/v1/rpc/community_api',{method:'POST',headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K},body:JSON.stringify({p_token:tk,p_action:'report_status',p_args:{}})})
     .then(function(r){return r.json().then(function(d){return {ok:r.ok,data:d}})})
-    .then(function(x){reportLoading=false;if(isDeviceBanned(x.data)){clearBannedStudent();return}var d=x.data;reportStatus=Array.isArray(d)?d[0]||null:null;render()}).catch(function(){reportLoading=false});
+    .then(function(x){reportLoading=false;if(isDeviceBanned(x.data)){clearBannedStudent();return}var d=x.data;var latest=Array.isArray(d)?d[0]||null:null;reportStatus=latest&&latest.status!=='pending'&&reportNoticeSeen(latest)?null:latest;render();if(latest&&latest.status!=='pending'&&!reportNoticeSeen(latest)){markReportNoticeSeen(latest)}}).catch(function(){reportLoading=false});
 }
 function reportText(r,l){if(!r)return '';var a=l==='fr';if(r.status==='pending')return a?'Votre signalement est en cours d’examen.':'بلاغك قيد المراجعة من طرف المشرف.';if(r.status==='banned')return a?'Le signalement a été traité : l’autre appareil a été bloqué.':'تمت معالجة البلاغ: تم حظر الجهاز الآخر.';if(r.status==='rejected')return a?'Votre signalement a été rejeté après examen.':'تم رفض البلاغ بعد المراجعة.';if(r.status==='unbanned')return a?'Le blocage de l’appareil a été annulé.':'ألغى المشرف حظر الجهاز المرتبط بالبلاغ.';return a?'Votre signalement a été traité.':'تمت معالجة البلاغ.'}
 function syncAvatar(n){

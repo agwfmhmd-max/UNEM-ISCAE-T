@@ -183,6 +183,25 @@
   function t(k) {
     return T[lang()][k] || k;
   }
+  function reportNoticeKey(row) {
+    return row && row.id && row.status
+      ? "unem_report_notice:" + String(row.id) + ":" + String(row.status)
+      : "";
+  }
+  function reportNoticeSeen(row) {
+    var k = reportNoticeKey(row);
+    try { return !!k && ls(k) === "1"; } catch (e) { return false; }
+  }
+  function markReportNoticeSeen(row) {
+    var k = reportNoticeKey(row);
+    if (k) ls(k, "1");
+  }
+  function showReportNoticeOnce(row, messageKey) {
+    if (!row || reportNoticeSeen(row)) { showErr(""); return false; }
+    showErr(messageKey);
+    markReportNoticeSeen(row);
+    return true;
+  }
 
   /* ---------- الاتصال بقاعدة البيانات (بدون مكتبات) ---------- */
   function sessionId() {
@@ -586,13 +605,13 @@
       if (!d) return;
       if (d.status === "banned") {
         clearInterval(reportTimer);
-        showErr("report_banned");
+        showReportNoticeOnce(d, "report_banned");
       } else if (d.status === "unbanned") {
         clearInterval(reportTimer);
-        showErr("report_unbanned");
+        showReportNoticeOnce(d, "report_unbanned");
       } else if (d.status === "rejected") {
         clearInterval(reportTimer);
-        showErr("report_rejected");
+        showReportNoticeOnce(d, "report_rejected");
       }
     }).catch(function () {});
   }
@@ -961,19 +980,19 @@
         if (d && d.report_status === "banned") {
           state = "form";
           render();
-          showErr("report_banned");
+          showReportNoticeOnce({ id: d.report_id, status: d.report_status }, "report_banned");
           return;
         }
         if (d && d.report_status === "unbanned") {
           state = "form";
           render();
-          showErr("report_unbanned");
+          showReportNoticeOnce({ id: d.report_id, status: d.report_status }, "report_unbanned");
           return;
         }
         if (d && d.report_status === "rejected") {
           state = "form";
           render();
-          showErr("report_rejected");
+          showReportNoticeOnce({ id: d.report_id, status: d.report_status }, "report_rejected");
           return;
         }
         if (d && d.status === "approved") pass(d, false);

@@ -97,12 +97,12 @@ begin
     if acc.id is null then
       -- جهاز الطالب المُبلِّغ لا يكون مسجلاً بعد: أعد آخر حالة لبلاغه حتى
       -- يعرف فوراً أن الجهاز الآخر حُظر ويمكنه إعادة تسجيل الدخول.
-      select r.status into v_report
+      select r.id::text, r.status into v_target_hash, v_report
         from public.student_device_reports r
         where r.reporter_device_hash=v_hash
         order by r.created_at desc limit 1;
       if v_report is not null then
-        return jsonb_build_object('status','none','report_status',v_report,
+        return jsonb_build_object('status','none','report_id',v_target_hash,'report_status',v_report,
           'can_login',v_report in ('banned','unbanned'),
           'report_notice',case when v_report='banned' then 'other_device_banned'
                                when v_report='unbanned' then 'device_ban_unbanned'

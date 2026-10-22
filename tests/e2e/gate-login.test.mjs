@@ -81,7 +81,7 @@ export default async function run() {
     if (b.p_action === 'lookup') return { body: { found: true } };
     if (b.p_action === 'login') return { http: 400, body: { message: 'device_in_use', code: 'P0001' } };
     if (b.p_action === 'report_device_in_use') { reportBanned = true; return { body: { submitted: true } }; }
-    if (b.p_action === 'report_status' && reportBanned) return { body: [{ status: 'banned', can_login: true }] };
+    if (b.p_action === 'report_status' && reportBanned) return { body: [{ id: 'report-computer-1', status: 'banned', can_login: true }] };
     if (b.p_action === 'status' && reportBanned) return { body: { status: 'none', report_status: 'banned', can_login: true, report_notice: 'other_device_banned' } };
     return { body: { status: 'none' } };
   });
