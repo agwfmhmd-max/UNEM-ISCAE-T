@@ -26,6 +26,7 @@ db/20261020090000_community_message_replies.sql
 db/20261021090000_community_edit_pin_visibility.sql
 db/20261022090000_community_find_student_and_open_dm.sql
 db/20261023090000_community_find_student_limit.sql
+db/20261024090000_community_media.sql
 db/20261025090000_public_platform_stats.sql
 db/20261026090000_community_admin_list_limit.sql
 db/20261027090000_onboarding_prompts_control.sql
