@@ -265,7 +265,7 @@ begin
       if v_body = '' and v_media_path is null then raise exception 'empty'; end if;
       if v_media_path is not null then
         if v_media_kind not in ('image','audio') or v_media_path !~ '^community/[A-Za-z0-9._/-]+$' then raise exception 'bad_media'; end if;
-        if v_media_size is null or v_media_size < 1 or v_media_size > case when v_media_kind='image' then 10485760 else 104857600 end then raise exception 'media_too_large'; end if;
+        if v_media_size is null or v_media_size < 1 or v_media_size > (case when v_media_kind='image' then 10485760 else 104857600 end) then raise exception 'media_too_large'; end if;
         if v_media_kind='image' and v_media_mime not in ('image/jpeg','image/png','image/webp') then raise exception 'bad_media'; end if;
         if v_media_kind='audio' and v_media_mime not in ('audio/webm','audio/ogg','audio/mpeg','audio/mp4','audio/wav','audio/x-wav','audio/aac') then raise exception 'bad_media'; end if;
       end if;
