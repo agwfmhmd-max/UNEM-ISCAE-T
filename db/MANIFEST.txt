@@ -37,3 +37,4 @@ db/20261031090000_student_login_rate_limit.sql
 db/20261101090000_student_device_impersonation_reports.sql
 db/20261102090000_registration_policy_report_status_unban.sql
 db/20261103090000_student_report_notification.sql
+db/20261104090000_community_rooms_media_final.sql
