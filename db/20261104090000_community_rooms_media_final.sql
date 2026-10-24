@@ -175,12 +175,12 @@ begin
     -- لا حساب معتمد: غير نشط (لم يسجّل في المنصة). نعرض بياناته من الحساب المعلّق أو من لائحة الطلاب إن وُجدت.
     if tacc.id is not null then
       return jsonb_build_object('found', true, 'registered', false, 'active', false, 'online', false,
-        'name', tacc.full_name, 'reg', tacc.reg_no, 'spec', tacc.spec, 'level', tacc.level);
+        'name', public.mask_person_name(tacc.full_name), 'reg', tacc.reg_no, 'spec', tacc.spec, 'level', tacc.level);
     end if;
     select * into tro from student_roster where reg_no_norm = v_reg;
     if tro.id is not null then
       return jsonb_build_object('found', true, 'registered', false, 'active', false, 'online', false,
-        'name', tro.full_name, 'reg', tro.reg_no, 'spec', tro.spec, 'level', tro.level);
+        'name', public.mask_person_name(tro.full_name), 'reg', tro.reg_no, 'spec', tro.spec, 'level', tro.level);
     end if;
     return jsonb_build_object('found', false);
 
