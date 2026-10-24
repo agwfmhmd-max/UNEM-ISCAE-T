@@ -70,6 +70,15 @@ begin
   end if;
   if me.id is null then return jsonb_build_object('need_register', true); end if;
   if me.banned and not adm then raise exception 'banned'; end if;
+  if p_action = 'report_status' then
+    return coalesce((select jsonb_agg(x order by x.created_at desc) from (
+      select r.id,r.status,r.message,r.created_at,r.resolved_at,
+             case when r.status in ('banned','unbanned') then true else false end as can_login
+      from public.student_device_reports r
+      where r.reporter_device_hash=v_hash
+      order by r.created_at desc limit 10
+    ) x), '[]'::jsonb);
+  end if;
   if p_action = 'me' then return (to_jsonb(me) - 'token_hash') || jsonb_build_object('admin', adm, 'room_moderators', coalesce((select jsonb_agg(r.room order by r.room) from community_room_moderators r where r.profile=me.id),'[]'::jsonb)); end if;
 
   if p_action = 'feed' then
