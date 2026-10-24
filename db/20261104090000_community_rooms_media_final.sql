@@ -215,7 +215,8 @@ begin
     return '{}'::jsonb;
 
   elsif p_action = 'admin_extend' then   -- المشرف: زيادة مدة ظهور منشور أو رسالة
-    if not adm and not exists(select 1 from community_room_moderators rm where rm.room=(select room from community_messages where id=(a->>'id')::bigint) and rm.profile=me.id) then raise exception 'forbidden'; end if;
+    if not adm and (a->>'type') <> 'message' then raise exception 'forbidden'; end if;
+    if not adm and (a->>'type') = 'message' and not exists(select 1 from community_room_moderators rm where rm.room=(select room from community_messages where id=(a->>'id')::bigint) and rm.profile=me.id) then raise exception 'forbidden'; end if;
     v_n := greatest(1, least(coalesce((a->>'hours')::int, 24), 8760));
     if a->>'type' = 'post' then
       update community_posts set expires_at = case when pinned or expires_at is null then expires_at
@@ -229,7 +230,8 @@ begin
     return '{}'::jsonb;
 
   elsif p_action = 'admin_pin' then   -- المشرف: تثبيت منشور أو رسالة (لا تختفي) أو إلغاء التثبيت
-    if not adm and not exists(select 1 from community_room_moderators rm where rm.room=(select room from community_messages where id=(a->>'id')::bigint) and rm.profile=me.id) then raise exception 'forbidden'; end if;
+    if not adm and (a->>'type') <> 'message' then raise exception 'forbidden'; end if;
+    if not adm and (a->>'type') = 'message' and not exists(select 1 from community_room_moderators rm where rm.room=(select room from community_messages where id=(a->>'id')::bigint) and rm.profile=me.id) then raise exception 'forbidden'; end if;
     v_pin := coalesce((a->>'pinned')::boolean, true);
     if a->>'type' = 'post' then
       if v_pin then update community_posts set pinned = true, expires_at = 'infinity' where id=(a->>'id')::uuid;
