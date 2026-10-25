@@ -44,3 +44,4 @@ db/20261107090000_community_message_controls_and_mention_suggestions.sql
 
 db/20261108090000_community_scope_rooms_mentions_media.sql
 db/20261108093000_community_media_storage_and_level_fix.sql
+db/20261108094500_community_remove_media_hard_fix.sql
