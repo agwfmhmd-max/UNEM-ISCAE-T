@@ -141,12 +141,16 @@ export default async function run() {
   await pg.waitForFunction(() => [...document.querySelectorAll('.mw .mt')].some((e) => e.textContent === 'رسالة لحظية'), null, { timeout: 4000 });
   s.check('استقبال ping يعرض الرسالة فوراً بلا انتظار الاستطلاع', true);
   // --- رفع وسائط المجتمع: امتداد ومحتوى متوافقان مع bucket وقيود قاعدة البيانات
-  await pg.evaluate(async () => { MEDIA={kind:'image',file:new File([new Uint8Array([1,2,3])],'photo.png',{type:'image/png'}),name:'photo.png'}; await sendMsg(); });
+  await pg.evaluate(() => { const png=new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,6,0,0,0,31,21,196,137,0,0,0,11,73,68,65,84,120,156,99,96,0,2,0,0,5,0,1,167,196,36,65,0,0,0,0,73,69,78,68,174,66,96,130]); setImage(new File([png],'photo.png',{type:'image/png'})); });
+  s.check('معاينة الصورة تعرض الملف كاملًا قبل الإرسال', await pg.$eval('#mediaPreview .preview-image',e=>e.src.startsWith('blob:')&&e.alt==='photo.png'&&getComputedStyle(e).objectFit==='contain'));
+  await pg.evaluate(async () => { await sendMsg(); });
   const imageUpload=await pg.evaluate(()=>({upload:window.__uploads.at(-1),args:window.__calls.filter(c=>c[0]==='send').at(-1)?.[1]}));
-  s.check('رفع الصورة يستخدم امتداداً وMIME متوافقين ويرسل بيانات الوسيط', imageUpload.upload?.path.endsWith('.png') && imageUpload.upload?.opts.contentType==='image/png' && imageUpload.args?.media_kind==='image' && imageUpload.args?.media_mime==='image/png');
-  await pg.evaluate(async () => { MEDIA={kind:'audio',file:new File([new Uint8Array([1,2,3])],'voice.webm',{type:'audio/webm;codecs=opus'}),name:'صوتية'}; await sendMsg(); });
+  s.check('إرسال صورة بلا نص يرفع ويرسل MIME وامتداد صحيحين', imageUpload.upload?.path.endsWith('.png') && imageUpload.upload?.opts.contentType==='image/png' && imageUpload.args?.media_kind==='image' && imageUpload.args?.media_mime==='image/png' && imageUpload.args?.body==='');
+  await pg.evaluate(() => { MEDIA={kind:'audio',file:new File([new Uint8Array([1,2,3])],'voice.webm',{type:'audio/webm;codecs=opus'}),name:'صوتية'}; showMediaPreview(); });
+  s.check('معاينة الصوت توفر مشغلًا قبل الإرسال', await pg.$eval('#mediaPreview .preview-audio',e=>e.controls&&e.src.startsWith('blob:')&&e.preload==='metadata'));
+  await pg.evaluate(async () => { await sendMsg(); });
   const audioUpload=await pg.evaluate(()=>({upload:window.__uploads.at(-1),args:window.__calls.filter(c=>c[0]==='send').at(-1)?.[1]}));
-  s.check('رفع الصوت يتجاهل تسمية العرض ويزيل codecs من MIME', audioUpload.upload?.path.endsWith('.webm') && audioUpload.upload?.opts.contentType==='audio/webm' && audioUpload.args?.media_kind==='audio' && audioUpload.args?.media_mime==='audio/webm');
+  s.check('إرسال صوت بلا نص يرفع ويرسل MIME وامتداد صحيحين', audioUpload.upload?.path.endsWith('.webm') && audioUpload.upload?.opts.contentType==='audio/webm' && audioUpload.args?.media_kind==='audio' && audioUpload.args?.media_mime==='audio/webm' && audioUpload.args?.body==='');
   await pg.evaluate(() => {
     Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>({getTracks:()=>[{stop(){}}]})}});
     window.MediaRecorder=class {constructor(stream,opts){this.mimeType=opts?.mimeType||'audio/webm';this.state='inactive'}static isTypeSupported(){return true}start(){this.state='recording'}requestData(){this.ondataavailable?.({data:new Blob([new Uint8Array([7,8])],{type:this.mimeType})})}stop(){this.requestData();this.state='inactive';this.onstop?.()}};

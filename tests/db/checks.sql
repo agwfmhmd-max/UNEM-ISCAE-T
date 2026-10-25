@@ -89,6 +89,12 @@ begin
   perform pg_temp.api(tB,'del_message',jsonb_build_object('id',mid2));
   r := pg_temp.api(tA,'msgs_sync',jsonb_build_object('room','general','ids',jsonb_build_array(mid,mid2)));
   perform pg_temp.must(jsonb_array_length(r)=1, 'الرسالة المحذوفة ما زالت تظهر في المزامنة');
+  -- الوسائط المنفردة صالحة بلا نص، ويظل رفض الرسالة الفارغة بلا وسيط فعالاً.
+  perform pg_temp.api(tA,'send',jsonb_build_object('room','general','body','','media_kind','image','media_path','community/solo.png','media_mime','image/png','media_name','solo.png','media_size',3));
+  perform pg_temp.must((select count(*)=1 from public.community_messages m where m.room='general' and m.author=pa and m.body='' and m.media_kind='image' and m.media_path='community/solo.png'), 'إرسال صورة بلا نص لم يُحفظ');
+  perform pg_temp.api(tA,'send',jsonb_build_object('room','general','body','','media_kind','audio','media_path','community/solo.webm','media_mime','audio/webm','media_name','solo.webm','media_size',3));
+  perform pg_temp.must((select count(*)=1 from public.community_messages m where m.room='general' and m.author=pa and m.body='' and m.media_kind='audio' and m.media_path='community/solo.webm'), 'إرسال صوت بلا نص لم يُحفظ');
+  perform pg_temp.expect_err(tA,'send',jsonb_build_object('room','general','body',''),'empty');
 
   ------------------------------------------------------------ F) رسالة خاصة بين تخصصين مختلفين + خصوصية
   room := 'dm:'||least(pa::text,pb::text)||':'||greatest(pa::text,pb::text);
