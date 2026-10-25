@@ -7,6 +7,7 @@ var st={parsed:null,status:'',q:'',timer:null};
 function h(s){return typeof escapeHtml==='function'?escapeHtml(s):String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function lvls(spec){return /^MASTER_/.test(spec)?['M1','M2']:['L1','L2','L3']}
 function specOpts(sel){return SPECS.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===sel?' selected':'')+'>'+h(s[1])+'</option>'}).join('')}
+function lvlOptsImport(spec,sel){return lvlOpts(spec,sel)+'<option value="S"'+(sel==='S'?' selected':'')+'>🎓 Sortants (خريجون)</option>'}
 function lvlOpts(spec,sel){var l=lvls(spec);return l.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+x+'</option>'}).join('')}
 function rpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function sessionRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_session_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
@@ -22,9 +23,9 @@ window.renderStudentsAdmin=async function(){
   st.parsed=null;
   var canManage=canManageStudentRecords();
   c.innerHTML=(canManage?'<div class="admin-page-box" id="st-import"><h3>📥 رفع لائحة الطلاب (Excel أو PDF)</h3>'+
-  '<p>اختر التخصص والمستوى ثم ارفع ملف Excel أو PDF يحتوي على عمودين: <b>اسم الطالب</b> و<b>رقم التسجيل</b>. يمكنك رفع عدة ملفات PDF دفعة واحدة (مثل لوائح المجموعات الرسمية)، ويُحدَّد التخصص والمستوى تلقائياً إن ذُكرا في رأس الملف. عند تكرار طالب في مستويين يُعتبر في المستوى الأعلى فقط. الطالب الموجود في اللائحة يدخل مباشرة، وغير الموجود يظهر كحساب جديد للمراجعة.</p>'+
+  '<p>اختر التخصص والمستوى ثم ارفع ملف Excel أو PDF يحتوي على عمودين: <b>اسم الطالب</b> و<b>رقم التسجيل</b>. يمكنك رفع عدة ملفات PDF دفعة واحدة (مثل لوائح المجموعات الرسمية)، ويُحدَّد التخصص والمستوى تلقائياً إن ذُكرا في رأس الملف. السنة الدراسية تبدأ تلقائياً في 1 سبتمبر: يرتقي كل الطلاب مستوى واحداً مع كل سنة جديدة حتى يصبحوا خريجين في غرفة دفعتهم (UNEM ISCAE Sortants Promo N). لائحة السنة الجديدة هي المرجع: من تسجّله في مستوى أدنى (لم ينجح) يبقى فيه، ومن يتكرر في مستويين يظهر في غرفتيهما. لتسجيل الخريجين اختر «Sortants» ثم رقم الدفعة. الطالب الموجود في اللائحة يدخل مباشرة، وغير الموجود يظهر كحساب جديد للمراجعة.</p>'+
   '<div class="wa-admin-row" style="grid-template-columns:1fr"><div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
-  '<select id="st-spec" onchange="stSpecChange()">'+specOpts('BA')+'</select><select id="st-level">'+lvlOpts('BA','L1')+'</select>'+
+  '<select id="st-spec" onchange="stSpecChange()">'+specOpts('BA')+'</select><select id="st-level" onchange="stLevelChange()">'+lvlOptsImport('BA','L1')+'</select><input id="st-promo" type="number" min="1" max="99" placeholder="رقم الدفعة Promo" style="display:none">'+
   '<input id="st-file" type="file" multiple accept=".xlsx,.xls,.csv,.pdf,application/pdf" onchange="stFile(this)"></div><div id="st-prev" style="margin-top:10px"></div></div></div>':'')+
   '<div class="admin-page-box" style="margin-top:14px"><h3>📊 اللوائح وحالة التسجيل</h3><div id="st-stats">⏳ جاري التحميل...</div></div>'+
   (canManagePlatformSettings()?'<div class="admin-page-box" style="margin-top:14px"><h3>⚙️ إنشاء حسابات الطلاب</h3><label style="display:flex;align-items:center;gap:10px;font-weight:800"><input id="st-registration-toggle" type="checkbox" onchange="stToggleRegistration(this)"> السماح للطلاب بإنشاء حساب جديد عند عدم العثور على حساب</label><p style="color:#64748b;margin:8px 0 0">عند الإيقاف لن يظهر نموذج إنشاء الحساب، وستظهر للطالب رسالة التواصل مع المشرف.</p></div>':'')+
@@ -36,7 +37,8 @@ window.renderStudentsAdmin=async function(){
   '<div id="st-list">⏳ جاري التحميل...</div></div>';
   loadStats();loadList();loadSessions();loadDeviceReports();loadDeviceBans();loadRegistrationSetting();
 };
-window.stSpecChange=function(){var s=$('st-spec').value;$('st-level').innerHTML=lvlOpts(s,'')};
+window.stSpecChange=function(){var s=$('st-spec').value;$('st-level').innerHTML=lvlOptsImport(s,'');stLevelChange()};
+window.stLevelChange=function(){var l=$('st-level'),p=$('st-promo');if(!l||!p)return;var on=l.value==='S';p.style.display=on?'':'none';if(on&&!p.value)p.value=st.curPromo||17};
 window.stRowSpec=function(id){var s=$('sp-'+id).value,l=$('lv-'+id);var cur=l.value;l.innerHTML=lvlOpts(s,cur)};
 
 /* ---------- قراءة ملف Excel ---------- */
@@ -170,7 +172,7 @@ window.stFile=async function(inp){
     var uniq=scopes.filter(function(v,i,a){return a.indexOf(v)===i}),note='';
     if(uniq.length===1){
       var parts=uniq[0].split('|'),sp=$('st-spec'),lv=$('st-level');
-      if(sp&&lv&&SL[parts[0]]){sp.value=parts[0];lv.innerHTML=lvlOpts(parts[0],parts[1]);lv.value=parts[1];note='✅ تم تحديد التخصص والمستوى تلقائياً من رأس الملف: <b>'+h(SL[parts[0]])+' · '+h(parts[1])+'</b> — تأكد منهما قبل الحفظ.'}
+      if(sp&&lv&&SL[parts[0]]){sp.value=parts[0];lv.innerHTML=lvlOptsImport(parts[0],parts[1]);lv.value=parts[1];stLevelChange();note='✅ تم تحديد التخصص والمستوى تلقائياً من رأس الملف: <b>'+h(SL[parts[0]])+' · '+h(parts[1])+'</b> — تأكد منهما قبل الحفظ.'}
     }else if(uniq.length>1){note='⚠️ الملفات تخص أكثر من تخصص/مستوى ('+h(uniq.join('، '))+'). ارفع كل تخصص ومستوى على حدة حتى لا تُحفظ في النطاق الخاطئ.'}
     else{note='ℹ️ لم يُحدَّد التخصص/المستوى تلقائياً؛ اختَرهما من القائمتين أعلاه قبل الحفظ.'}
     st.parsed={rows:all,file:names.length>1?names.length+' ملفات':names[0],detail:perFile,dup:dup,note:note};
@@ -190,16 +192,18 @@ function previewParsed(){
 window.stSwap=function(){if(!st.parsed)return;st.parsed.rows=st.parsed.rows.map(function(r){return{n:r.r,r:r.n}});previewParsed()};
 window.stSave=async function(){
   var p=st.parsed;if(!p)return;
-  var spec=$('st-spec').value,level=$('st-level').value,btn=$('st-save'),res=$('st-res');
-  if(!confirm('حفظ '+p.rows.length+' طالب في '+SL[spec]+' · '+level+' ؟'))return;
-  btn.disabled=true;var tot={added:0,upgraded:0,updated:0,skipped_higher:0,invalid:0,auto_approved:0};
+  var spec=$('st-spec').value,level=$('st-level').value,btn=$('st-save'),res=$('st-res'),promo=level==='S'?parseInt($('st-promo').value,10):null;
+  if(level==='S'&&!(promo>0)){alert('أدخل رقم الدفعة (Promo) للخريجين.');return}
+  var where=level==='S'?'Sortants · Promo '+promo:level;
+  if(!confirm('حفظ '+p.rows.length+' طالب في '+SL[spec]+' · '+where+' ؟'))return;
+  btn.disabled=true;var tot={added:0,upgraded:0,updated:0,skipped_higher:0,extra_levels:0,invalid:0,auto_approved:0};
   try{
     for(var i=0;i<p.rows.length;i+=400){
       res.innerHTML='⏳ جاري الحفظ... '+Math.min(i+400,p.rows.length)+' / '+p.rows.length;
-      var d=await rpc('import',{spec:spec,level:level,rows:p.rows.slice(i,i+400)});
+      var d=await rpc('import',{spec:spec,level:level,promo:promo,rows:p.rows.slice(i,i+400)});
       Object.keys(tot).forEach(function(k){tot[k]+=(d&&d[k])||0});
     }
-    res.innerHTML='<div class="status-msg success" style="display:block">✅ تم الحفظ — جديد: <b>'+tot.added+'</b> · ترقية لمستوى أعلى: <b>'+tot.upgraded+'</b> · محدّث: <b>'+tot.updated+'</b> · متجاهَل (موجود في مستوى أعلى): <b>'+tot.skipped_higher+'</b> · غير صالح: <b>'+tot.invalid+'</b>'+(tot.auto_approved?' · حسابات اعتُمدت تلقائياً: <b>'+tot.auto_approved+'</b>':'')+'</div>';
+    res.innerHTML='<div class="status-msg success" style="display:block">✅ تم الحفظ — جديد: <b>'+tot.added+'</b> · ترقية لمستوى أعلى: <b>'+tot.upgraded+'</b> · محدّث: <b>'+tot.updated+'</b> · متجاهَل (موجود في مستوى أعلى): <b>'+tot.skipped_higher+'</b> · مستوى ثانٍ مُفعَّل: <b>'+tot.extra_levels+'</b> · غير صالح: <b>'+tot.invalid+'</b>'+(tot.auto_approved?' · حسابات اعتُمدت تلقائياً: <b>'+tot.auto_approved+'</b>':'')+'</div>';
     st.parsed=null;$('st-file').value='';loadStats();loadList();
   }catch(e){res.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>';btn.disabled=false}
 };
@@ -208,17 +212,17 @@ window.stSave=async function(){
 async function loadStats(){
   var el=$('st-stats');if(!el)return;
   try{
-    var d=await rpc('stats'),acc=d.accounts||{};
+    var d=await rpc('stats'),acc=d.accounts||{};st.curPromo=d.current_promo;
     var canManage=canManageStudentRecords();
-    var rows=(d.roster||[]).map(function(x){return '<tr><td style="padding:7px;border-top:1px solid #e2e8f0">'+h(SL[x.spec]||x.spec)+'</td><td style="padding:7px;border-top:1px solid #e2e8f0">'+h(x.level)+'</td><td style="padding:7px;border-top:1px solid #e2e8f0"><b>'+x.n+'</b></td><td style="padding:7px;border-top:1px solid #e2e8f0">'+(canManage?'<button class="wa-save" style="background:#dc2626;padding:5px 10px;font-size:.78rem" onclick="stClear(\''+x.spec+'\',\''+x.level+'\')">حذف اللائحة</button>':'')+'</td></tr>'}).join('');
-    el.innerHTML='<div style="margin-bottom:8px;font-weight:700">حسابات: بانتظار الموافقة <b>'+(acc.pending||0)+'</b> · معتمدة <b>'+(acc.approved||0)+'</b> · مرفوضة <b>'+(acc.rejected||0)+'</b></div>'+
+    var rows=(d.roster||[]).map(function(x){return '<tr><td style="padding:7px;border-top:1px solid #e2e8f0">'+h(SL[x.spec]||x.spec)+'</td><td style="padding:7px;border-top:1px solid #e2e8f0">'+(x.promo?'🎓 Sortants · Promo '+h(x.promo):h(x.level))+'</td><td style="padding:7px;border-top:1px solid #e2e8f0"><b>'+x.n+'</b></td><td style="padding:7px;border-top:1px solid #e2e8f0">'+(canManage?'<button class="wa-save" style="background:#dc2626;padding:5px 10px;font-size:.78rem" onclick="stClear(\''+x.spec+'\',\''+(x.promo?'S':x.level)+'\','+(x.promo||'null')+')">حذف اللائحة</button>':'')+'</td></tr>'}).join('');
+    el.innerHTML='<div style="margin-bottom:8px;color:#475569">السنة الدراسية الحالية: <b>'+h(d.academic_year)+'–'+h(d.academic_year+1)+'</b> · الدفعة الحالية للخريجين: <b>Promo '+h(d.current_promo)+'</b></div><div style="margin-bottom:8px;font-weight:700">حسابات: بانتظار الموافقة <b>'+(acc.pending||0)+'</b> · معتمدة <b>'+(acc.approved||0)+'</b> · مرفوضة <b>'+(acc.rejected||0)+'</b></div>'+
       (rows?'<table style="width:100%;border-collapse:collapse;font-size:.88rem"><tr style="background:#f1f5f9"><th style="padding:7px;text-align:start">التخصص</th><th style="padding:7px;text-align:start">المستوى</th><th style="padding:7px;text-align:start">عدد الطلاب</th><th></th></tr>'+rows+'</table>':'<div style="color:#64748b">لا توجد لوائح محفوظة بعد.</div>');
     renderTabs(acc);
   }catch(e){el.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>'}
 }
-window.stClear=async function(spec,level){
-  if(!confirm('حذف لائحة '+(SL[spec]||spec)+' · '+level+' بالكامل؟ (حسابات الطلاب المعتمدة لا تُحذف)'))return;
-  try{await rpc('roster_clear',{spec:spec,level:level});loadStats()}catch(e){alert('❌ '+errMsg(e))}
+window.stClear=async function(spec,level,promo){
+  if(!confirm('حذف لائحة '+(SL[spec]||spec)+' · '+(level==='S'?'Sortants Promo '+promo:level)+' بالكامل؟ (حسابات الطلاب المعتمدة لا تُحذف)'))return;
+  try{await rpc('roster_clear',{spec:spec,level:level,promo:promo});loadStats()}catch(e){alert('❌ '+errMsg(e))}
 };
 
 
