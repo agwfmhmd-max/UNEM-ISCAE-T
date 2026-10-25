@@ -40,3 +40,4 @@ db/20261103090000_student_report_notification.sql
 db/20261104090000_community_rooms_media_final.sql
 db/20261105090000_community_room_controls_mentions.sql
 db/20261106090000_community_media_only_messages.sql
+db/20261107090000_community_message_controls_and_mention_suggestions.sql

@@ -95,6 +95,49 @@ begin
   perform pg_temp.api(tA,'send',jsonb_build_object('room','general','body','','media_kind','audio','media_path','community/solo.webm','media_mime','audio/webm','media_name','solo.webm','media_size',3));
   perform pg_temp.must((select count(*)=1 from public.community_messages m where m.room='general' and m.author=pa and m.body='' and m.media_kind='audio' and m.media_path='community/solo.webm'), 'إرسال صوت بلا نص لم يُحفظ');
   perform pg_temp.expect_err(tA,'send',jsonb_build_object('room','general','body',''),'empty');
+  -- يمكن لصاحب الرسالة الصوتية المنفردة إضافة/تعديل نصها، ثم حذف المرفق وحده.
+  select id into mid2 from public.community_messages where media_path='community/solo.webm';
+  perform pg_temp.api(tA,'edit_message',jsonb_build_object('id',mid2,'body','وصف التسجيل'));
+  perform pg_temp.must(exists(select 1 from public.community_messages where id=mid2 and body='وصف التسجيل' and media_path='community/solo.webm'), 'تعديل نص رسالة المرفق لم يحفظ النص أو أزال المرفق');
+  insert into storage.objects(bucket_id,name) values('community-media','community/solo.webm');
+  perform public.community_message_remove_media(tA,mid2);
+  perform pg_temp.must(exists(select 1 from public.community_messages where id=mid2 and body='وصف التسجيل' and media_path is null) and not exists(select 1 from storage.objects where bucket_id='community-media' and name='community/solo.webm'), 'إزالة الصوت لم تحفظ النص أو لم تحذف الملف');
+  -- حذف المرفق المنفرد يحذف الرسالة، وغير المالك لا يستطيع إزالة مرفقها.
+  select id into mid2 from public.community_messages where media_path='community/solo.png';
+  insert into storage.objects(bucket_id,name) values('community-media','community/solo.png');
+  begin
+    perform public.community_message_remove_media(tB,mid2);
+    raise exception 'TEST_EXPECTED_FORBIDDEN';
+  exception when others then
+    if sqlerrm<>'forbidden' then raise; end if;
+  end;
+  perform public.community_message_remove_media(tA,mid2);
+  perform pg_temp.must(not exists(select 1 from public.community_messages where id=mid2) and not exists(select 1 from storage.objects where bucket_id='community-media' and name='community/solo.png'), 'حذف المرفق المنفرد لم يحذف الرسالة وملف التخزين');
+  -- عند وجود نص، إزالة المرفق تُبقي الرسالة النصية وتزيل بيانات الملف فقط.
+  perform pg_temp.api(tA,'send',jsonb_build_object('room','general','body','تعليق على الصورة','media_kind','image','media_path','community/caption.png','media_mime','image/png','media_name','caption.png','media_size',3));
+  select id into mid2 from public.community_messages where media_path='community/caption.png';
+  insert into storage.objects(bucket_id,name) values('community-media','community/caption.png');
+  perform public.community_message_remove_media(tA,mid2);
+  perform pg_temp.must(exists(select 1 from public.community_messages where id=mid2 and body='تعليق على الصورة' and media_path is null and media_kind is null) and not exists(select 1 from storage.objects where bucket_id='community-media' and name='community/caption.png'), 'إزالة المرفق حذفت النص أو لم تحذف الملف');
+  -- مسار زر حذف الرسالة المعتاد يحذف سجل الوسيط المرتبط كذلك.
+  perform pg_temp.api(tA,'send',jsonb_build_object('room','general','body','رسالة لحذفها مع الصورة','media_kind','image','media_path','community/delete-message.png','media_mime','image/png','media_name','delete-message.png','media_size',3));
+  select id into mid2 from public.community_messages where media_path='community/delete-message.png';
+  insert into storage.objects(bucket_id,name) values('community-media','community/delete-message.png');
+  perform pg_temp.api(tA,'del_message',jsonb_build_object('id',mid2));
+  perform pg_temp.must(not exists(select 1 from public.community_messages where id=mid2) and not exists(select 1 from storage.objects where bucket_id='community-media' and name='community/delete-message.png'), 'زر حذف الرسالة لم يحذف المرفق من التخزين');
+  -- الإكمال التلقائي لا يعرض إلا الحسابات المعتمدة والمؤهلة للغرفة/المجموعة.
+  r := public.community_member_suggestions(tA,'general','I180');
+  perform pg_temp.must(jsonb_array_length(r)=3 and exists(select 1 from jsonb_array_elements(r) x where x->>'reg'='I18001'), 'اقتراحات الغرفة العامة يجب أن تعرض الحسابات المعتمدة المطابقة للبادئة');
+  r := pg_temp.api(tA,'group_new','{"name":"Alpha study group","subject":"Tests","max":5,"descr":""}');
+  room := 'group:'||(r->>'id');
+  r := public.community_member_suggestions(tA,room,'I180');
+  perform pg_temp.must(jsonb_array_length(r)=1 and r->0->>'reg'='I18001', 'اقتراح المجموعة يجب أن يقتصر على أعضائها');
+  begin
+    perform public.community_member_suggestions(tB,room,'I180');
+    raise exception 'TEST_EXPECTED_FORBIDDEN';
+  exception when others then
+    if sqlerrm<>'forbidden' then raise; end if;
+  end;
 
   ------------------------------------------------------------ F) رسالة خاصة بين تخصصين مختلفين + خصوصية
   room := 'dm:'||least(pa::text,pb::text)||':'||greatest(pa::text,pb::text);
@@ -139,6 +182,11 @@ begin
   perform set_config('request.jwt.claim.sub', adm::text, true);
   perform pg_temp.api(tAdm,'admin_pin',jsonb_build_object('type','post','id',pid,'pinned',true));
   perform pg_temp.api(tAdm,'admin_pin',jsonb_build_object('type','message','id',mid,'pinned',true));
+  perform pg_temp.api(tA,'send',jsonb_build_object('room','general','body','رسالة تحذفها الإدارة','media_kind','audio','media_path','community/admin-delete.webm','media_mime','audio/webm','media_name','admin-delete.webm','media_size',3));
+  select id into mid2 from public.community_messages where media_path='community/admin-delete.webm';
+  insert into storage.objects(bucket_id,name) values('community-media','community/admin-delete.webm');
+  perform pg_temp.api(tAdm,'admin_delete',jsonb_build_object('type','message','id',mid2));
+  perform pg_temp.must(not exists(select 1 from public.community_messages where id=mid2) and not exists(select 1 from storage.objects where bucket_id='community-media' and name='community/admin-delete.webm'), 'المشرف لم يستطع حذف الرسالة ومرفقها');
   perform set_config('request.jwt.claim.sub', '', true);
   perform pg_temp.must((select expires_at='infinity' from public.community_posts where id=pid), 'التثبيت لم يضع expires_at=infinity');
   perform pg_temp.api(tB,'post','{"kind":"help","body":"منشور أحدث"}');

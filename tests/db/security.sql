@@ -3,7 +3,7 @@
 do $$
 declare
   expected_anon_fns text[] := array[
-    'assign_default_role','can_upload','community_api','document_type_allowed_for_subject','documents_normalize','documents_validate_file_type',
+    'assign_default_role','can_upload','community_api','community_member_suggestions','community_message_remove_media','document_type_allowed_for_subject','documents_normalize','documents_validate_file_type',
     'effective_document_types_for_subject','get_my_role','get_public_platform_stats','get_public_visitor_stats','has_role',
     'remove_push_subscription','repair_cloudinary_urls','save_fcm_token','save_push_subscription','student_gate',
     'student_level_rank','student_names_match','student_norm_name','student_norm_reg','student_view','touch_updated_at'];

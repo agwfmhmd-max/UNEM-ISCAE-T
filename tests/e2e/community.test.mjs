@@ -6,9 +6,9 @@ const AV = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP///////////
 
 export const MOCK = `
 window.__AV=${JSON.stringify(AV)};
-const ME={id:'11111111-1111-1111-1111-111111111111',name:'Mohamed Dah Agove',spec:'BA',level:'L3',avatar_data:window.__AV,account:'acc1'};
+const ME={id:'11111111-1111-1111-1111-111111111111',name:'Mohamed Dah Agove',spec:'BA',level:'L3',avatar_data:window.__AV,account:'acc1'};window.__ME=ME;
 const OTHER={id:'22222222-2222-2222-2222-222222222222',name:'Sara Ba',spec:'FC',level:'L1',avatar_data:window.__AV};
-window.__adm=false;window.__calls=[];window.__sent=[];window.__uploads=[];window.__ch={handlers:{},status:null};window.__rtMode='ok';
+window.__adm=false;window.__calls=[];window.__sent=[];window.__uploads=[];window.__mentionLookups=[];window.__mediaRemoveCalls=[];window.__ch={handlers:{},status:null};window.__rtMode='ok';
 const db=window.__db={posts:[],comments:[],msgs:[],nid:100};window.__roomLocks={};
 db.posts.push({id:'p-other',author:OTHER,kind:'question',body:'سؤال من تخصص آخر',spec:'FC',level:'L1',pinned:false,ed:null,exp:Date.now()+7*864e5,t:new Date().toISOString()});
 db.posts.push({id:'p-other2',author:OTHER,kind:'help',body:'منشور ثانٍ للكاتب نفسه',spec:'FC',level:'L1',pinned:false,ed:null,exp:Date.now()+7*864e5,t:new Date().toISOString()});
@@ -30,7 +30,7 @@ function api(a,args){window.__calls.push([a,args]);const adm=window.__adm;
   case 'comments':{const seenC={};return db.comments.filter(c=>c.post===args.id).map(c=>{const first=!seenC[c.author.id];seenC[c.author.id]=1;return ({id:c.id,an:c.author.name,aid:c.author.id,avatar:first?c.author.avatar_data:null,body:c.body,t:new Date().toISOString(),can_del:c.author===ME||adm,can_edit:c.author===ME,ed:c.ed})})}
   case 'edit_comment':{const c=db.comments.find(c=>c.id===args.id&&c.author===ME);if(!c)throw Error('forbidden');c.body=args.body;c.ed=new Date().toISOString();return {}}
   case 'msgs':{const after=+args.after||0;const rows=db.msgs.filter(m=>m.room===args.room&&m.id>after);const seen={},out=[];
-    rows.slice().reverse().forEach(m=>{const first=!seen[m.author.id];seen[m.author.id]=1;out.push({id:m.id,body:m.body,t:new Date().toISOString(),aid:m.author.id,an:m.author.name,avatar:first?m.author.avatar_data:null,mine:m.author===ME,rt:null,ed:m.ed,pin:m.pin,exp:m.pin?null:m.exp})});return out.reverse()}
+    rows.slice().reverse().forEach(m=>{const first=!seen[m.author.id];seen[m.author.id]=1;out.push({id:m.id,body:m.body,t:new Date().toISOString(),aid:m.author.id,an:m.author.name,avatar:first?m.author.avatar_data:null,mine:m.author===ME,rt:null,ed:m.ed,pin:m.pin,exp:m.pin?null:m.exp,media_kind:m.media_kind||null,media_path:m.media_path||null,media_mime:m.media_mime||null,media_name:m.media_name||null,media_size:m.media_size||null})});return out.reverse()}
   case 'msgs_sync':return db.msgs.filter(m=>m.room===args.room&&args.ids.map(String).includes(String(m.id))).map(m=>({id:m.id,body:m.body,ed:m.ed,pin:m.pin,exp:m.pin?null:m.exp}));
   case 'room_state':return {room:args.room,locked:!!window.__roomLocks[args.room],can_manage:adm};
   case 'room_lock':if(!adm)throw Error('forbidden');window.__roomLocks[args.room]=!!args.locked;return {room:args.room,locked:!!args.locked};
@@ -38,6 +38,7 @@ function api(a,args){window.__calls.push([a,args]);const adm=window.__adm;
   case 'set_room_moderator':return {};
   case 'edit_message':{const m=db.msgs.find(m=>String(m.id)===String(args.id)&&m.author===ME);if(!m)throw Error('forbidden');m.body=args.body;m.ed=new Date().toISOString();return {}}
   case 'del_message':{const i=db.msgs.findIndex(m=>String(m.id)===String(args.id)&&(m.author===ME||adm));if(i<0)throw Error('forbidden');db.msgs.splice(i,1);return {}}
+  case 'admin_delete':if(!adm)throw Error('forbidden');window.__calls.push(['admin_delete',args]);return {}
   case 'admin_pin':{if(!adm)throw Error('forbidden');const m=args.type==='post'?db.posts.find(p=>p.id===args.id):db.msgs.find(m=>String(m.id)===String(args.id));if(args.type==='post')m.pinned=args.pinned;else m.pin=args.pinned;return {}}
   case 'admin_extend':{if(!adm)throw Error('forbidden');window.__lastExtend=args.hours;return {}}
   case 'send':db.msgs.push({id:++db.nid,room:args.room,author:ME,body:args.body,pin:false,ed:null,exp:Date.now()+864e5});return {};
@@ -47,7 +48,7 @@ function api(a,args){window.__calls.push([a,args]);const adm=window.__adm;
 function makeChannel(name){const ch={name,handlers:{},on(t,f,cb){ch.handlers[f.event]=cb;return ch},
   subscribe(cb){window.__ch.current=ch;setTimeout(()=>cb(window.__rtMode==='ok'?'SUBSCRIBED':'CHANNEL_ERROR'),10);return ch},
   send(m){window.__sent.push(m)}};return ch}
-window.supabase={createClient:()=>({rpc:async(fn,p)=>{try{return {data:api(p.p_action,p.p_args||{}),error:null}}catch(e){return {data:null,error:{message:e.message}}}},
+window.supabase={createClient:()=>({rpc:async(fn,p)=>{if(fn==='community_member_suggestions'){window.__mentionLookups.push(p);return {data:[{reg:'I21567',name:ME.name},{reg:'I18002',name:OTHER.name}].filter(x=>x.reg.startsWith(p.p_prefix)),error:null}}if(fn==='community_message_remove_media'){window.__mediaRemoveCalls.push(p);const m=db.msgs.find(x=>String(x.id)===String(p.p_message_id));if(!m||m.author!==ME&&!window.__adm)return {data:null,error:{message:'forbidden'}};if(!m.body){db.msgs.splice(db.msgs.indexOf(m),1);return {data:{removed:true,message_deleted:true},error:null}}Object.assign(m,{media_kind:null,media_path:null,media_mime:null,media_name:null,media_size:null});return {data:{removed:true,message_deleted:false},error:null}}try{return {data:api(p.p_action,p.p_args||{}),error:null}}catch(e){return {data:null,error:{message:e.message}}}},
   storage:{from:()=>({upload:async(path,file,opts)=>{window.__uploads.push({path,fileName:file.name,opts});return {data:{path},error:null}},remove:async()=>({error:null}),getPublicUrl:path=>({data:{publicUrl:path}})})},
   channel:n=>makeChannel(n),removeChannel:ch=>{window.__ch.removed=(window.__ch.removed||0)+1}})};
 `;
@@ -102,6 +103,12 @@ export default async function run() {
   await pg.waitForSelector('.li[data-room="general"]');
   await pg.click('.li[data-room="general"]');
   await pg.waitForSelector('.mw');
+  await pg.evaluate(()=>{const i=$('#chIn');i.value='مرحباً @I2156';i.setSelectionRange(i.value.length,i.value.length);i.dispatchEvent(new Event('input',{bubbles:true}))});
+  await pg.waitForSelector('#mentionSuggestions button');
+  s.check('اقتراح @ برقم جزئي يقتصر على الغرفة الحالية', await pg.evaluate(()=>window.__mentionLookups.at(-1)?.p_room==='general'&&window.__mentionLookups.at(-1)?.p_prefix==='I2156'));
+  await pg.click('#mentionSuggestions button');
+  s.check('اختيار اقتراح الإشارة يكمل رقم التسجيل داخل النص', await pg.$eval('#chIn',e=>e.value==='مرحباً @I21567 '));
+  await pg.evaluate(()=>{$('#chIn').value=''});
   // --- قفل الغرفة: التحكم للمشرف فقط وفرض تعطيل الإرسال على بقية الأعضاء
   await pg.evaluate(async () => { window.__adm=true;me.admin=true;await loadRoomState(room); });
   s.check('زر القفل يظهر للمشرف المصرح له', await pg.$eval('#chLock',e=>!e.hidden));
@@ -159,6 +166,14 @@ export default async function run() {
   s.check('أثناء التسجيل يظهر زر إيقاف صريح ومقروء', await pg.$eval('#audioRec',e=>/إيقاف التسجيل/.test(e.textContent)&&e.title==='إيقاف التسجيل'));
   await pg.click('#audioRec');
   s.check('الإيقاف يوقف الميكروفون ويجهّز المرفق مع زر إرسال', await pg.$eval('#mediaPreview',e=>e.classList.contains('open')&&/إرسال التسجيل/.test(e.textContent)) && await pg.evaluate(()=>MEDIA.file.name.endsWith('.webm')&&REC===null));
+  await pg.evaluate(async()=>{window.__db.msgs.push({id:901,room:'general',author:window.__ME,body:'تعليق الصورة',media_kind:'image',media_path:'community/caption.png',media_mime:'image/png',media_name:'caption.png',media_size:3,pin:false,ed:null,exp:Date.now()+864e5});await pull(true)});
+  await pg.waitForSelector('.mw.me .remove-media');
+  await pg.evaluate(async()=>{window.confirm=()=>true;await removeMsgMediaEl(document.querySelector('.mw.me .remove-media'))});
+  s.check('الطالب يحذف مرفقه مع بقاء نص الرسالة', await pg.evaluate(()=>window.__db.msgs.find(m=>m.id===901)?.body==='تعليق الصورة'&&!window.__db.msgs.find(m=>m.id===901)?.media_path&&!document.querySelector('.mw.me .mmedia')));
+  await pg.evaluate(async()=>{window.__db.msgs.push({id:902,room:'general',author:window.__ME,body:'',media_kind:'audio',media_path:'community/voice.webm',media_mime:'audio/webm',media_name:'voice.webm',media_size:3,pin:false,ed:null,exp:Date.now()+864e5});await pull(true)});
+  await pg.waitForSelector('.mw.me .remove-media');
+  await pg.evaluate(async()=>{await removeMsgMediaEl(document.querySelector('.mw.me .remove-media'))});
+  s.check('حذف المرفق المنفرد يحذف الرسالة الفارغة معه', await pg.evaluate(()=>!window.__db.msgs.some(m=>m.id===902)));
   // الاستطلاع يبطؤ عند نجاح Realtime ويرجع للسرعة العادية إن فشل
   s.check('عند Realtime يتخطى الاستطلاع 3 من كل 4 دورات', await pg.evaluate(() => { POLLN = 0; let skipped = 0; for (let i = 0; i < 4; i++) { if (RTOK && (++POLLN % 4)) skipped++; } return skipped === 3; }));
   await pg.evaluate(() => closeChat());
@@ -203,6 +218,8 @@ export default async function run() {
   s.check('قائمة المشرف تطلب limit=200', await pg.evaluate(() => window.__calls.some((c) => c[0] === 'admin_list' && c[1] && c[1].limit === 200)));
   await pg.fill('#rmRoom','spec:FC'); await pg.fill('#rmReg','I18000'); await pg.click('#main button[onclick="setRoomModFromForm()"]'); await pg.waitForTimeout(100);
   s.check('المشرف الرئيسي يستطيع تعيين مشرف لطالب من تخصص آخر', await pg.evaluate(()=>window.__calls.some(c=>c[0]==='set_room_moderator'&&c[1]?.room==='spec:FC'&&c[1]?.reg==='I18000')));
+  await pg.evaluate(()=>{window.confirm=()=>true;window.adminDelete('message','777')}); await pg.waitForTimeout(80);
+  s.check('المشرف يستطيع حذف رسالة من لوحة الإدارة دون فتح الغرفة', await pg.evaluate(()=>window.__calls.some(c=>c[0]==='admin_delete'&&c[1]?.type==='message'&&c[1]?.id==='777')));
   s.check('لا أخطاء جافاسكربت', pg.errors.length === 0, pg.errors);
   await pg.context().close();
   return s.done();
