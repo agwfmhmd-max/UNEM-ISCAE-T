@@ -19,6 +19,8 @@ import { Route as ApiPublicCloudinaryConfigRouteImport } from './routes/api/publ
 import { Route as ApiPublicCloudinaryDestroyRouteImport } from './routes/api/public/cloudinary/destroy'
 import { Route as ApiPublicCloudinarySignRouteImport } from './routes/api/public/cloudinary/sign'
 import { Route as ApiPublicFcmRegisterRouteImport } from './routes/api/public/fcm/register'
+import { Route as ApiPublicPushActivityRouteImport } from './routes/api/public/push/activity'
+import { Route as ApiPublicPushMentionRouteImport } from './routes/api/public/push/mention'
 import { Route as ApiPublicPushSendRouteImport } from './routes/api/public/push/send'
 import { Route as ApiPublicPushVapidKeyRouteImport } from './routes/api/public/push/vapid-key'
 
@@ -74,6 +76,16 @@ const ApiPublicFcmRegisterRoute = ApiPublicFcmRegisterRouteImport.update({
   path: '/api/public/fcm/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPushActivityRoute = ApiPublicPushActivityRouteImport.update({
+  id: '/api/public/push/activity',
+  path: '/api/public/push/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushMentionRoute = ApiPublicPushMentionRouteImport.update({
+  id: '/api/public/push/mention',
+  path: '/api/public/push/mention',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPushSendRoute = ApiPublicPushSendRouteImport.update({
   id: '/api/public/push/send',
   path: '/api/public/push/send',
@@ -96,6 +108,8 @@ export interface FileRoutesByFullPath {
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
+  '/api/public/push/activity': typeof ApiPublicPushActivityRoute
+  '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -110,6 +124,8 @@ export interface FileRoutesByTo {
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
+  '/api/public/push/activity': typeof ApiPublicPushActivityRoute
+  '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -125,6 +141,8 @@ export interface FileRoutesById {
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
+  '/api/public/push/activity': typeof ApiPublicPushActivityRoute
+  '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -141,6 +159,8 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/destroy'
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
+    | '/api/public/push/activity'
+    | '/api/public/push/mention'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   fileRoutesByTo: FileRoutesByTo
@@ -155,6 +175,8 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/destroy'
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
+    | '/api/public/push/activity'
+    | '/api/public/push/mention'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   id:
@@ -169,6 +191,8 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/destroy'
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
+    | '/api/public/push/activity'
+    | '/api/public/push/mention'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   fileRoutesById: FileRoutesById
@@ -260,6 +284,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicFcmRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push/activity': {
+      id: '/api/public/push/activity'
+      path: '/api/public/push/activity'
+      fullPath: '/api/public/push/activity'
+      preLoaderRoute: typeof ApiPublicPushActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push/mention': {
+      id: '/api/public/push/mention'
+      path: '/api/public/push/mention'
+      fullPath: '/api/public/push/mention'
+      preLoaderRoute: typeof ApiPublicPushMentionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push/send': {
       id: '/api/public/push/send'
       path: '/api/public/push/send'
@@ -288,6 +326,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCloudinaryDestroyRoute: ApiPublicCloudinaryDestroyRoute,
   ApiPublicCloudinarySignRoute: ApiPublicCloudinarySignRoute,
   ApiPublicFcmRegisterRoute: ApiPublicFcmRegisterRoute,
+  ApiPublicPushActivityRoute: ApiPublicPushActivityRoute,
+  ApiPublicPushMentionRoute: ApiPublicPushMentionRoute,
   ApiPublicPushSendRoute: ApiPublicPushSendRoute,
   ApiPublicPushVapidKeyRoute: ApiPublicPushVapidKeyRoute,
 }
