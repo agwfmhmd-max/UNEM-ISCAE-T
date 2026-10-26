@@ -208,6 +208,8 @@ export interface RootRouteChildren {
   ApiPublicCloudinaryDestroyRoute: typeof ApiPublicCloudinaryDestroyRoute
   ApiPublicCloudinarySignRoute: typeof ApiPublicCloudinarySignRoute
   ApiPublicFcmRegisterRoute: typeof ApiPublicFcmRegisterRoute
+  ApiPublicPushActivityRoute: typeof ApiPublicPushActivityRoute
+  ApiPublicPushMentionRoute: typeof ApiPublicPushMentionRoute
   ApiPublicPushSendRoute: typeof ApiPublicPushSendRoute
   ApiPublicPushVapidKeyRoute: typeof ApiPublicPushVapidKeyRoute
 }
