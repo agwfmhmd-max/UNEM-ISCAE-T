@@ -5,6 +5,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/unem-config";
 
 /**
  * إشعار النشاط في المجتمع: رسالة جديدة في غرفة/مجموعة، منشور جديد، أو تعليق فيه @الكل من المشرف.
+ * ونوع "test": إشعار تجريبي يُرسل لأجهزة الطالب نفسه فقط للتحقق من أن الإشعارات تعمل.
  * يستدعيه متصفح الكاتب بعد النشر؛ تتحقق قاعدة البيانات أن المستدعي هو كاتب العنصر نفسه،
  * وتحدد المستلمين (أعضاء الغرفة، دون الكاتم والكاتب) وتمنع تكرار الإشعار لنفس العنصر.
  */
@@ -17,7 +18,7 @@ type Targets = {
   subs: StoredPushSubscription[];
 };
 
-const KINDS = new Set(["message", "post", "comment"]);
+const KINDS = new Set(["message", "post", "comment", "test"]);
 const CONCURRENCY = 25;
 
 async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T | null> {
@@ -56,11 +57,14 @@ export const Route = createFileRoute("/api/public/push/activity")({
         const vapid = readVapidEnv();
         if (!vapid) return json({ sent: 0, reason: "push_not_configured" });
 
-        const targets = await rpc<Targets>("community_activity_push_targets", {
-          p_token: token,
-          p_kind: kind,
-          p_id: id,
-        });
+        const targets =
+          kind === "test"
+            ? await rpc<Targets>("community_push_test_targets", { p_token: token })
+            : await rpc<Targets>("community_activity_push_targets", {
+                p_token: token,
+                p_kind: kind,
+                p_id: id,
+              });
         if (!targets || !Array.isArray(targets.subs) || targets.subs.length === 0) {
           return json({ sent: 0 });
         }
@@ -69,8 +73,8 @@ export const Route = createFileRoute("/api/public/push/activity")({
           title: String(targets.title || "UNEM ISCAE").slice(0, 120),
           body: String(targets.body || "").slice(0, 500),
           url: String(targets.url || "/community"),
-          tag: targets.tag ? String(targets.tag).slice(0, 120) : undefined,
-          quiet: targets.quiet === true,
+          ...(targets.tag ? { tag: String(targets.tag).slice(0, 120) } : {}),
+          ...(targets.quiet === true ? { quiet: true } : {}),
         };
 
         let sent = 0;
