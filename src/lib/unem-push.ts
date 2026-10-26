@@ -22,6 +22,8 @@ export type PushNotificationPayload = {
   body: string;
   url?: string;
   icon?: string;
+  tag?: string;
+  quiet?: boolean;
 };
 
 /**
@@ -47,6 +49,8 @@ export async function sendPushNotification(
         body: payload.body,
         url: payload.url || "/",
         icon: payload.icon || "/icon-192.png",
+        ...(payload.tag ? { tag: payload.tag } : {}),
+        ...(payload.quiet ? { quiet: true } : {}),
       }),
       options: { ttl: 60 * 60 * 24, urgency: "high" as const },
     };
