@@ -21,6 +21,7 @@ import { Route as ApiPublicCloudinarySignRouteImport } from './routes/api/public
 import { Route as ApiPublicFcmRegisterRouteImport } from './routes/api/public/fcm/register'
 import { Route as ApiPublicPushActivityRouteImport } from './routes/api/public/push/activity'
 import { Route as ApiPublicPushMentionRouteImport } from './routes/api/public/push/mention'
+import { Route as ApiPublicPushRelayRouteImport } from './routes/api/public/push/relay'
 import { Route as ApiPublicPushSendRouteImport } from './routes/api/public/push/send'
 import { Route as ApiPublicPushVapidKeyRouteImport } from './routes/api/public/push/vapid-key'
 
@@ -86,6 +87,11 @@ const ApiPublicPushMentionRoute = ApiPublicPushMentionRouteImport.update({
   path: '/api/public/push/mention',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPushRelayRoute = ApiPublicPushRelayRouteImport.update({
+  id: '/api/public/push/relay',
+  path: '/api/public/push/relay',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPushSendRoute = ApiPublicPushSendRouteImport.update({
   id: '/api/public/push/send',
   path: '/api/public/push/send',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
+  '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
+  '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
+  '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
     | '/api/public/push/mention'
+    | '/api/public/push/relay'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   fileRoutesByTo: FileRoutesByTo
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
     | '/api/public/push/mention'
+    | '/api/public/push/relay'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   id:
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
     | '/api/public/push/mention'
+    | '/api/public/push/relay'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   fileRoutesById: FileRoutesById
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   ApiPublicFcmRegisterRoute: typeof ApiPublicFcmRegisterRoute
   ApiPublicPushActivityRoute: typeof ApiPublicPushActivityRoute
   ApiPublicPushMentionRoute: typeof ApiPublicPushMentionRoute
+  ApiPublicPushRelayRoute: typeof ApiPublicPushRelayRoute
   ApiPublicPushSendRoute: typeof ApiPublicPushSendRoute
   ApiPublicPushVapidKeyRoute: typeof ApiPublicPushVapidKeyRoute
 }
@@ -300,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushMentionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push/relay': {
+      id: '/api/public/push/relay'
+      path: '/api/public/push/relay'
+      fullPath: '/api/public/push/relay'
+      preLoaderRoute: typeof ApiPublicPushRelayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push/send': {
       id: '/api/public/push/send'
       path: '/api/public/push/send'
@@ -330,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFcmRegisterRoute: ApiPublicFcmRegisterRoute,
   ApiPublicPushActivityRoute: ApiPublicPushActivityRoute,
   ApiPublicPushMentionRoute: ApiPublicPushMentionRoute,
+  ApiPublicPushRelayRoute: ApiPublicPushRelayRoute,
   ApiPublicPushSendRoute: ApiPublicPushSendRoute,
   ApiPublicPushVapidKeyRoute: ApiPublicPushVapidKeyRoute,
 }
