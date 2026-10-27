@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { corsOptions, json } from "@/lib/unem-server";
-import { readVapidEnv, sendPushNotification, type StoredPushSubscription } from "@/lib/unem-push";
+import { readVapidEnv, type StoredPushSubscription } from "@/lib/unem-push";
+import { dispatchPush } from "@/lib/unem-push-fanout";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/unem-config";
 
 /**
@@ -15,7 +16,6 @@ type Targets = {
   subs: StoredPushSubscription[];
 };
 
-const CONCURRENCY = 25;
 
 async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T | null> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
@@ -67,23 +67,10 @@ export const Route = createFileRoute("/api/public/push/mention")({
           tag: `mention-${messageId}`,
         };
 
-        let sent = 0;
-        const gone: string[] = [];
-        for (let i = 0; i < targets.subs.length; i += CONCURRENCY) {
-          const batch = targets.subs.slice(i, i + CONCURRENCY);
-          const results = await Promise.all(
-            batch.map(async (sub) => ({ sub, outcome: await sendPushNotification(sub, payload, vapid) })),
-          );
-          for (const { sub, outcome } of results) {
-            if (outcome === "ok") sent += 1;
-            else if (outcome === "gone") gone.push(sub.endpoint);
-          }
-        }
+        // توزيع الإرسال على طلبات فرعية متوازية (يصل لأكثر من ألف طالب خلال ثوانٍ)
+        const { sent, gone } = await dispatchPush(new URL(request.url).origin, targets.subs, payload, vapid);
 
-        // اشتراكات انتهت صلاحيتها لدى مزود الإشعارات: تُحذف لتفادي إرسال متكرر فاشل.
-        await Promise.all(gone.map((endpoint) => rpc("remove_push_subscription", { p_endpoint: endpoint })));
-
-        return json({ sent, expired: gone.length });
+        return json({ sent, expired: gone });
       },
     },
   },
