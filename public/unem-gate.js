@@ -86,6 +86,13 @@
       device_in_use:
         "هذا الحساب مفتوح بالفعل على جهاز آخر من النوع نفسه. سجّل الخروج من ذلك الجهاز أولاً أو اطلب من المشرف إنهاء جلسته.",
       reportDevice: "إرسال بلاغ للمشرف عن انتحال الحساب",
+      reportImgLabel: "إرفاق صورة من إفادة التسجيل (اختياري)",
+      reportImgHint: "صورة واضحة لإفادة تسجيلك تساعد المشرف على التحقق من أنك صاحب الحساب.",
+      reportImgRemove: "إزالة الصورة",
+      reportSend: "إرسال البلاغ",
+      reportCancel: "إلغاء",
+      reportImgBad: "اختر صورة JPG أو PNG أو WebP.",
+      bad_image: "تعذر قبول الصورة المرفقة. جرّب صورة أخرى أو أرسل البلاغ بدونها.",
       reportPrompt: "اكتب رسالة للمشرف توضّح المشكلة:",
       reportDefault: "أعتقد أن شخصاً آخر سجّل حسابي على جهاز آخر دون إذني.",
       reportSending: "جارٍ إرسال البلاغ...",
@@ -149,6 +156,13 @@
       device_in_use:
         "Ce compte est déjà connecté sur un autre appareil du même type. Déconnectez-vous de cet appareil ou demandez à un administrateur de fermer sa session.",
       reportDevice: "Signaler une usurpation à l’administrateur",
+      reportImgLabel: "Joindre une photo de votre attestation d’inscription (facultatif)",
+      reportImgHint: "Une photo lisible de votre attestation aide l’administrateur à vérifier que vous êtes le titulaire du compte.",
+      reportImgRemove: "Retirer la photo",
+      reportSend: "Envoyer le signalement",
+      reportCancel: "Annuler",
+      reportImgBad: "Choisissez une image JPG, PNG ou WebP.",
+      bad_image: "Impossible d’accepter l’image jointe. Essayez-en une autre ou envoyez sans image.",
       reportPrompt: "Écrivez un message à l’administrateur pour expliquer le problème :",
       reportDefault: "Je pense qu’une autre personne a enregistré mon compte sur un autre appareil sans mon autorisation.",
       reportSending: "Envoi du signalement...",
@@ -571,18 +585,40 @@
     }
   }
 
-  window.unemReportDevice = function () {
-    if (busy) return;
-    var msg = window.prompt(t("reportPrompt"), t("reportDefault"));
-    if (!msg || !msg.trim()) return;
+  function shrinkReportImage(file) {
+    return new Promise(function (ok, bad) {
+      var u = URL.createObjectURL(file), im = new Image();
+      im.onload = function () {
+        try {
+          var side = 1400, q = 0.72, tries = 0;
+          (function attempt() {
+            var w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, side / Math.max(w, h));
+            var c = document.createElement("canvas");
+            c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+            c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+            var data = c.toDataURL("image/jpeg", q);
+            if (data.length > 800000 && tries < 5) { tries++; side = Math.round(side * 0.8); q = Math.max(0.5, q - 0.05); return attempt(); }
+            URL.revokeObjectURL(u);
+            data.length > 850000 ? bad(new Error("big")) : ok(data);
+          })();
+        } catch (e) { URL.revokeObjectURL(u); bad(e); }
+      };
+      im.onerror = function () { URL.revokeObjectURL(u); bad(new Error("bad_image")); };
+      im.src = u;
+    });
+  }
+
+  function sendDeviceReport(msg, image) {
     busy = true;
     showErr("reportSending");
-    rpc("report_device_in_use", {
+    var args = {
       name: window.__unemGateName || "",
       reg: window.__unemGateReg || "",
       device_type: deviceType(),
-      message: msg.trim(),
-    })
+      message: msg,
+    };
+    if (image) args.image = image;
+    rpc("report_device_in_use", args)
       .then(function (d) {
         busy = false;
         if (d && d.submitted) {
@@ -596,6 +632,55 @@
         busy = false;
         showErr("offline");
       });
+  }
+
+  window.unemReportDevice = function () {
+    if (busy) return;
+    if (document.getElementById("ug-report-dlg")) return;
+    var rtl = lang() !== "fr";
+    var ov = document.createElement("div");
+    ov.id = "ug-report-dlg";
+    ov.setAttribute("dir", rtl ? "rtl" : "ltr");
+    ov.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:rgba(2,6,23,.72);display:flex;align-items:center;justify-content:center;padding:14px;font-family:inherit";
+    ov.innerHTML =
+      '<div style="width:100%;max-width:460px;max-height:92vh;overflow:auto;background:#fff;color:#0f172a;border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.45)">' +
+      '<b style="display:block;font-size:1.02rem;margin-bottom:8px">' + esc(t("reportDevice")) + "</b>" +
+      '<label style="display:block;font-size:.88rem;margin-bottom:5px">' + esc(t("reportPrompt")) + "</label>" +
+      '<textarea id="ug-rp-msg" maxlength="1000" rows="4" style="width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:9px;font:inherit;resize:vertical">' + esc(t("reportDefault")) + "</textarea>" +
+      '<label style="display:block;font-size:.88rem;margin:10px 0 3px;font-weight:700">' + esc(t("reportImgLabel")) + "</label>" +
+      '<div style="font-size:.76rem;color:#64748b;margin-bottom:6px">' + esc(t("reportImgHint")) + "</div>" +
+      '<input id="ug-rp-file" type="file" accept="image/jpeg,image/png,image/webp" style="width:100%;font:inherit;font-size:.84rem">' +
+      '<div id="ug-rp-prev" style="margin-top:8px"></div>' +
+      '<div id="ug-rp-err" style="display:none;color:#b91c1c;font-size:.82rem;margin-top:6px"></div>' +
+      '<div style="display:flex;gap:8px;margin-top:12px">' +
+      '<button type="button" id="ug-rp-send" style="flex:1;padding:10px;border:0;border-radius:10px;background:#b91c1c;color:#fff;font:inherit;font-weight:700;cursor:pointer">' + esc(t("reportSend")) + "</button>" +
+      '<button type="button" id="ug-rp-cancel" style="padding:10px 14px;border:0;border-radius:10px;background:#e2e8f0;color:#0f172a;font:inherit;font-weight:700;cursor:pointer">' + esc(t("reportCancel")) + "</button>" +
+      "</div></div>";
+    document.body.appendChild(ov);
+    var image = null, working = false;
+    var fileEl = document.getElementById("ug-rp-file"), prev = document.getElementById("ug-rp-prev"), errEl = document.getElementById("ug-rp-err");
+    function err(k) { errEl.textContent = k ? t(k) : ""; errEl.style.display = k ? "block" : "none"; }
+    function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    document.getElementById("ug-rp-cancel").onclick = close;
+    fileEl.onchange = function () {
+      err(""); image = null; prev.innerHTML = "";
+      var f = fileEl.files && fileEl.files[0];
+      if (!f) return;
+      if (!/^image\/(jpeg|png|webp)$/i.test(f.type)) { fileEl.value = ""; return err("reportImgBad"); }
+      working = true;
+      shrinkReportImage(f).then(function (data) {
+        working = false; image = data;
+        prev.innerHTML = '<img alt="" src="' + data + '" style="max-height:110px;max-width:100%;border-radius:8px;border:1px solid #e2e8f0"> <button type="button" id="ug-rp-rm" style="margin-inline-start:8px;border:0;background:#e2e8f0;border-radius:8px;padding:5px 9px;font:inherit;font-size:.78rem;cursor:pointer">' + esc(t("reportImgRemove")) + "</button>";
+        document.getElementById("ug-rp-rm").onclick = function () { image = null; prev.innerHTML = ""; fileEl.value = ""; };
+      }).catch(function () { working = false; fileEl.value = ""; err("bad_image"); });
+    };
+    document.getElementById("ug-rp-send").onclick = function () {
+      if (working) return;
+      var msg = (document.getElementById("ug-rp-msg").value || "").trim();
+      if (msg.length < 10) { err("report_too_short"); return; }
+      close();
+      sendDeviceReport(msg, image);
+    };
   };
 
   function checkReportStatus() {
