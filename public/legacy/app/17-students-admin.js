@@ -12,7 +12,7 @@ function lvlOpts(spec,sel){var l=lvls(spec);return l.map(function(x){return '<op
 function rpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function sessionRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_session_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function deviceRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_device_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
-function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|student_session_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ترحيلات الطلاب بالترتيب، بما فيها db/20261016090000_supervisor_delegation_and_student_admin.sql في Supabase.';if(/forbidden/.test(m))return 'ليست لديك الصلاحية الممنوحة لهذه العملية.';return m}
+function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|student_session_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ترحيلات الطلاب بالترتيب، بما فيها db/20261016090000_supervisor_delegation_and_student_admin.sql في Supabase.';if(/forbidden/.test(m))return 'ليست لديك الصلاحية الممنوحة لهذه العملية.';if(/bad_reg_format/.test(m))return 'يوجد رقم تسجيل غير صالح في اللائحة؛ يجب أن يكون بالشكل Ixxxxx (حرف I وخمسة أرقام).';return m}
 function $(id){return document.getElementById(id)}
 function fmt(d){try{return new Date(d).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
 function canManageStudentRecords(){return typeof hasPermission==='function'&&hasPermission('manage_students')}
@@ -196,14 +196,14 @@ window.stSave=async function(){
   if(level==='S'&&!(promo>0)){alert('أدخل رقم الدفعة (Promo) للخريجين.');return}
   var where=level==='S'?'Sortants · Promo '+promo:level;
   if(!confirm('حفظ '+p.rows.length+' طالب في '+SL[spec]+' · '+where+' ؟'))return;
-  btn.disabled=true;var tot={added:0,upgraded:0,updated:0,skipped_higher:0,extra_levels:0,invalid:0,auto_approved:0};
+  btn.disabled=true;var tot={added:0,upgraded:0,updated:0,skipped_higher:0,extra_levels:0,invalid:0,auto_approved:0},badRows=[];
   try{
     for(var i=0;i<p.rows.length;i+=400){
       res.innerHTML='⏳ جاري الحفظ... '+Math.min(i+400,p.rows.length)+' / '+p.rows.length;
       var d=await rpc('import',{spec:spec,level:level,promo:promo,rows:p.rows.slice(i,i+400)});
-      Object.keys(tot).forEach(function(k){tot[k]+=(d&&d[k])||0});
+      Object.keys(tot).forEach(function(k){tot[k]+=(d&&d[k])||0});if(d&&d.invalid_rows&&badRows.length<10)badRows=badRows.concat(d.invalid_rows).slice(0,10);
     }
-    res.innerHTML='<div class="status-msg success" style="display:block">✅ تم الحفظ — جديد: <b>'+tot.added+'</b> · ترقية لمستوى أعلى: <b>'+tot.upgraded+'</b> · محدّث: <b>'+tot.updated+'</b> · متجاهَل (موجود في مستوى أعلى): <b>'+tot.skipped_higher+'</b> · مستوى ثانٍ مُفعَّل: <b>'+tot.extra_levels+'</b> · غير صالح: <b>'+tot.invalid+'</b>'+(tot.auto_approved?' · حسابات اعتُمدت تلقائياً: <b>'+tot.auto_approved+'</b>':'')+'</div>';
+    res.innerHTML='<div class="status-msg success" style="display:block">✅ تم الحفظ — جديد: <b>'+tot.added+'</b> · ترقية لمستوى أعلى: <b>'+tot.upgraded+'</b> · محدّث: <b>'+tot.updated+'</b> · متجاهَل (موجود في مستوى أعلى): <b>'+tot.skipped_higher+'</b> · مستوى ثانٍ مُفعَّل: <b>'+tot.extra_levels+'</b> · غير صالح: <b>'+tot.invalid+'</b>'+(tot.auto_approved?' · حسابات اعتُمدت تلقائياً: <b>'+tot.auto_approved+'</b>':'')+'</div>'+(tot.invalid?'<div class="status-msg error" style="display:block;margin-top:8px">⚠️ لم يُحفظ '+tot.invalid+' صف بسبب رقم تسجيل أو اسم غير صالح (يجب أن يكون الرقم Ixxxxx):<br>'+badRows.map(function(x){return h(x.r||'—')+' — '+h(x.n||'—')}).join('<br>')+(tot.invalid>badRows.length?'<br>…':'')+'</div>':'');
     st.parsed=null;$('st-file').value='';loadStats();loadList();
   }catch(e){res.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>';btn.disabled=false}
 };
