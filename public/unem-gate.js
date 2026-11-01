@@ -108,7 +108,7 @@
       account_exists: "هذا الحساب موجود بالفعل. استخدم تسجيل الدخول.",
       needs_registration: "لم يتم العثور على حسابك. يمكنك إنشاء حساب جديد الآن.",
       bad_reg: "اكتب رقم التسجيل بشكل صحيح.",
-      bad_reg_format: "رقم التسجيل يجب أن يكون بالشكل Ixxxxx، ويبدأ من I18000 فما فوق.",
+      bad_reg_format: "رقم التسجيل يجب أن يكون بالشكل Ixxxxx (حرف I متبوعاً بخمسة أرقام).",
       registration_disabled: "إنشاء الحسابات الجديدة متوقف حالياً. يرجى التواصل مع المشرف.",
       bad_scope: "اختر التخصص والمستوى الصحيحين.",
       scope_mismatch: "التخصص أو المستوى لا يطابق بيانات حسابك.",
@@ -178,7 +178,7 @@
       account_exists: "Ce compte existe déjà. Utilisez la connexion.",
       needs_registration: "Aucun compte trouvé. Vous pouvez en créer un maintenant.",
       bad_reg: "Saisissez correctement le numéro d’inscription.",
-      bad_reg_format: "Le numéro doit être au format Ixxxxx et commencer à partir de I18000.",
+      bad_reg_format: "Le numéro doit être au format Ixxxxx (la lettre I suivie de cinq chiffres).",
       registration_disabled: "La création de nouveaux comptes est actuellement désactivée. Contactez l’administrateur.",
       bad_scope: "Choisissez une filière et un niveau valides.",
       scope_mismatch: "La filière ou le niveau ne correspond pas à votre compte.",
@@ -706,7 +706,7 @@
   }
 
   function validRegistration(reg) {
-    return /^I(1[89]\d{3}|[2-9]\d{4})$/i.test(String(reg || "").trim());
+    return /^I[1-9]\d{4}$/i.test(String(reg || "").trim());
   }
 
   function submit(creating) {
