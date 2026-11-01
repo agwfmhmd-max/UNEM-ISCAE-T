@@ -323,6 +323,8 @@ begin
 
   ------------------------------------------------------------ N) سياسة أرقام التسجيل والتحكم في إنشاء الحساب
   perform pg_temp.must(public.student_reg_allowed('I18000') and public.student_reg_allowed('I99999'), 'I18000 و I99999 يجب أن يكونا صالحين');
+  perform pg_temp.must(public.student_reg_allowed('I17562') and public.student_reg_allowed('I10000'), 'أرقام الخريجين القدامى (مثل I17562) يجب أن تكون صالحة');
+  perform pg_temp.must(not public.student_reg_allowed('I09999') and not public.student_reg_allowed('I1234') and not public.student_reg_allowed('X18000') and not public.student_reg_allowed(''), 'أشكال الأرقام غير الصحيحة يجب أن تُرفض');
   perform pg_temp.must(not public.student_reg_allowed('I17999') and not public.student_reg_allowed('I01') and not public.student_reg_allowed('I1800'), 'الأرقام القديمة أو الناقصة يجب أن تُرفض');
   perform set_config('request.jwt.claim.sub',adm::text,true);
   r := public.student_device_admin('set_registration_enabled',jsonb_build_object('enabled',false));
