@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>التحقق من بطاقة الطالب | UNEM ISCAE</title><meta name="theme-color" content="#0f5132">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--g:#0f5132;--g2:#15803d;--gold:#f5c400;--ink:#0f172a;--mut:#64748b}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Tajawal,Cairo,"Segoe UI",Arial,sans-serif;background:linear-gradient(160deg,#ecfdf5,#fffdf4 55%,#fef9c3);color:var(--ink);display:flex;flex-direction:column;align-items:center;padding:18px 14px calc(24px + env(safe-area-inset-bottom))}
+.top{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:10px}.top img{width:64px;height:64px;border-radius:50%;border:3px solid var(--g2);background:#fff}.lang{border:0;background:#fff;border-radius:12px;padding:10px 14px;font:inherit;font-weight:800;box-shadow:0 4px 14px rgba(15,81,50,.15);cursor:pointer}
+h1{font-size:1.25rem;margin:14px 0 4px;color:var(--g);text-align:center}.sub{color:var(--mut);font-size:.85rem;text-align:center;margin-bottom:14px}
+.card{width:100%;max-width:520px;background:#fff;border-radius:22px;box-shadow:0 14px 40px rgba(15,81,50,.16);overflow:hidden}
+.st{padding:18px;text-align:center;font-weight:800;font-size:1.15rem}.ok .st{background:linear-gradient(135deg,#15803d,#0f5132);color:#fff}.bad .st{background:linear-gradient(135deg,#b91c1c,#7f1d1d);color:#fff}.load .st{background:#e2e8f0;color:#334155}
+.rows{padding:6px 18px 14px}.row{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed #e2e8f0}.row:last-child{border-bottom:0}.row small{color:var(--mut);font-weight:700;white-space:nowrap}.row b{text-align:end;font-size:1.02rem;word-break:break-word}
+.note{padding:0 18px 16px;color:var(--mut);font-size:.8rem;text-align:center;line-height:1.7}.foot{margin-top:18px;color:var(--mut);font-size:.78rem;text-align:center}
+</style></head><body>
+<div class="top"><img src="/logo.png" alt="UNEM"><button class="lang" id="lang" type="button">FR</button></div>
+<h1 id="h1"></h1><div class="sub" id="sub"></div>
+<div class="card load" id="card"><div class="st" id="st"></div><div class="rows" id="rows"></div><div class="note" id="note"></div></div>
+<div class="foot">UNEM ISCAE</div>
+<script>
+var SB_URL='https://cbaswqaufawdsvadizyi.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
+var SPEC={BA:'Banques et Assurances',FC:'Finance et Comptabilité',TCM:'Techniques Commerciales et Marketing',GRH:'Gestion des Ressources Humaines',SAE:"Statistique Appliquée à l'Économie",IG:'Informatique de Gestion',DI:'Développement Informatique',RIT:'Réseaux Informatiques et Télécoms',MASTER_FC:'Master Finance et Comptabilité',MASTER_IG:'Master Informatique de Gestion'};
+var I18N={ar:{h1:'التحقق من بطاقة الطالب',sub:'الاتحاد الوطني لطلبة موريتانيا — المعهد العالي للمحاسبة وتسيير المؤسسات',load:'جارٍ التحقق...',ok:'✅ بطاقة سارية',bad:'❌ بطاقة غير صالحة أو لم تعد سارية',name:'الاسم الكامل',reg:'رقم التسجيل',year:'السنة الدراسية',spec:'التخصص',level:'المستوى',okNote:'هذه البيانات مطابقة لسجلات منصة UNEM ISCAE وقت التحقق.',badNote:'تأكد من مسح رمز QR الأصلي من البطاقة. قد تكون البطاقة غير مسجلة أو أُوقف حساب صاحبها.',err:'تعذر الاتصال بالخادم. حاول مجدداً.',grad:'خريج — الدفعة '},fr:{h1:'Vérification de la carte étudiant',sub:'Union Nationale des Étudiants de Mauritanie — ISCAE',load:'Vérification en cours...',ok:'✅ Carte valide',bad:'❌ Carte invalide ou n’est plus valide',name:'Nom complet',reg:'N° d’inscription',year:'Année universitaire',spec:'Filière',level:'Niveau',okNote:'Ces données correspondent aux enregistrements de la plateforme UNEM ISCAE au moment de la vérification.',badNote:'Scannez le code QR d’origine de la carte. Elle est peut-être inconnue ou le compte a été suspendu.',err:'Impossible de joindre le serveur. Réessayez.',grad:'Sortant — Promotion '}};
+var LANG=localStorage.getItem('unem_lang')==='fr'?'fr':'ar',DATA=null,STATE='load';
+function t(k){return I18N[LANG][k]}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function paint(){
+  document.documentElement.lang=LANG;document.documentElement.dir=LANG==='ar'?'rtl':'ltr';
+  document.getElementById('lang').textContent=LANG==='ar'?'FR':'عربي';
+  document.getElementById('h1').textContent=t('h1');document.getElementById('sub').textContent=t('sub');
+  var card=document.getElementById('card');card.className='card '+(STATE==='load'?'load':STATE==='ok'?'ok':'bad');
+  document.getElementById('st').textContent=STATE==='load'?t('load'):STATE==='ok'?t('ok'):STATE==='err'?t('err'):t('bad');
+  var rows='',note='';
+  if(STATE==='ok'&&DATA){
+    var lv=DATA.promo?t('grad')+DATA.promo:DATA.level,y=DATA.academic_year+'-'+(+DATA.academic_year+1),sp=DATA.spec+(SPEC[DATA.spec]?' — '+SPEC[DATA.spec]:'');
+    [[t('name'),DATA.full_name],[t('reg'),DATA.reg_no],[t('year'),y],[t('spec'),sp],[t('level'),lv]].forEach(function(r){rows+='<div class="row"><small>'+esc(r[0])+'</small><b dir="auto">'+esc(r[1])+'</b></div>'});
+    note=t('okNote');
+  }else if(STATE==='bad')note=t('badNote');
+  document.getElementById('rows').innerHTML=rows;document.getElementById('note').textContent=note;
+}
+document.getElementById('lang').onclick=function(){LANG=LANG==='ar'?'fr':'ar';localStorage.setItem('unem_lang',LANG);paint()};
+(function(){
+  paint();
+  var c=(new URLSearchParams(location.search).get('c')||'').trim();
+  if(!/^[A-Za-z0-9]{8,16}$/.test(c)){STATE='bad';paint();return}
+  fetch(SB_URL+'/rest/v1/rpc/student_card_verify',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'content-type':'application/json'},body:JSON.stringify({p_token:c})})
+    .then(function(r){if(!r.ok)throw new Error('http');return r.json()})
+    .then(function(d){if(d&&d.valid){DATA=d;STATE='ok'}else STATE='bad';paint()})
+    .catch(function(){STATE='err';paint()});
+})();
+</script></body></html>
