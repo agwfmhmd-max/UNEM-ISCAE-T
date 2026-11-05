@@ -14,6 +14,7 @@ import { Route as CommunityRouteImport } from './routes/community'
 import { Route as EmploisRouteImport } from './routes/emplois'
 import { Route as MoyenneRouteImport } from './routes/moyenne'
 import { Route as ResultatsRouteImport } from './routes/resultats'
+import { Route as VerifyCardRouteImport } from './routes/verify-card'
 import { Route as ApiWebProxyRouteImport } from './routes/api/web-proxy'
 import { Route as ApiPublicCloudinaryConfigRouteImport } from './routes/api/public/cloudinary/config'
 import { Route as ApiPublicCloudinaryDestroyRouteImport } from './routes/api/public/cloudinary/destroy'
@@ -48,6 +49,11 @@ const MoyenneRoute = MoyenneRouteImport.update({
 const ResultatsRoute = ResultatsRouteImport.update({
   id: '/resultats',
   path: '/resultats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyCardRoute = VerifyCardRouteImport.update({
+  id: '/verify-card',
+  path: '/verify-card',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWebProxyRoute = ApiWebProxyRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/verify-card': typeof VerifyCardRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/verify-card': typeof VerifyCardRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/verify-card': typeof VerifyCardRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/emplois'
     | '/moyenne'
     | '/resultats'
+    | '/verify-card'
     | '/api/web-proxy'
     | '/api/public/cloudinary/config'
     | '/api/public/cloudinary/destroy'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/emplois'
     | '/moyenne'
     | '/resultats'
+    | '/verify-card'
     | '/api/web-proxy'
     | '/api/public/cloudinary/config'
     | '/api/public/cloudinary/destroy'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/emplois'
     | '/moyenne'
     | '/resultats'
+    | '/verify-card'
     | '/api/web-proxy'
     | '/api/public/cloudinary/config'
     | '/api/public/cloudinary/destroy'
@@ -215,6 +227,7 @@ export interface RootRouteChildren {
   EmploisRoute: typeof EmploisRoute
   MoyenneRoute: typeof MoyenneRoute
   ResultatsRoute: typeof ResultatsRoute
+  VerifyCardRoute: typeof VerifyCardRoute
   ApiWebProxyRoute: typeof ApiWebProxyRoute
   ApiPublicCloudinaryConfigRoute: typeof ApiPublicCloudinaryConfigRoute
   ApiPublicCloudinaryDestroyRoute: typeof ApiPublicCloudinaryDestroyRoute
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/resultats'
       fullPath: '/resultats'
       preLoaderRoute: typeof ResultatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-card': {
+      id: '/verify-card'
+      path: '/verify-card'
+      fullPath: '/verify-card'
+      preLoaderRoute: typeof VerifyCardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/web-proxy': {
@@ -343,6 +363,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmploisRoute: EmploisRoute,
   MoyenneRoute: MoyenneRoute,
   ResultatsRoute: ResultatsRoute,
+  VerifyCardRoute: VerifyCardRoute,
   ApiWebProxyRoute: ApiWebProxyRoute,
   ApiPublicCloudinaryConfigRoute: ApiPublicCloudinaryConfigRoute,
   ApiPublicCloudinaryDestroyRoute: ApiPublicCloudinaryDestroyRoute,
