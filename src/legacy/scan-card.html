@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>فحص بطاقات الطلاب | UNEM ISCAE</title><meta name="theme-color" content="#0f5132">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/unem-jsqr.js"></script>
+<style>
+:root{--g:#0f5132;--g2:#15803d;--gold:#f5c400;--ink:#0f172a;--mut:#64748b}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Tajawal,Cairo,"Segoe UI",Arial,sans-serif;background:linear-gradient(160deg,#ecfdf5,#fffdf4 55%,#fef9c3);color:var(--ink);padding:14px 12px calc(28px + env(safe-area-inset-bottom))}
+.wrap{max-width:560px;margin:0 auto}.top{display:flex;align-items:center;gap:10px}.top img{width:54px;height:54px;border-radius:50%;border:3px solid var(--g2);background:#fff}.top h1{flex:1;margin:0;font-size:1.12rem;color:var(--g)}
+.chip{border:0;background:#fff;border-radius:12px;padding:9px 13px;font:inherit;font-weight:800;box-shadow:0 4px 14px rgba(15,81,50,.15);cursor:pointer;color:var(--ink);text-decoration:none;display:inline-block}
+.card{background:#fff;border-radius:20px;box-shadow:0 12px 34px rgba(15,81,50,.14);padding:14px;margin-top:12px}.card h2{margin:0 0 8px;font-size:1rem;color:var(--g)}
+label{display:block;font-weight:700;font-size:.85rem;margin:8px 0 4px;color:#334155}input{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:11px;font:inherit;background:#fff}
+.btn{border:0;border-radius:13px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--g2);color:#fff}.btn.alt{background:#e2e8f0;color:var(--ink)}.btn.gold{background:var(--gold);color:#3b2a00}.btn:disabled{opacity:.55}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.row>*{flex:1}
+.msg{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:.88rem;font-weight:700;background:#e0f2fe;color:#075985}.msg.err{background:#fee2e2;color:#991b1b}
+.cam{position:relative;border-radius:18px;overflow:hidden;background:#0b1220;aspect-ratio:4/3;margin-top:8px}.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.cam .frame{position:absolute;inset:16% 16%;border:3px solid rgba(245,196,0,.95);border-radius:20px;box-shadow:0 0 0 999px rgba(2,6,23,.38);pointer-events:none}
+.cam .hint{position:absolute;bottom:8px;inset-inline:8px;text-align:center;color:#fff;font-size:.8rem;font-weight:700;text-shadow:0 1px 4px #000}.cam.off::after{content:attr(data-off);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:800;padding:20px;text-align:center}
+.res{border-radius:18px;overflow:hidden;border:2px solid #e2e8f0;margin-top:12px}.res .st{padding:14px;text-align:center;font-weight:800;font-size:1.1rem;color:#fff}.res.ok{border-color:#15803d}.res.ok .st{background:linear-gradient(135deg,#15803d,#0f5132)}.res.warn{border-color:#d97706}.res.warn .st{background:linear-gradient(135deg,#d97706,#92400e)}.res.bad{border-color:#b91c1c}.res.bad .st{background:linear-gradient(135deg,#b91c1c,#7f1d1d)}
+.who{display:flex;gap:12px;align-items:center;padding:12px 14px;background:#f8fafc}.who .ph{width:84px;height:92px;border-radius:14px;border:3px solid var(--gold);background:#e7efe3;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:2.6rem;font-weight:800;color:var(--g2);flex:none}
+.who b{font-size:1.05rem;display:block}.who small{color:var(--mut);font-weight:700}
+.fl{padding:4px 14px 12px}.fl div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed #e2e8f0;font-size:.92rem}.fl div:last-child{border-bottom:0}.fl small{color:var(--mut);font-weight:700;white-space:nowrap}.fl b{text-align:end;word-break:break-word}
+.hist{margin-top:6px}.hist button{display:flex;width:100%;justify-content:space-between;gap:10px;align-items:center;padding:9px 11px;margin-top:6px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;font:inherit;text-align:start;cursor:pointer}.hist small{color:var(--mut)}
+.hidden{display:none!important}
+</style></head><body><div class="wrap">
+<div class="top"><img src="/logo.png" alt="UNEM"><h1 id="title"></h1><button class="chip" id="lang" type="button">FR</button></div>
+
+<div class="card hidden" id="loginCard"><h2 id="loginT"></h2><p style="margin:0 0 6px;color:var(--mut);font-size:.88rem" id="loginD"></p>
+<label id="lEmail"></label><input id="email" type="email" autocomplete="username" dir="ltr"><label id="lPass"></label><input id="pass" type="password" autocomplete="current-password" dir="ltr">
+<div class="row"><button class="btn" id="loginBtn" type="button"></button></div><div id="loginMsg"></div></div>
+
+<div id="app" class="hidden">
+ <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 id="scanT" style="margin:0"></h2><button class="chip" id="logout" type="button"></button></div>
+  <div class="cam off" id="cam" data-off=""><video id="video" playsinline muted></video><div class="frame"></div><div class="hint" id="camHint"></div></div>
+  <div class="row"><button class="btn" id="camBtn" type="button"></button><button class="btn alt" id="camStop" type="button"></button></div><div id="camMsg"></div>
+ </div>
+ <div class="card"><h2 id="manT"></h2><div class="row" style="margin-top:0"><input id="q" dir="ltr" autocomplete="off" style="flex:2"><button class="btn gold" id="qBtn" type="button" style="flex:1"></button></div><div id="manHint" style="color:var(--mut);font-size:.78rem;margin-top:6px"></div></div>
+ <div id="result"></div>
+ <div class="card"><h2 id="histT"></h2><div class="hist" id="hist"></div></div>
+</div>
+<div class="card hidden" id="forbidCard"><h2 id="forbidT"></h2><p id="forbidD" style="color:var(--mut)"></p><div class="row"><button class="btn alt" id="forbidOut" type="button"></button></div></div>
+</div>
+<canvas id="cv" class="hidden"></canvas>
+<script>
+var SB_URL='https://cbaswqaufawdsvadizyi.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
+var SPEC={BA:'Banques et Assurances',FC:'Finance et Comptabilité',TCM:'Techniques Commerciales et Marketing',GRH:'Gestion des Ressources Humaines',SAE:"Statistique Appliquée à l'Économie",IG:'Informatique de Gestion',DI:'Développement Informatique',RIT:'Réseaux Informatiques et Télécoms',MASTER_FC:'Master Finance et Comptabilité',MASTER_IG:'Master Informatique de Gestion'};
+var I18N={
+ ar:{title:'📷 فحص بطاقات الطلاب',loginT:'دخول المشرف',loginD:'سجّل الدخول بحساب المشرف للتحقق من البطاقات.',email:'البريد الإلكتروني',pass:'كلمة المرور',login:'دخول',logout:'خروج',scanT:'مسح رمز QR للبطاقة',camOn:'📷 تشغيل الكاميرا',camOff:'إيقاف',camHint:'ضع رمز QR داخل الإطار',camOffTxt:'الكاميرا متوقفة',camErr:'تعذر تشغيل الكاميرا. اسمح بالوصول إليها من إعدادات المتصفح، أو أدخل رقم البطاقة يدوياً.',camNo:'هذا المتصفح لا يدعم الكاميرا؛ أدخل رقم البطاقة يدوياً.',manT:'أو أدخل الرقم يدوياً',manPh:'UNEM-ISCAE-2026-0001',check:'تحقق',manHint:'يقبل: رقم البطاقة (UNEM-ISCAE-2026-0001 أو 0001) أو رقم التسجيل (I20285) أو رمز/رابط QR.',histT:'آخر عمليات الفحص',noHist:'لا توجد عمليات فحص بعد.',
+  ok:'✅ بطاقة صحيحة وسارية',warn:'⚠️ الحساب غير معتمد',bad:'❌ بطاقة غير موجودة أو غير صالحة',name:'الاسم الكامل',reg:'رقم التسجيل',code:'رقم البطاقة',year:'السنة الدراسية',spec:'التخصص',level:'المستوى',issued:'تاريخ التسجيل',status:'حالة الحساب',grad:'خريج — الدفعة ',st_pending:'قيد المراجعة',st_rejected:'مرفوض',st_approved:'معتمد',
+  forbidT:'لا تملك الصلاحية',forbidD:'هذا الحساب غير مخوّل بفحص البطاقات. المطلوب: مشرف رئيسي أو مشرف لديه صلاحية عرض تسجيلات الطلاب.',err:'تعذر الاتصال بالخادم. حاول مجدداً.',badLogin:'البريد أو كلمة المرور غير صحيحة.',need:'أدخل البريد وكلمة المرور.'},
+ fr:{title:'📷 Contrôle des cartes étudiant',loginT:'Connexion administrateur',loginD:'Connectez-vous avec un compte administrateur pour vérifier les cartes.',email:'E-mail',pass:'Mot de passe',login:'Connexion',logout:'Déconnexion',scanT:'Scanner le QR de la carte',camOn:'📷 Activer la caméra',camOff:'Arrêter',camHint:'Placez le QR dans le cadre',camOffTxt:'Caméra arrêtée',camErr:'Impossible de démarrer la caméra. Autorisez-la dans les réglages du navigateur ou saisissez le numéro.',camNo:'Ce navigateur ne prend pas en charge la caméra ; saisissez le numéro.',manT:'Ou saisir le numéro',manPh:'UNEM-ISCAE-2026-0001',check:'Vérifier',manHint:'Accepte : n° de carte (UNEM-ISCAE-2026-0001 ou 0001), n° d’inscription (I20285) ou code/lien QR.',histT:'Derniers contrôles',noHist:'Aucun contrôle pour le moment.',
+  ok:'✅ Carte valide',warn:'⚠️ Compte non approuvé',bad:'❌ Carte introuvable ou invalide',name:'Nom complet',reg:'N° d’inscription',code:'N° de carte',year:'Année universitaire',spec:'Filière',level:'Niveau',issued:'Date d’inscription',status:'Statut du compte',grad:'Sortant — Promotion ',st_pending:'En attente',st_rejected:'Refusé',st_approved:'Approuvé',
+  forbidT:'Accès refusé',forbidD:'Ce compte n’est pas autorisé à contrôler les cartes. Requis : administrateur principal ou superviseur avec la permission de consulter les inscriptions.',err:'Impossible de joindre le serveur. Réessayez.',badLogin:'E-mail ou mot de passe incorrect.',need:'Saisissez l’e-mail et le mot de passe.'}};
+var LANG=localStorage.getItem('unem_lang')==='fr'?'fr':'ar';
+function t(k){return I18N[LANG][k]}
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var sb=window.supabase.createClient(SB_URL,SB_KEY);
+var S={stream:null,timer:null,busy:false,last:'',lastAt:0,hist:[],detector:null,view:'init',current:null};
+function beep(ok){try{var A=window.AudioContext||window.webkitAudioContext,c=new A(),o=c.createOscillator(),g=c.createGain();o.frequency.value=ok?880:220;o.type='sine';g.gain.value=.12;o.connect(g);g.connect(c.destination);o.start();setTimeout(function(){o.stop();c.close()},ok?140:380)}catch(e){}try{navigator.vibrate&&navigator.vibrate(ok?60:[120,60,120])}catch(e){}}
+function paintStatic(){
+  document.documentElement.lang=LANG;document.documentElement.dir=LANG==='ar'?'rtl':'ltr';$('lang').textContent=LANG==='ar'?'FR':'عربي';
+  $('title').textContent=t('title');$('loginT').textContent=t('loginT');$('loginD').textContent=t('loginD');$('lEmail').textContent=t('email');$('lPass').textContent=t('pass');$('loginBtn').textContent=t('login');
+  $('logout').textContent=t('logout');$('scanT').textContent=t('scanT');$('camBtn').textContent=t('camOn');$('camStop').textContent=t('camOff');$('camHint').textContent=t('camHint');$('cam').setAttribute('data-off',t('camOffTxt'));
+  $('manT').textContent=t('manT');$('q').placeholder=t('manPh');$('qBtn').textContent=t('check');$('manHint').textContent=t('manHint');$('histT').textContent=t('histT');
+  $('forbidT').textContent=t('forbidT');$('forbidD').textContent=t('forbidD');$('forbidOut').textContent=t('logout');
+  if(S.current)renderResult(S.current.r,S.current.q);renderHist();
+}
+function show(view){S.view=view;$('loginCard').classList.toggle('hidden',view!=='login');$('app').classList.toggle('hidden',view!=='app');$('forbidCard').classList.toggle('hidden',view!=='forbid');if(view!=='app')stopCam()}
+function msg(id,text,err){$(id).innerHTML=text?'<div class="msg'+(err?' err':'')+'">'+esc(text)+'</div>':''}
+async function checkAccess(){
+  var r=await sb.rpc('student_card_lookup',{p_query:'0'});
+  if(r.error){if(/forbidden/i.test(r.error.message||'')){show('forbid');return false}msg('loginMsg',t('err'),true);show('login');return false}
+  show('app');return true;
+}
+async function login(){
+  var e=$('email').value.trim(),p=$('pass').value;if(!e||!p)return msg('loginMsg',t('need'),true);
+  $('loginBtn').disabled=true;msg('loginMsg','⏳ ...');
+  try{var r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)throw r.error;$('pass').value='';msg('loginMsg','');await checkAccess()}
+  catch(x){msg('loginMsg',/invalid login/i.test(x&&x.message||'')?t('badLogin'):(t('err')),true)}finally{$('loginBtn').disabled=false}
+}
+async function logout(){stopCam();try{await sb.auth.signOut()}catch(e){}S.current=null;$('result').innerHTML='';show('login')}
+/* ---------- البحث ---------- */
+async function lookup(q,fromScan){
+  q=String(q||'').trim();if(!q)return;S.busy=true;
+  var r=await sb.rpc('student_card_lookup',{p_query:q});
+  if(r.error){S.busy=false;if(/forbidden/i.test(r.error.message||''))return show('forbid');return msg('camMsg',t('err'),true)}
+  var d=r.data||{found:false};S.current={r:d,q:q};renderResult(d,q);beep(!!(d.found&&d.valid));
+  S.hist.unshift({t:new Date(),r:d,q:q});S.hist=S.hist.slice(0,12);renderHist();
+  setTimeout(function(){S.busy=false},fromScan?2200:0);
+}
+function renderResult(d,q){
+  var cls=!d.found?'bad':d.valid?'ok':'warn',stt=!d.found?t('bad'):d.valid?t('ok'):t('warn');
+  var html='<div class="res '+cls+'"><div class="st">'+esc(stt)+'</div>';
+  if(d.found){
+    var lv=d.promo?t('grad')+d.promo:d.level,y=d.academic_year+'-'+(+d.academic_year+1),sp=d.spec+(SPEC[d.spec]?' — '+SPEC[d.spec]:''),ini=esc(((d.full_name||'?').trim()[0]||'?').toUpperCase());
+    html+='<div class="who">'+(d.avatar?'<img class="ph" alt="" src="'+esc(d.avatar)+'">':'<div class="ph">'+ini+'</div>')+'<div><b dir="auto">'+esc(d.full_name)+'</b><small dir="ltr">'+esc(d.card_code||'')+'</small></div></div><div class="fl">'
+      +'<div><small>'+t('code')+'</small><b dir="ltr">'+esc(d.card_code||'—')+'</b></div><div><small>'+t('reg')+'</small><b dir="ltr">'+esc(d.reg_no)+'</b></div><div><small>'+t('year')+'</small><b dir="ltr">'+esc(y)+'</b></div><div><small>'+t('spec')+'</small><b dir="auto">'+esc(sp)+'</b></div><div><small>'+t('level')+'</small><b dir="auto">'+esc(lv)+'</b></div>'
+      +(d.valid?'':'<div><small>'+t('status')+'</small><b>'+esc(t('st_'+d.status)||d.status)+'</b></div>')
+      +(d.issued_at?'<div><small>'+t('issued')+'</small><b dir="ltr">'+esc(String(d.issued_at).slice(0,10))+'</b></div>':'')+'</div>';
+  }else html+='<div class="fl"><div><small>🔎</small><b dir="ltr">'+esc(String(q).slice(0,60))+'</b></div></div>';
+  $('result').innerHTML=html+'</div>';
+}
+function renderHist(){
+  $('hist').innerHTML=S.hist.length?S.hist.map(function(h,i){var ok=h.r.found&&h.r.valid,tm=h.t.toTimeString().slice(0,5);return '<button type="button" data-i="'+i+'"><span>'+(h.r.found?(ok?'✅ ':'⚠️ ')+esc(h.r.full_name):'❌ '+esc(String(h.q).slice(0,28)))+'<br><small dir="ltr">'+esc(h.r.card_code||'')+'</small></span><small dir="ltr">'+tm+'</small></button>'}).join(''):'<small style="color:var(--mut)">'+t('noHist')+'</small>';
+}
+/* ---------- الكاميرا ---------- */
+async function startCam(){
+  msg('camMsg','');
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))return msg('camMsg',t('camNo'),true);
+  try{
+    stopCam();
+    S.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    var v=$('video');v.srcObject=S.stream;await v.play();$('cam').classList.remove('off');
+    S.detector=null;try{if(window.BarcodeDetector)S.detector=new BarcodeDetector({formats:['qr_code']})}catch(e){}
+    S.timer=setInterval(scanFrame,140);
+  }catch(e){msg('camMsg',t('camErr'),true)}
+}
+function stopCam(){if(S.timer){clearInterval(S.timer);S.timer=null}if(S.stream){S.stream.getTracks().forEach(function(x){x.stop()});S.stream=null}var v=$('video');if(v)v.srcObject=null;var c=$('cam');if(c)c.classList.add('off')}
+var scanning=false;
+async function scanFrame(){
+  if(scanning||S.busy||!S.stream)return;var v=$('video');if(!v||v.readyState<2||!v.videoWidth)return;scanning=true;
+  try{
+    var code='';
+    if(S.detector){try{var f=await S.detector.detect(v);if(f&&f.length)code=f[0].rawValue||''}catch(e){S.detector=null}}
+    if(!code){
+      var w=Math.min(960,v.videoWidth),h=Math.round(v.videoHeight*w/v.videoWidth),cv=$('cv');cv.width=w;cv.height=h;var cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(v,0,0,w,h);
+      var img=cx.getImageData(0,0,w,h),r=window.jsQR&&jsQR(img.data,w,h,{inversionAttempts:'attemptBoth'});if(r&&r.data)code=r.data;
+    }
+    if(code){var now=Date.now();if(code===S.last&&now-S.lastAt<4000){S.lastAt=now;return}S.last=code;S.lastAt=now;await lookup(code,true)}
+  }catch(e){}finally{scanning=false}
+}
+/* ---------- ربط الأحداث ---------- */
+$('lang').onclick=function(){LANG=LANG==='ar'?'fr':'ar';localStorage.setItem('unem_lang',LANG);paintStatic()};
+$('loginBtn').onclick=login;$('pass').addEventListener('keydown',function(e){if(e.key==='Enter')login()});
+$('logout').onclick=logout;$('forbidOut').onclick=logout;
+$('camBtn').onclick=startCam;$('camStop').onclick=stopCam;
+$('qBtn').onclick=function(){lookup($('q').value,false)};$('q').addEventListener('keydown',function(e){if(e.key==='Enter')lookup($('q').value,false)});
+$('hist').addEventListener('click',function(e){var b=e.target.closest('[data-i]');if(!b)return;var h=S.hist[+b.dataset.i];if(h){S.current={r:h.r,q:h.q};renderResult(h.r,h.q)}});
+document.addEventListener('visibilitychange',function(){if(document.hidden)stopCam()});
+(async function(){
+  paintStatic();
+  try{var r=await sb.auth.getSession();if(r&&r.data&&r.data.session){await checkAccess()}else show('login')}catch(e){show('login')}
+})();
+</script></body></html>
