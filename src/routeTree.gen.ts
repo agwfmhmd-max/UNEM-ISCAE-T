@@ -14,6 +14,7 @@ import { Route as CommunityRouteImport } from './routes/community'
 import { Route as EmploisRouteImport } from './routes/emplois'
 import { Route as MoyenneRouteImport } from './routes/moyenne'
 import { Route as ResultatsRouteImport } from './routes/resultats'
+import { Route as ScanCardRouteImport } from './routes/scan-card'
 import { Route as VerifyCardRouteImport } from './routes/verify-card'
 import { Route as ApiWebProxyRouteImport } from './routes/api/web-proxy'
 import { Route as ApiPublicCloudinaryConfigRouteImport } from './routes/api/public/cloudinary/config'
@@ -49,6 +50,11 @@ const MoyenneRoute = MoyenneRouteImport.update({
 const ResultatsRoute = ResultatsRouteImport.update({
   id: '/resultats',
   path: '/resultats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanCardRoute = ScanCardRouteImport.update({
+  id: '/scan-card',
+  path: '/scan-card',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyCardRoute = VerifyCardRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/scan-card': typeof ScanCardRoute
   '/verify-card': typeof VerifyCardRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/scan-card': typeof ScanCardRoute
   '/verify-card': typeof VerifyCardRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/scan-card': typeof ScanCardRoute
   '/verify-card': typeof VerifyCardRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/emplois'
     | '/moyenne'
     | '/resultats'
+    | '/scan-card'
     | '/verify-card'
     | '/api/web-proxy'
     | '/api/public/cloudinary/config'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/emplois'
     | '/moyenne'
     | '/resultats'
+    | '/scan-card'
     | '/verify-card'
     | '/api/web-proxy'
     | '/api/public/cloudinary/config'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/emplois'
     | '/moyenne'
     | '/resultats'
+    | '/scan-card'
     | '/verify-card'
     | '/api/web-proxy'
     | '/api/public/cloudinary/config'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   EmploisRoute: typeof EmploisRoute
   MoyenneRoute: typeof MoyenneRoute
   ResultatsRoute: typeof ResultatsRoute
+  ScanCardRoute: typeof ScanCardRoute
   VerifyCardRoute: typeof VerifyCardRoute
   ApiWebProxyRoute: typeof ApiWebProxyRoute
   ApiPublicCloudinaryConfigRoute: typeof ApiPublicCloudinaryConfigRoute
@@ -275,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/resultats'
       fullPath: '/resultats'
       preLoaderRoute: typeof ResultatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan-card': {
+      id: '/scan-card'
+      path: '/scan-card'
+      fullPath: '/scan-card'
+      preLoaderRoute: typeof ScanCardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify-card': {
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmploisRoute: EmploisRoute,
   MoyenneRoute: MoyenneRoute,
   ResultatsRoute: ResultatsRoute,
+  ScanCardRoute: ScanCardRoute,
   VerifyCardRoute: VerifyCardRoute,
   ApiWebProxyRoute: ApiWebProxyRoute,
   ApiPublicCloudinaryConfigRoute: ApiPublicCloudinaryConfigRoute,
