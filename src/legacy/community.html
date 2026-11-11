@@ -498,7 +498,7 @@ window.adminDelete=(type,id)=>{const allowed=type==='message'?(!!me?.admin||isRo
 window.adminClearRoom=r=>{if(!isRoomMod(r)||!confirm(t('adminDeleteQ')))return;run('admin_delete',{type:'room',room:r},()=>{if(room===r){rtPing();closeChat()}render()})};
 async function vDms(){if(me?.admin){const x=await run('admin_list');if(!x)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;const d=(x.rooms||[]).filter(r=>r.room.startsWith('dm:'));$('#main').innerHTML=`<p class="note">${t('adminAllNote')}</p>`+(d.length?d.map(r=>`<div class="card li" data-room="${esc(r.room)}" data-title="${esc(r.title||t('roomDM'))}" data-sub="${esc(t('roomCount',r.messages||0))}" onclick="openChatEl(this)">${roomMark(r.room,r.title||t('roomDM'))}<div><b>${esc(r.title||t('roomDM'))}</b><small>${esc(t('roomCount',r.messages||0))}${r.last_t?' · '+ago(r.last_t):''}</small></div><i class="fas ${nxt()}"></i></div>`).join(''):`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`);return}const d=await run('dms');if(!d)return $('#main').innerHTML=`<div class="empty">${t('failLoad')}</div>`;d.forEach(x=>rem(x.other,x.an,x.avatar));$('#main').innerHTML=d.length?d.map(x=>`<div class="card li" data-id="${esc(x.other)}" data-name="${esc(x.an)}" onclick="openDmEl(this)">${av(x.an,x.avatar)}<div><b>${esc(x.an)}</b><small>${esc(x.body.slice(0,60))} · ${ago(x.t)}</small></div>${repBtn('student',x.other,x.other,x.an)}</div>`).join('')+`<p class="note">${t('dmNote')}</p>`:`<div class="empty"><i class="fas fa-comments fa-2x"></i><p>${t('noDms')}</p></div>`}
 /* ===== إشعارات الإشارات (@): اشتراك الجهاز، تنبيه داخل التطبيق، وفتح الرسالة من الإشعار ===== */
-const BUILD='2026-11-05-r9';const IS_WV=()=>{const u=navigator.userAgent||'';return /Android/i.test(u)&&(/[; ]wv\)/i.test(u)||/AndroidWebView/i.test(u)||/UNEMISCAE-Android/i.test(u))};let PUSH_ST='unknown';
+const BUILD='2026-11-08-r10';const IS_WV=()=>{const u=navigator.userAgent||'';return /Android/i.test(u)&&(/[; ]wv\)/i.test(u)||/AndroidWebView/i.test(u)||/UNEMISCAE-Android/i.test(u))};let PUSH_ST='unknown';
 const PUSH_UI=()=>{try{return 'serviceWorker' in navigator&&'PushManager' in window&&typeof Notification!=='undefined'&&window.isSecureContext}catch(e){return false}};
 function b64uToU8(s){const p='='.repeat((4-s.length%4)%4),b=(s+p).replace(/-/g,'+').replace(/_/g,'/'),r=atob(b),o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}
 async function pushSw(){try{await navigator.serviceWorker.register('/sw.js');return await Promise.race([navigator.serviceWorker.ready,new Promise(r=>setTimeout(()=>r(null),6000))])}catch(e){return null}}
@@ -551,6 +551,12 @@ function cardText(c,txt,x,y,maxW,px,minPx,weight,color,align){
   if(c.measureText(txt).width>maxW){while(txt.length>3&&c.measureText(txt+'…').width>maxW)txt=txt.slice(0,-1);txt+='…'}
   c.fillText(txt,x,y);c.direction='ltr';
 }
+const CARD_PARTS=new Set(['el','al','ed','es','en','er','ez','ould','oul','ben','bin','ibn','bint','mint','abd','abdel','abdou','abdoul','abdul','abou','abu','oum','ummu','sidi','sid','sidy','moulaye','ag','ait','ahl']);
+function cardShortName(full){
+  const toks=String(full||'').trim().split(/\s+/).filter(Boolean);if(toks.length<2)return toks[0]||'';
+  const groups=[];for(let i=0;i<toks.length;i++){let g=toks[i];while(CARD_PARTS.has(g.split(' ').pop().toLowerCase().replace(/[.'’-]/g,''))&&i+1<toks.length){i++;g+=' '+toks[i]}groups.push(g)}
+  return groups.length>1?groups[0]+' '+groups[groups.length-1]:groups[0];
+}
 async function cardRender(cv,d){
   try{await Promise.all([document.fonts.load('800 36px Tajawal'),document.fonts.load('500 20px Tajawal'),document.fonts.load('700 20px Tajawal')])}catch(e){}
   const [logo,photo]=await Promise.all([cardImg('/logo.png'),cardImg(me&&me.avatar_data)]);
@@ -578,7 +584,7 @@ async function cardRender(cv,d){
   if(photo){const r=Math.max(176/photo.width,190/photo.height),w=photo.width*r,h=photo.height*r;c.drawImage(photo,42+(176-w)/2,236+(190-h)/2,w,h)}
   else{c.fillStyle='#e7efe3';c.fillRect(42,236,176,190);c.fillStyle='#15803d';c.font='800 104px Tajawal,Arial';c.textAlign='center';c.direction='ltr';c.textBaseline='alphabetic';c.fillText(((d.full_name||'?').trim()[0]||'?').toUpperCase(),130,360)}
   c.restore();c.lineWidth=5;c.strokeStyle='#f5c400';cardRR(c,42,236,176,190,22);c.stroke();
-  const toks=String(d.full_name||'').trim().split(/\s+/),short=toks.length>1?toks[0]+' '+toks[toks.length-1]:toks[0]||'';
+  const short=cardShortName(d.full_name);
   c.fillStyle='#0b3d26';cardRR(c,34,436,192,48,16);c.fill();cardText(c,short,130,468,172,24,13,'800','#fff','center');
   c.fillStyle='#f5c400';cardRR(c,60,490,140,30,15);c.fill();cardText(c,'بطاقة طالب',130,512,124,19,12,'800','#3b2a00','center');
   c.fillStyle='#475569';c.font='700 12px Arial';c.textAlign='center';c.direction='ltr';if('letterSpacing' in c)c.letterSpacing='3px';c.fillText('CARTE ÉTUDIANT',130,543);if('letterSpacing' in c)c.letterSpacing='0px';
