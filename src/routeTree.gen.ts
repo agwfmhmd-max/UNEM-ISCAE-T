@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CardAdminRouteImport } from './routes/card-admin'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as EmploisRouteImport } from './routes/emplois'
 import { Route as MoyenneRouteImport } from './routes/moyenne'
@@ -22,6 +23,7 @@ import { Route as ApiPublicCloudinaryDestroyRouteImport } from './routes/api/pub
 import { Route as ApiPublicCloudinarySignRouteImport } from './routes/api/public/cloudinary/sign'
 import { Route as ApiPublicFcmRegisterRouteImport } from './routes/api/public/fcm/register'
 import { Route as ApiPublicPushActivityRouteImport } from './routes/api/public/push/activity'
+import { Route as ApiPublicPushCardRouteImport } from './routes/api/public/push/card'
 import { Route as ApiPublicPushMentionRouteImport } from './routes/api/public/push/mention'
 import { Route as ApiPublicPushRelayRouteImport } from './routes/api/public/push/relay'
 import { Route as ApiPublicPushSendRouteImport } from './routes/api/public/push/send'
@@ -30,6 +32,11 @@ import { Route as ApiPublicPushVapidKeyRouteImport } from './routes/api/public/p
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CardAdminRoute = CardAdminRouteImport.update({
+  id: '/card-admin',
+  path: '/card-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommunityRoute = CommunityRouteImport.update({
@@ -94,6 +101,11 @@ const ApiPublicPushActivityRoute = ApiPublicPushActivityRouteImport.update({
   path: '/api/public/push/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPushCardRoute = ApiPublicPushCardRouteImport.update({
+  id: '/api/public/push/card',
+  path: '/api/public/push/card',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPushMentionRoute = ApiPublicPushMentionRouteImport.update({
   id: '/api/public/push/mention',
   path: '/api/public/push/mention',
@@ -117,6 +129,7 @@ const ApiPublicPushVapidKeyRoute = ApiPublicPushVapidKeyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/card-admin': typeof CardAdminRoute
   '/community': typeof CommunityRoute
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
@@ -129,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
+  '/api/public/push/card': typeof ApiPublicPushCardRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
@@ -136,6 +150,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/card-admin': typeof CardAdminRoute
   '/community': typeof CommunityRoute
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
@@ -148,6 +163,7 @@ export interface FileRoutesByTo {
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
+  '/api/public/push/card': typeof ApiPublicPushCardRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
@@ -156,6 +172,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/card-admin': typeof CardAdminRoute
   '/community': typeof CommunityRoute
   '/emplois': typeof EmploisRoute
   '/moyenne': typeof MoyenneRoute
@@ -168,6 +185,7 @@ export interface FileRoutesById {
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
+  '/api/public/push/card': typeof ApiPublicPushCardRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
@@ -177,6 +195,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/card-admin'
     | '/community'
     | '/emplois'
     | '/moyenne'
@@ -189,6 +208,7 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
+    | '/api/public/push/card'
     | '/api/public/push/mention'
     | '/api/public/push/relay'
     | '/api/public/push/send'
@@ -196,6 +216,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/card-admin'
     | '/community'
     | '/emplois'
     | '/moyenne'
@@ -208,6 +229,7 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
+    | '/api/public/push/card'
     | '/api/public/push/mention'
     | '/api/public/push/relay'
     | '/api/public/push/send'
@@ -215,6 +237,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/card-admin'
     | '/community'
     | '/emplois'
     | '/moyenne'
@@ -227,6 +250,7 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
+    | '/api/public/push/card'
     | '/api/public/push/mention'
     | '/api/public/push/relay'
     | '/api/public/push/send'
@@ -235,6 +259,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CardAdminRoute: typeof CardAdminRoute
   CommunityRoute: typeof CommunityRoute
   EmploisRoute: typeof EmploisRoute
   MoyenneRoute: typeof MoyenneRoute
@@ -247,6 +272,7 @@ export interface RootRouteChildren {
   ApiPublicCloudinarySignRoute: typeof ApiPublicCloudinarySignRoute
   ApiPublicFcmRegisterRoute: typeof ApiPublicFcmRegisterRoute
   ApiPublicPushActivityRoute: typeof ApiPublicPushActivityRoute
+  ApiPublicPushCardRoute: typeof ApiPublicPushCardRoute
   ApiPublicPushMentionRoute: typeof ApiPublicPushMentionRoute
   ApiPublicPushRelayRoute: typeof ApiPublicPushRelayRoute
   ApiPublicPushSendRoute: typeof ApiPublicPushSendRoute
@@ -260,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/card-admin': {
+      id: '/card-admin'
+      path: '/card-admin'
+      fullPath: '/card-admin'
+      preLoaderRoute: typeof CardAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/community': {
@@ -346,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push/card': {
+      id: '/api/public/push/card'
+      path: '/api/public/push/card'
+      fullPath: '/api/public/push/card'
+      preLoaderRoute: typeof ApiPublicPushCardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push/mention': {
       id: '/api/public/push/mention'
       path: '/api/public/push/mention'
@@ -379,6 +419,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CardAdminRoute: CardAdminRoute,
   CommunityRoute: CommunityRoute,
   EmploisRoute: EmploisRoute,
   MoyenneRoute: MoyenneRoute,
@@ -391,6 +432,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCloudinarySignRoute: ApiPublicCloudinarySignRoute,
   ApiPublicFcmRegisterRoute: ApiPublicFcmRegisterRoute,
   ApiPublicPushActivityRoute: ApiPublicPushActivityRoute,
+  ApiPublicPushCardRoute: ApiPublicPushCardRoute,
   ApiPublicPushMentionRoute: ApiPublicPushMentionRoute,
   ApiPublicPushRelayRoute: ApiPublicPushRelayRoute,
   ApiPublicPushSendRoute: ApiPublicPushSendRoute,
