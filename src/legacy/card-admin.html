@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>إتاحة بطاقات الانتساب | UNEM ISCAE</title><meta name="theme-color" content="#0f5132">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+:root{--g:#0f5132;--g2:#15803d;--gold:#f5c400;--ink:#0f172a;--mut:#64748b}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Tajawal,Cairo,"Segoe UI",Arial,sans-serif;background:linear-gradient(160deg,#ecfdf5,#fffdf4 55%,#fef9c3);color:var(--ink);padding:14px 12px calc(28px + env(safe-area-inset-bottom))}
+.wrap{max-width:620px;margin:0 auto}.top{display:flex;align-items:center;gap:10px}.top img{width:54px;height:54px;border-radius:50%;border:3px solid var(--g2);background:#fff}.top h1{flex:1;margin:0;font-size:1.1rem;color:var(--g)}
+.chip{border:0;background:#fff;border-radius:12px;padding:9px 13px;font:inherit;font-weight:800;box-shadow:0 4px 14px rgba(15,81,50,.15);cursor:pointer;color:var(--ink)}
+.card{background:#fff;border-radius:20px;box-shadow:0 12px 34px rgba(15,81,50,.14);padding:14px;margin-top:12px}.card h2{margin:0 0 8px;font-size:1rem;color:var(--g)}
+label{display:block;font-weight:700;font-size:.85rem;margin:8px 0 4px;color:#334155}input,textarea{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:11px;font:inherit;background:#fff}textarea{min-height:92px;resize:vertical}
+.btn{border:0;border-radius:13px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--g2);color:#fff}.btn.alt{background:#e2e8f0;color:var(--ink)}.btn.gold{background:var(--gold);color:#3b2a00}.btn.red{background:#b91c1c}.btn:disabled{opacity:.55}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.row>*{flex:1;min-width:120px}
+.msg{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:.88rem;font-weight:700;background:#e0f2fe;color:#075985;line-height:1.7}.msg.err{background:#fee2e2;color:#991b1b}.msg.ok{background:#dcfce7;color:#166534}
+.it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;margin-top:8px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc}.it b{display:block}.it small{color:var(--mut)}.tag{padding:3px 10px;border-radius:999px;font-size:.78rem;font-weight:800;white-space:nowrap}.tag.on{background:#dcfce7;color:#166534}.tag.off{background:#fee2e2;color:#991b1b}.tag.na{background:#e2e8f0;color:#475569}
+.stats{display:flex;gap:8px;margin-top:6px}.stats div{flex:1;background:#f0fdf4;border-radius:14px;padding:10px;text-align:center}.stats b{display:block;font-size:1.4rem;color:var(--g)}.stats small{color:var(--mut);font-weight:700}
+.hidden{display:none!important}
+</style></head><body><div class="wrap">
+<div class="top"><img src="/logo.png" alt="UNEM"><h1>🪪 إتاحة بطاقات الانتساب</h1><a class="chip" href="/scan-card" style="text-decoration:none">📷 الفحص</a></div>
+
+<div class="card hidden" id="loginCard"><h2>دخول المشرف الرئيسي</h2><p style="margin:0 0 6px;color:var(--mut);font-size:.88rem">هذه الصفحة للمشرف الرئيسي فقط.</p>
+<label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="username" dir="ltr"><label>كلمة المرور</label><input id="pass" type="password" autocomplete="current-password" dir="ltr">
+<div class="row"><button class="btn" id="loginBtn" type="button">دخول</button></div><div id="loginMsg"></div></div>
+
+<div class="card hidden" id="forbidCard"><h2>لا تملك الصلاحية</h2><p style="color:var(--mut)">إتاحة البطاقات متاحة للمشرف الرئيسي فقط.</p><div class="row"><button class="btn alt" id="forbidOut" type="button">خروج</button></div></div>
+
+<div id="app" class="hidden">
+ <div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h2 style="margin:0">أرقام تسجيل الطلاب</h2><button class="chip" id="logout" type="button">خروج</button></div>
+  <p style="margin:8px 0 0;color:var(--mut);font-size:.86rem;line-height:1.7">أدخل رقم تسجيل طالب (أو عدة أرقام، كل رقم في سطر أو يفصلها فراغ). عند «إظهار» تصبح بطاقة انتسابه متاحة في المجتمع ويصله إشعار: «بطاقة انتسابك الرقمية للاتحاد الوطني لطلبة موريتانيا بالمعهد العالي للمحاسبة وإدارة المؤسسات أصبحت متاحة الآن».</p>
+  <textarea id="regs" dir="ltr" placeholder="I21567"></textarea>
+  <div class="row"><button class="btn alt" id="bFind" type="button">🔍 بحث</button><button class="btn gold" id="bShow" type="button">👁️ إظهار البطاقة</button><button class="btn red" id="bHide" type="button">🙈 إخفاء</button></div>
+  <div id="msg"></div><div id="out"></div>
+ </div>
+ <div class="card"><h2>الطلاب المفعّلة بطاقاتهم</h2><div class="stats"><div><b id="stOn">0</b><small>مفعّلة</small></div><div><b id="stAll">0</b><small>طلاب معتمدون</small></div></div><div id="recent"></div></div>
+</div></div>
+<script>
+var SB_URL='https://cbaswqaufawdsvadizyi.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
+var SPEC={BA:'Banques et Assurances',FC:'Finance et Comptabilité',TCM:'Techniques Commerciales et Marketing',GRH:'Gestion des Ressources Humaines',SAE:"Statistique Appliquée à l'Économie",IG:'Informatique de Gestion',DI:'Développement Informatique',RIT:'Réseaux Informatiques et Télécoms',MASTER_FC:'Master Finance et Comptabilité',MASTER_IG:'Master Informatique de Gestion'};
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var sb=window.supabase.createClient(SB_URL,SB_KEY),SESSION=null,BUSY=false;
+function show(v){$('loginCard').classList.toggle('hidden',v!=='login');$('app').classList.toggle('hidden',v!=='app');$('forbidCard').classList.toggle('hidden',v!=='forbid')}
+function msg(text,cls){$('msg').innerHTML=text?'<div class="msg '+(cls||'')+'">'+text+'</div>':''}
+function parseRegs(){var m=($('regs').value||'').toUpperCase().match(/I[0-9]{5}/g)||[];return Array.from(new Set(m)).slice(0,300)}
+function lv(x){return x.promo?'Sortant · Promo '+x.promo:(x.level||'')}
+async function loadRecent(){
+  var r=await sb.rpc('student_card_admin_list');
+  if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');return}
+  var d=r.data||{};$('stOn').textContent=d.enabled_count||0;$('stAll').textContent=d.total_approved||0;
+  $('recent').innerHTML=(d.recent||[]).map(function(x){return '<div class="it"><div><b dir="auto">'+esc(x.full_name)+'</b><small dir="ltr">'+esc(x.reg_no)+' · '+esc(x.card_code||'')+'</small></div><span class="tag on">'+esc(x.spec)+' · '+esc(lv(x))+'</span></div>'}).join('')||'<div style="color:var(--mut);margin-top:8px">لا توجد بطاقات مفعّلة بعد.</div>';
+}
+function rowHtml(x,extra){
+  if(!x.found)return '<div class="it"><div><b dir="ltr">'+esc(x.reg_no)+'</b><small>رقم التسجيل غير موجود</small></div><span class="tag na">غير موجود</span></div>';
+  var st=x.approved===false||x.status&&x.status!=='approved'?'<span class="tag na">الحساب غير معتمد</span>':x.enabled?'<span class="tag on">البطاقة متاحة</span>':'<span class="tag off">غير متاحة</span>';
+  return '<div class="it"><div><b dir="auto">'+esc(x.full_name)+'</b><small dir="ltr">'+esc(x.reg_no)+(x.spec?' · '+esc(x.spec)+(SPEC[x.spec]?' — '+esc(SPEC[x.spec]):''):'')+(x.level?' · '+esc(lv(x)):'')+(x.card_code?' · '+esc(x.card_code):'')+'</small>'+(extra||'')+'</div>'+st+'</div>';
+}
+async function find(){
+  var regs=parseRegs();if(!regs.length)return msg('أدخل رقم تسجيل صحيح (مثل I21567).','err');
+  BUSY=true;msg('⏳ جاري البحث...');var html='';
+  for(var i=0;i<regs.length;i++){var r=await sb.rpc('student_card_admin_lookup',{p_reg:regs[i]});if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');msg('تعذر الاتصال بالخادم.','err');BUSY=false;return}
+    var d=r.data||{found:false};d.reg_no=d.reg_no||regs[i];html+=rowHtml(d,d.found?'<br><small>أجهزة الإشعارات: '+(d.devices||0)+'</small>':'')}
+  msg('');$('out').innerHTML=html;BUSY=false;
+}
+async function setCards(on){
+  var regs=parseRegs();if(!regs.length)return msg('أدخل رقم تسجيل صحيح (مثل I21567).','err');
+  if(!on&&!confirm('إخفاء بطاقة '+regs.length+' طالب؟'))return;
+  $('bShow').disabled=$('bHide').disabled=$('bFind').disabled=true;msg('⏳ جاري التنفيذ...');
+  try{
+    var r=await sb.rpc('student_card_set',{p_regs:regs,p_enabled:on});
+    if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');throw r.error}
+    var list=r.data||[];$('out').innerHTML=list.map(function(x){return rowHtml(x)}).join('');
+    var okRegs=list.filter(function(x){return x.found&&x.approved!==false}).map(function(x){return x.reg_no});
+    var note=on?('✅ أُظهرت البطاقة لـ '+okRegs.length+' طالب.'):('✅ أُخفيت البطاقة لـ '+okRegs.length+' طالب.');
+    if(on&&okRegs.length){
+      var tok=(await sb.auth.getSession()).data.session;
+      try{
+        var pr=await fetch('/api/public/push/card',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+tok.access_token},body:JSON.stringify({regs:okRegs})});
+        var pj=await pr.json().catch(function(){return{}});
+        if(!pr.ok)note+=' ⚠️ تعذر إرسال الإشعار ('+esc(pj.error||pr.status)+'). ستظهر البطاقة للطالب عند فتح المجتمع مع تنبيه داخل التطبيق.';
+        else if(pj.reason==='push_not_configured')note+=' ⚠️ إشعارات الخادم غير مضبوطة؛ سيصل التنبيه داخل التطبيق فقط.';
+        else if(pj.sent>0)note+=' 🔔 أُرسل الإشعار إلى '+pj.sent+' جهاز.';
+        else if(pj.accounts>0)note+=' ℹ️ لا يوجد جهاز مفعّل للإشعارات لدى الطالب؛ سيرى تنبيه «جديد» عند فتح المجتمع.';
+        else note+=' ℹ️ لم يُرسل إشعار جديد (أُبلغ الطالب سابقاً).';
+      }catch(e){note+=' ⚠️ تعذر إرسال الإشعار؛ ستظهر البطاقة للطالب عند فتح المجتمع.'}
+    }
+    msg(note,'ok');loadRecent();
+  }catch(e){msg('تعذر التنفيذ: '+esc(e&&e.message||e),'err')}
+  finally{$('bShow').disabled=$('bHide').disabled=$('bFind').disabled=false}
+}
+async function checkAccess(){var r=await sb.rpc('student_card_admin_list');if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid'),false;$('loginMsg').innerHTML='<div class="msg err">تعذر الاتصال بالخادم.</div>';show('login');return false}show('app');loadRecent();return true}
+async function login(){
+  var e=$('email').value.trim(),p=$('pass').value;if(!e||!p){$('loginMsg').innerHTML='<div class="msg err">أدخل البريد وكلمة المرور.</div>';return}
+  $('loginBtn').disabled=true;
+  try{var r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)throw r.error;$('pass').value='';$('loginMsg').innerHTML='';await checkAccess()}
+  catch(x){$('loginMsg').innerHTML='<div class="msg err">'+(/invalid login/i.test(x&&x.message||'')?'البريد أو كلمة المرور غير صحيحة.':'تعذر الاتصال بالخادم.')+'</div>'}finally{$('loginBtn').disabled=false}
+}
+async function logout(){try{await sb.auth.signOut()}catch(e){}$('out').innerHTML='';show('login')}
+$('loginBtn').onclick=login;$('pass').addEventListener('keydown',function(e){if(e.key==='Enter')login()});
+$('logout').onclick=logout;$('forbidOut').onclick=logout;$('bFind').onclick=find;$('bShow').onclick=function(){setCards(true)};$('bHide').onclick=function(){setCards(false)};
+(async function(){try{var r=await sb.auth.getSession();if(r&&r.data&&r.data.session)await checkAccess();else show('login')}catch(e){show('login')}})();
+</script></body></html>

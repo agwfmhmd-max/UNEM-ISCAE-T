@@ -105,7 +105,7 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
 <section class="hero">
   <h2 data-i18n="hero_h">اعثر على جدولك الدراسي بسهولة</h2>
   <p data-i18n="hero_p">اختر التخصص والمستوى والمجموعة، ثم افتح الجدول الرسمي المنشور من الإدارة.</p>
-  <div class="hero-links"><a href="#excSection" class="hero-link exc" id="frLinkEx" style="display:none"><span data-i18n="ex_link">📚 التفوق الدراسي</span><b class="n" id="frLinkExN"></b></a><a href="#freeRooms" class="hero-link rooms" id="frLink" style="display:none"><span data-i18n="fr_link">🏫 القاعات الفارغة</span></a></div>
+  <div class="hero-links"><a href="#excSection" class="hero-link exc" id="frLinkEx" style="display:none"><span data-i18n="ex_link">📚 التفوق الدراسي</span><b class="n" id="frLinkExN"></b></a><a href="#freeRooms" class="hero-link rooms" id="frLink"><span data-i18n="fr_link">🏫 القاعات الفارغة</span></a></div>
 </section>
 
 <section class="card">
@@ -130,7 +130,7 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
   <div id="exList"></div>
 </section>
 
-<section class="card" id="freeRooms" style="display:none">
+<section class="card" id="freeRooms">
   <div class="admin-title"><h2 data-i18n="fr_h">🏫 القاعات الفارغة</h2><span id="frBadge" class="badge"></span><button class="btn ghost" id="frLogout" type="button" style="display:none">تسجيل الخروج</button></div>
   <p class="hint" data-i18n="fr_hint">تُحسب القاعات الفارغة تلقائياً من الجداول الدراسية المنشورة: القاعة تُعتبر فارغة إن لم تكن مذكورة في أي حصة في اليوم والفترة المختارين.</p>
   <div class="filters" style="grid-template-columns:repeat(4,1fr)">
@@ -375,7 +375,7 @@ function loadAdminModule(){
   if(window.UNEMSchedAdmin)return Promise.resolve();
   return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='/unem-schedules-admin.js?v=31';sc.onload=res;sc.onerror=()=>rej(new Error('load'));document.head.appendChild(sc)});
 }
-/* مستوى الوصول: admin = لوحة كاملة | rooms = مشرف منحه المشرف الرئيسي صلاحية القاعات الفارغة فقط | '' = لا شيء */
+/* مستوى الوصول: admin = لوحة كاملة | schedules = مشرف لديه صلاحية رفع وتعديل الجداول | rooms = صلاحية القاعات الفارغة | '' = لا شيء. (القاعات الفارغة متاحة للجميع الآن) */
 async function accessLevel(session){
   const role=await getRole();
   if(role==='admin')return 'admin';
@@ -383,7 +383,8 @@ async function accessLevel(session){
   try{
     const email=String((session&&session.user&&session.user.email)||'').toLowerCase();
     if(!email)return '';
-    const {data,error}=await sb.from('supervisor_permissions').select('view_free_rooms').eq('email',email).maybeSingle();
+    const {data,error}=await sb.from('supervisor_permissions').select('view_free_rooms,manage_schedules').eq('email',email).maybeSingle();
+    if(!error&&data&&data.manage_schedules===true)return 'schedules';
     if(!error&&data&&data.view_free_rooms===true)return 'rooms';
   }catch(_){}
   return '';
@@ -395,17 +396,18 @@ function showRoomsOnly(){
 }
 async function showAccess(level,session){
   if(level==='admin')return showAdminPanel(session);
+  if(level==='schedules')return showAdminPanel(session,true);
   if(level==='rooms')return showRoomsOnly();
 }
-async function showAdminPanel(session){
+async function showAdminPanel(session,limited){
   try{await loadAdminModule()}catch(_){showStatus('loginStatus','❌ تعذر تحميل وحدة الإدارة (/unem-schedules-admin.js). تأكد من نشر آخر نسخة من المشروع.','err');$('loginCard').style.display='block';return}
   $('loginCard').style.display='none';$('adminPanel').classList.add('show');$('freeRooms').style.display='';$('frLink').style.display='';
   $('admWho').textContent=(session&&session.user&&session.user.email)||'';
   if(!_admMounted){_admMounted=true;window.UNEMSchedAdmin.mount($('usa-host'),{sb:sb,api:p=>p,onChange:()=>{loadSchedules()}})}
-  try{excAdminMount(session)}catch(e){console.warn('excellence admin',e)}
+  if(!limited){try{excAdminMount(session)}catch(e){console.warn('excellence admin',e)}}
   try{cfhMount()}catch(e){console.warn('common free hours',e)}
 }
-function hideAdminPanel(){$('adminPanel').classList.remove('show');_admMounted=false;$('freeRooms').style.display='none';$('frLink').style.display='none';$('frLogout').style.display='none';$('usa-host').innerHTML='';$('exc-host').innerHTML='';_excMounted=false;$('cfh-host').innerHTML='';_cfhMounted=false;$('admWho').textContent=''}
+function hideAdminPanel(){$('adminPanel').classList.remove('show');_admMounted=false;$('frLogout').style.display='none';$('usa-host').innerHTML='';$('exc-host').innerHTML='';_excMounted=false;$('cfh-host').innerHTML='';_cfhMounted=false;$('admWho').textContent=''}
 async function initAdmin(){
   let session=null;try{const r=await sb.auth.getSession();session=r&&r.data&&r.data.session}catch(_){}
   if(!session)return;
