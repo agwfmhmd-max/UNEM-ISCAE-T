@@ -8,7 +8,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/unem-qr.js"></script>
-<script src="/legacy/unem-membership-card.js?v=membership-card-4"></script>
+<script src="/legacy/unem-membership-card.js?v=membership-card-5"></script>
 <style>
 :root{--g:#0f5132;--g2:#15803d;--gold:#f5b942;--bg:#f1f5f4;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--soft:#f8fafc;--mine:#fef3c7}
 body.dark-mode{--bg:#0f172a;--card:#1e293b;--ink:#f1f5f9;--mut:#94a3b8;--line:#334155;--soft:#0f172a;--mine:#5b4a12}
@@ -205,7 +205,8 @@ body.dark-mode .st.seen{background:rgba(245,185,66,.16);color:#fde68a;border-col
 body.dark-mode .st.off{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(203,213,225,.3)}
 #stReg{letter-spacing:.03em}
 </style>
-</head><body>
+<style id="community-access-gate">html:not(.community-access-allowed) body{visibility:hidden!important}html.community-access-blocked body{display:none!important}</style>
+<script id="community-access-check">(function(){var U='https://cbaswqaufawdsvadizyi.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU',timer=null,offset=0;function deny(){var h=document.documentElement;h.classList.remove('community-access-allowed');h.classList.add('community-access-blocked');if(location.pathname.replace(/\/+$/,'')==='/community')location.replace('/')}async function check(){var start=Date.now();try{var r=await fetch(U+'/rest/v1/rpc/community_visibility',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K},body:JSON.stringify({p_year:null})});if(!r.ok)throw Error('visibility unavailable');var d=await r.json(),serverNow=Date.parse(d&&d.server_now),hideAt=d&&d.hide_at?Date.parse(d.hide_at):NaN;offset=Number.isFinite(serverNow)?serverNow-((start+Date.now())/2):0;var now=Number.isFinite(serverNow)?serverNow:Date.now()+offset,allowed=!!(d&&d.visible===true&&(!Number.isFinite(hideAt)||now<hideAt));if(!allowed){deny();return false}var h=document.documentElement;h.classList.remove('community-access-blocked');h.classList.add('community-access-allowed');if(timer)clearTimeout(timer);if(Number.isFinite(hideAt))timer=setTimeout(check,Math.max(0,hideAt-(Date.now()+offset)+80));return true}catch(e){deny();return false}}window.__UNEM_COMMUNITY_ACCESS__=check();setInterval(check,20000);window.addEventListener('pageshow',check)})();</script></head><body>
 <header class="hero"><div class="wrap"><div class="top"><a href="/"><i class="fas fa-arrow-right ic-flip" id="homeIc"></i> <span data-t="home">الرئيسية</span></a>
 <div class="grp"><button id="langBtn" type="button" aria-label="Langue / اللغة">Français</button><button id="meBtn" type="button"><span id="meIc"><i class="fas fa-user"></i></span> <span id="meName" data-t="me">ملفي</span></button></div></div>
 <h1 id="h1"></h1><p data-t="sub"></p><p class="hello" id="hello"></p></div></header>
@@ -665,7 +666,7 @@ $('#chIn').addEventListener('input',updateMentionSuggestions);$('#chIn').addEven
 /* توقيع MDA: 3 نقرات سريعة تُظهر رسالة (مثل الصفحة الرئيسية) */
 (function(){const s=document.querySelector('.mda-sign');if(!s)return;let n=0,h;s.addEventListener('click',()=>{n++;clearTimeout(h);h=setTimeout(()=>n=0,900);if(n>=3){n=0;toast(t('sign'))}})})();
 applyLang();
-async function boot(){try{const d=await api('me');if(d&&!d.need_register){me=d;cacheAvatar();if(me.admin){try{window.UNEM_GATE&&window.UNEM_GATE.staffPass&&window.UNEM_GATE.staffPass()}catch(e){}}applyLang();render();deepLink();cardNotice();loadMutes().then(()=>{bellUi();if(tab==='posts'||tab==='partner')render()});pushSync();startMentionAlerts()}else{try{localStorage.removeItem('unem_gate_staff')}catch(e){}needLogin()}}catch(e){const m=String(e.message||e);if(/device_banned/i.test(m)){try{localStorage.removeItem('unem_student');localStorage.removeItem('unem_student_avatar')}catch(x){}me=null;needLogin();return}$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?t('setupFail'):t('connFail')}</p></div>`}}
+async function boot(){try{if(window.__UNEM_COMMUNITY_ACCESS__){const accessAllowed=await window.__UNEM_COMMUNITY_ACCESS__;if(accessAllowed!==true)return}const d=await api('me');if(d&&!d.need_register){me=d;cacheAvatar();if(me.admin){try{window.UNEM_GATE&&window.UNEM_GATE.staffPass&&window.UNEM_GATE.staffPass()}catch(e){}}applyLang();render();deepLink();cardNotice();loadMutes().then(()=>{bellUi();if(tab==='posts'||tab==='partner')render()});pushSync();startMentionAlerts()}else{try{localStorage.removeItem('unem_gate_staff')}catch(e){}needLogin()}}catch(e){const m=String(e.message||e);if(/device_banned/i.test(m)){try{localStorage.removeItem('unem_student');localStorage.removeItem('unem_student_avatar')}catch(x){}me=null;needLogin();return}$('#main').innerHTML=`<div class="empty"><i class="fas fa-triangle-exclamation fa-2x"></i><p>${/community_api|PGRST202|schema cache/.test(m)?t('setupFail'):t('connFail')}</p></div>`}}
 window.addEventListener('unem:student',()=>{if(!me)boot()});   /* بعد دخول الطالب من البوابة */
 boot();
 </script></body></html>
