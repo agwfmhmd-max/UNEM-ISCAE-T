@@ -62,3 +62,7 @@ PGURL=postgres://postgres@localhost/postgres tests/db/run.sh
 ## حذف المرفق وإكمال الإشارة داخل الغرفة
 
 `20261107090000_community_message_controls_and_mention_suggestions.sql` يُطبّق بعد `20261106090000_community_media_only_messages.sql`. يضيف حذفًا آمنًا للمرفق لصاحب الرسالة أو مشرف الغرفة/المجتمع، ويضيف اقتراحات أرقام التسجيل وفق بادئة `@I…` مع حصر النتائج في أعضاء الغرفة أو المجموعة والتحقق من صلاحية الطالب للغرفة.
+
+## جدولة إخفاء المجتمع
+
+`db/20261126190000_fix_community_visibility_schedule.sql` يُطبّق بعد `db/20261126090000_membership_enrollment_and_community_schedule.sql`. يسمح بتحديد وقت الإخفاء وحده (يظهر المجتمع فوراً حتى ذلك الوقت)، ويعيد حالة الظهور ووقت الخادم لتحديث واجهة الموقع بدقة. شغّله في Supabase SQL Editor إذا لم يكن قد طُبّق على قاعدة البيانات.
