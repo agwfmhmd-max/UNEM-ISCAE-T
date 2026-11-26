@@ -19,7 +19,10 @@ type Targets = {
   subs: StoredPushSubscription[];
 };
 
-const KINDS = new Set(["message", "post", "comment", "test"]);
+const KINDS = new Set(["message", "post", "comment", "test", "card"]);
+const CARD_TITLE = "🪪 بطاقة الانتساب الرقمية";
+const CARD_BODY =
+  "بطاقة انتسابك الرقمية للاتحاد الوطني لطلبة موريتانيا بالمعهد العالي للمحاسبة وإدارة المؤسسات أصبحت متاحة الآن";
 
 async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T | null> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
@@ -45,6 +48,36 @@ export const Route = createFileRoute("/api/public/push/activity")({
           body = (await request.json()) as Record<string, unknown>;
         } catch {
           return json({ error: "طلب غير صالح." }, 400);
+        }
+
+        // إشعار «بطاقة الانتساب متاحة»: يستدعيه المشرف (Bearer) بعد إتاحة البطاقة؛ تتحقق قاعدة البيانات من صلاحيته.
+        if (String(body["kind"] ?? "") === "card") {
+          const auth = request.headers.get("authorization") ?? "";
+          if (!/^Bearer\s+\S{20,}$/.test(auth)) return json({ error: "غير مصرّح." }, 401);
+          const regs = (Array.isArray(body["regs"]) ? (body["regs"] as unknown[]) : [])
+            .map((x) => String(x ?? "").trim().toUpperCase())
+            .filter((x) => /^I[0-9]{5}$/.test(x))
+            .slice(0, 300);
+          if (regs.length === 0) return json({ error: "لا أرقام تسجيل صالحة." }, 400);
+          const vapidCard = readVapidEnv();
+          if (!vapidCard) return json({ sent: 0, accounts: 0, reason: "push_not_configured" });
+          const rc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/student_card_push_targets`, {
+            method: "POST",
+            headers: { apikey: SUPABASE_ANON_KEY, Authorization: auth, "content-type": "application/json" },
+            body: JSON.stringify({ p_regs: regs, p_force: body["force"] === true }),
+          }).catch(() => null);
+          if (!rc) return json({ error: "تعذر الاتصال بقاعدة البيانات." }, 502);
+          if (!rc.ok) return json({ error: "غير مصرّح." }, rc.status === 401 || rc.status === 403 ? 403 : 400);
+          const ct = (await rc.json().catch(() => null)) as { accounts?: number; subs?: StoredPushSubscription[] } | null;
+          const csubs = ct && Array.isArray(ct.subs) ? ct.subs : [];
+          if (csubs.length === 0) return json({ sent: 0, accounts: ct?.accounts ?? 0 });
+          const r = await dispatchPush(
+            new URL(request.url).origin,
+            csubs,
+            { title: CARD_TITLE, body: CARD_BODY, url: "/community?card=1", tag: "card-enabled" },
+            vapidCard,
+          );
+          return json({ sent: r.sent, expired: r.gone, accounts: ct?.accounts ?? 0 });
         }
 
         const token = String(body["token"] ?? "");
