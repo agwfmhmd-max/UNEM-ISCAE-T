@@ -67,7 +67,7 @@
       createGo: "إنشاء حساب",
       createTitle: "إنشاء حساب طالب",
       createIntro:
-        "لم نعثر على حسابك. أكمل بيانات التخصص والمستوى لإنشاء حسابك والدخول إلى المجتمع.",
+        "لم نعثر على حساب بهذا الرقم. أدخل بياناتك لإنشاء حساب على المنصة. طلب الانتساب للبطاقة منفصل، وقد يحتاج مراجعة المشرف إذا لم يكن رقمك في اللائحة الرسمية.",
       backLogin: "العودة لتسجيل الدخول",
       checking: "جاري التحقق...",
       note: "يمكن استخدام حسابك على هاتف واحد وحاسوب واحد في الوقت نفسه.",
@@ -75,7 +75,7 @@
       lang: "Français",
       pendingT: "طلبك قيد المراجعة",
       pendingD:
-        "لم نجد اسمك في اللائحة، فتم إرسال حسابك إلى المشرف للموافقة عليه. سيتم إدخالك تلقائياً بعد الموافقة.",
+        "حساب الطالب نفسه ما زال قيد مراجعة المشرف. بعد اعتماد الحساب يمكنك فتح صفحة الانتساب وتقديم طلب البطاقة؛ فمراجعة الحساب والانتساب مرحلتان منفصلتان.",
       check: "تحقق الآن",
       other: "استخدام حساب آخر",
       waiting: "بانتظار موافقة المشرف...",
@@ -85,6 +85,10 @@
       bad_name_fr: "اكتب الاسم الكامل بالحروف الفرنسية.",
       device_in_use:
         "هذا الحساب مفتوح بالفعل على جهاز آخر من النوع نفسه. سجّل الخروج من ذلك الجهاز أولاً أو اطلب من المشرف إنهاء جلسته.",
+      device_in_use_phone:
+        "توجد جلسة نشطة لهذا الحساب على هاتف آخر. أنهِ الجلسة على الهاتف الآخر، أو أرسل بلاغاً للمشرف إذا لم تكن أنت.",
+      device_in_use_computer:
+        "توجد جلسة نشطة لهذا الحساب على حاسوب آخر. أنهِ الجلسة على الحاسوب الآخر، أو أرسل بلاغاً للمشرف إذا لم تكن أنت.",
       reportDevice: "إرسال بلاغ للمشرف عن انتحال الحساب",
       reportImgLabel: "إرفاق صورة من إفادة التسجيل (اختياري)",
       reportImgHint: "صورة واضحة لإفادة تسجيلك تساعد المشرف على التحقق من أنك صاحب الحساب.",
@@ -137,7 +141,7 @@
       createGo: "Créer un compte",
       createTitle: "Créer un compte étudiant",
       createIntro:
-        "Aucun compte trouvé. Choisissez votre filière et votre niveau pour créer votre compte et rejoindre la communauté.",
+        "Aucun compte n’a été trouvé pour ce numéro. Saisissez vos informations pour créer un compte sur la plateforme. La demande d’adhésion à la carte est distincte et peut nécessiter l’examen de l’administrateur si votre numéro ne figure pas sur la liste officielle.",
       backLogin: "Retour à la connexion",
       checking: "Vérification...",
       note: "Votre compte peut être utilisé sur un téléphone et un ordinateur à la fois.",
@@ -145,7 +149,7 @@
       lang: "العربية",
       pendingT: "Votre demande est en cours d’examen",
       pendingD:
-        "Votre nom ne figure pas dans la liste : votre compte a été envoyé à l’administrateur pour validation. Vous entrerez automatiquement après son approbation.",
+        "Votre compte étudiant est encore en cours d’examen par l’administrateur. Après son approbation, vous pourrez ouvrir la page d’adhésion et demander la carte ; l’approbation du compte et celle de l’adhésion sont deux étapes distinctes.",
       check: "Vérifier maintenant",
       other: "Utiliser un autre compte",
       waiting: "En attente de l’approbation de l’administrateur...",
@@ -155,6 +159,10 @@
       bad_name_fr: "Saisissez votre nom complet en lettres françaises.",
       device_in_use:
         "Ce compte est déjà connecté sur un autre appareil du même type. Déconnectez-vous de cet appareil ou demandez à un administrateur de fermer sa session.",
+      device_in_use_phone:
+        "Une session de ce compte est active sur un autre téléphone. Fermez la session sur cet autre téléphone ou signalez le problème à l’administrateur si vous n’en êtes pas à l’origine.",
+      device_in_use_computer:
+        "Une session de ce compte est active sur un autre ordinateur. Fermez la session sur cet autre ordinateur ou signalez le problème à l’administrateur si vous n’en êtes pas à l’origine.",
       reportDevice: "Signaler une usurpation à l’administrateur",
       reportImgLabel: "Joindre une photo de votre attestation d’inscription (facultatif)",
       reportImgHint: "Une photo lisible de votre attestation aide l’administrateur à vérifier que vous êtes le titulaire du compte.",
@@ -563,7 +571,7 @@
     var e = document.getElementById("ug-err");
     if (e) {
       e.innerHTML = esc(lastMsg);
-      if (k === "device_in_use") {
+      if (["device_in_use", "device_in_use_phone", "device_in_use_computer"].indexOf(k) >= 0) {
         e.innerHTML +=
           '<button type="button" id="ug-report" style="display:block;margin:10px auto 0;padding:8px 12px;border:0;border-radius:10px;background:#b91c1c;color:#fff;font:inherit;font-weight:700;cursor:pointer">' +
           esc(t("reportDevice")) +
@@ -789,6 +797,9 @@
     }
     if (d && d.error) {
       render();
+      if (d.error === "device_in_use") {
+        return showErr(d.device_type === "phone" ? "device_in_use_phone" : d.device_type === "computer" ? "device_in_use_computer" : "device_in_use");
+      }
       return showErr(d.error);
     }
     if (!d || d.status === "none") {
