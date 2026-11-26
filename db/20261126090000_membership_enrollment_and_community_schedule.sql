@@ -87,7 +87,8 @@ begin
     select * into a from student_accounts where upper(reg_no)=r limit 1;
     if a.id is null then out := out || jsonb_build_array(jsonb_build_object('reg_no',r,'found',false));
     else update student_accounts set card_enabled=p_enabled,card_enabled_at=case when p_enabled then now() else null end,
-      card_enabled_by=case when p_enabled then auth.uid() else null end where id=a.id;
+      card_enabled_by=case when p_enabled then auth.uid() else null end,
+      membership_year=case when p_enabled then p_year else membership_year end where id=a.id;
       out := out || jsonb_build_array(jsonb_build_object('reg_no',a.reg_no,'found',true,'full_name',a.full_name,'enabled',p_enabled));
     end if;
   end loop; return out;
