@@ -8,60 +8,98 @@
 <style>
 :root{--g:#0f5132;--g2:#15803d;--gold:#f5c400;--ink:#0f172a;--mut:#64748b}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Tajawal,Cairo,"Segoe UI",Arial,sans-serif;background:linear-gradient(160deg,#ecfdf5,#fffdf4 55%,#fef9c3);color:var(--ink);padding:14px 12px calc(28px + env(safe-area-inset-bottom))}
-.wrap{max-width:620px;margin:0 auto}.top{display:flex;align-items:center;gap:10px}.top img{width:54px;height:54px;border-radius:50%;border:3px solid var(--g2);background:#fff}.top h1{flex:1;margin:0;font-size:1.1rem;color:var(--g)}
-.chip{border:0;background:#fff;border-radius:12px;padding:9px 13px;font:inherit;font-weight:800;box-shadow:0 4px 14px rgba(15,81,50,.15);cursor:pointer;color:var(--ink)}
+.wrap{max-width:640px;margin:0 auto}.top{display:flex;align-items:center;gap:10px}.top img{width:54px;height:54px;border-radius:50%;border:3px solid var(--g2);background:#fff}.top h1{flex:1;margin:0;font-size:1.1rem;color:var(--g)}
+.chip{border:0;background:#fff;border-radius:12px;padding:9px 13px;font:inherit;font-weight:800;box-shadow:0 4px 14px rgba(15,81,50,.15);cursor:pointer;color:var(--ink);text-decoration:none;display:inline-block}
 .card{background:#fff;border-radius:20px;box-shadow:0 12px 34px rgba(15,81,50,.14);padding:14px;margin-top:12px}.card h2{margin:0 0 8px;font-size:1rem;color:var(--g)}
 label{display:block;font-weight:700;font-size:.85rem;margin:8px 0 4px;color:#334155}input,textarea{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:11px;font:inherit;background:#fff}textarea{min-height:92px;resize:vertical}
-.btn{border:0;border-radius:13px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--g2);color:#fff}.btn.alt{background:#e2e8f0;color:var(--ink)}.btn.gold{background:var(--gold);color:#3b2a00}.btn.red{background:#b91c1c}.btn:disabled{opacity:.55}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.row>*{flex:1;min-width:120px}
+.btn{border:0;border-radius:13px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--g2);color:#fff}.btn.alt{background:#e2e8f0;color:var(--ink)}.btn.gold{background:var(--gold);color:#3b2a00}.btn.red{background:#b91c1c}.btn.blue{background:#0369a1}.btn:disabled{opacity:.55}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.row>*{flex:1;min-width:120px}
 .msg{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:.88rem;font-weight:700;background:#e0f2fe;color:#075985;line-height:1.7}.msg.err{background:#fee2e2;color:#991b1b}.msg.ok{background:#dcfce7;color:#166534}
-.it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;margin-top:8px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc}.it b{display:block}.it small{color:var(--mut)}.tag{padding:3px 10px;border-radius:999px;font-size:.78rem;font-weight:800;white-space:nowrap}.tag.on{background:#dcfce7;color:#166534}.tag.off{background:#fee2e2;color:#991b1b}.tag.na{background:#e2e8f0;color:#475569}
+.it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;margin-top:8px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc}.it b{display:block}.it small{color:var(--mut)}.tag{padding:3px 10px;border-radius:999px;font-size:.78rem;font-weight:800;white-space:nowrap}.tag.on{background:#dcfce7;color:#166534}.tag.off{background:#fee2e2;color:#991b1b}.tag.na{background:#e2e8f0;color:#475569}.tag.wait{background:#fef3c7;color:#92400e}
 .stats{display:flex;gap:8px;margin-top:6px}.stats div{flex:1;background:#f0fdf4;border-radius:14px;padding:10px;text-align:center}.stats b{display:block;font-size:1.4rem;color:var(--g)}.stats small{color:var(--mut);font-weight:700}
 .hidden{display:none!important}
 </style></head><body><div class="wrap">
-<div class="top"><img src="/logo.png" alt="UNEM"><h1>🪪 إتاحة بطاقات الانتساب</h1><a class="chip" href="/scan-card" style="text-decoration:none">📷 الفحص</a></div>
+<div class="top"><img src="/logo.png" alt="UNEM"><h1>🪪 إتاحة بطاقات الانتساب</h1><a class="chip" href="/scan-card">📷 الفحص</a></div>
 
-<div class="card hidden" id="loginCard"><h2>دخول المشرف الرئيسي</h2><p style="margin:0 0 6px;color:var(--mut);font-size:.88rem">هذه الصفحة للمشرف الرئيسي فقط.</p>
+<div class="card hidden" id="loginCard"><h2>دخول المشرف</h2><p style="margin:0 0 6px;color:var(--mut);font-size:.88rem">هذه الصفحة للمشرف الرئيسي أو لمشرف منحه المشرف الرئيسي صلاحية «إتاحة بطاقات الانتساب».</p>
 <label>البريد الإلكتروني</label><input id="email" type="email" autocomplete="username" dir="ltr"><label>كلمة المرور</label><input id="pass" type="password" autocomplete="current-password" dir="ltr">
 <div class="row"><button class="btn" id="loginBtn" type="button">دخول</button></div><div id="loginMsg"></div></div>
 
-<div class="card hidden" id="forbidCard"><h2>لا تملك الصلاحية</h2><p style="color:var(--mut)">إتاحة البطاقات متاحة للمشرف الرئيسي فقط.</p><div class="row"><button class="btn alt" id="forbidOut" type="button">خروج</button></div></div>
+<div class="card hidden" id="forbidCard"><h2>لا تملك الصلاحية</h2><p style="color:var(--mut)">إتاحة البطاقات متاحة للمشرف الرئيسي أو لمشرف لديه صلاحية «إتاحة بطاقات الانتساب».</p><div class="row"><button class="btn alt" id="forbidOut" type="button">خروج</button></div></div>
 
 <div id="app" class="hidden">
  <div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h2 style="margin:0">أرقام تسجيل الطلاب</h2><button class="chip" id="logout" type="button">خروج</button></div>
-  <p style="margin:8px 0 0;color:var(--mut);font-size:.86rem;line-height:1.7">أدخل رقم تسجيل طالب (أو عدة أرقام، كل رقم في سطر أو يفصلها فراغ). عند «إظهار» تصبح بطاقة انتسابه متاحة في المجتمع ويصله إشعار: «بطاقة انتسابك الرقمية للاتحاد الوطني لطلبة موريتانيا بالمعهد العالي للمحاسبة وإدارة المؤسسات أصبحت متاحة الآن».</p>
+  <p style="margin:8px 0 0;color:var(--mut);font-size:.86rem;line-height:1.7">أدخل رقم تسجيل طالب (أو عدة أرقام يفصلها سطر أو فراغ). عند «إظهار» تصبح بطاقة انتسابه متاحة في المجتمع ويصله إشعار: «بطاقة انتسابك الرقمية للاتحاد الوطني لطلبة موريتانيا بالمعهد العالي للمحاسبة وإدارة المؤسسات أصبحت متاحة الآن». <b>يمكنك إظهارها حتى لطالب لم يسجل بعد</b>: تُحفظ وتظهر له تلقائياً عند تسجيله.</p>
   <textarea id="regs" dir="ltr" placeholder="I21567"></textarea>
-  <div class="row"><button class="btn alt" id="bFind" type="button">🔍 بحث</button><button class="btn gold" id="bShow" type="button">👁️ إظهار البطاقة</button><button class="btn red" id="bHide" type="button">🙈 إخفاء</button></div>
+  <div class="row"><button class="btn alt" id="bFind" type="button">🔍 بحث</button><button class="btn gold" id="bShow" type="button">👁️ إظهار البطاقة</button><button class="btn red" id="bHide" type="button">إخفاء</button></div>
   <div id="msg"></div><div id="out"></div>
  </div>
- <div class="card"><h2>الطلاب المفعّلة بطاقاتهم</h2><div class="stats"><div><b id="stOn">0</b><small>مفعّلة</small></div><div><b id="stAll">0</b><small>طلاب معتمدون</small></div></div><div id="recent"></div></div>
+ <div class="card"><h2>اللائحة والطباعة</h2>
+  <div class="stats"><div><b id="stOn">0</b><small>مفعّلة</small></div><div><b id="stWait">0</b><small>بانتظار التسجيل</small></div><div><b id="stAll">0</b><small>طلاب معتمدون</small></div></div>
+  <label>اختر يوماً لطباعة طلاب ذلك اليوم</label><input id="day" type="date" dir="ltr">
+  <div class="row"><button class="btn blue" id="pDay" type="button">🖨️ طباعة لائحة اليوم المحدد</button><button class="btn alt" id="pAll" type="button">🖨️ طباعة كل اللائحة</button><button class="btn alt" id="pShow" type="button">عرض اليوم هنا</button></div>
+  <div id="listMsg"></div><div id="recent"></div>
+ </div>
 </div></div>
 <script>
 var SB_URL='https://cbaswqaufawdsvadizyi.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
 var SPEC={BA:'Banques et Assurances',FC:'Finance et Comptabilité',TCM:'Techniques Commerciales et Marketing',GRH:'Gestion des Ressources Humaines',SAE:"Statistique Appliquée à l'Économie",IG:'Informatique de Gestion',DI:'Développement Informatique',RIT:'Réseaux Informatiques et Télécoms',MASTER_FC:'Master Finance et Comptabilité',MASTER_IG:'Master Informatique de Gestion'};
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-var sb=window.supabase.createClient(SB_URL,SB_KEY),SESSION=null,BUSY=false;
+var sb=window.supabase.createClient(SB_URL,SB_KEY);
 function show(v){$('loginCard').classList.toggle('hidden',v!=='login');$('app').classList.toggle('hidden',v!=='app');$('forbidCard').classList.toggle('hidden',v!=='forbid')}
 function msg(text,cls){$('msg').innerHTML=text?'<div class="msg '+(cls||'')+'">'+text+'</div>':''}
 function parseRegs(){var m=($('regs').value||'').toUpperCase().match(/I[0-9]{5}/g)||[];return Array.from(new Set(m)).slice(0,300)}
 function lv(x){return x.promo?'Sortant · Promo '+x.promo:(x.level||'')}
-async function loadRecent(){
-  var r=await sb.rpc('student_card_admin_list');
-  if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');return}
-  var d=r.data||{};$('stOn').textContent=d.enabled_count||0;$('stAll').textContent=d.total_approved||0;
-  $('recent').innerHTML=(d.recent||[]).map(function(x){return '<div class="it"><div><b dir="auto">'+esc(x.full_name)+'</b><small dir="ltr">'+esc(x.reg_no)+' · '+esc(x.card_code||'')+'</small></div><span class="tag on">'+esc(x.spec)+' · '+esc(lv(x))+'</span></div>'}).join('')||'<div style="color:var(--mut);margin-top:8px">لا توجد بطاقات مفعّلة بعد.</div>';
+function p2(n){return String(n).padStart(2,'0')}
+function fmt(iso){if(!iso)return '—';var d=new Date(iso);if(isNaN(d))return '—';return d.getUTCFullYear()+'-'+p2(d.getUTCMonth()+1)+'-'+p2(d.getUTCDate())+' '+p2(d.getUTCHours())+':'+p2(d.getUTCMinutes())}
+var LIST=[];
+async function loadList(day){
+  var r=await sb.rpc('student_card_admin_list',{p_day:day||null});
+  if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid'),null;$('listMsg').innerHTML='<div class="msg err">تعذر تحميل اللائحة. تأكد من تنفيذ ترحيل قاعدة البيانات الأخير.</div>';return null}
+  var d=r.data||{};$('stOn').textContent=d.enabled_count||0;$('stWait').textContent=d.pending_count||0;$('stAll').textContent=d.total_approved||0;return d;
+}
+function listHtml(items){
+  if(!items.length)return '<div style="color:var(--mut);margin-top:8px">لا توجد بطاقات في هذه اللائحة.</div>';
+  return items.map(function(x,i){return '<div class="it"><div><b dir="auto">'+(i+1)+'. '+esc(x.full_name||'— (لم يسجل بعد)')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.card_code?' · '+esc(x.card_code):'')+' · '+esc(fmt(x.enabled_at))+'</small></div>'+(x.registered?'<span class="tag on">'+esc((x.spec||'')+' · '+lv(x))+'</span>':'<span class="tag wait">بانتظار التسجيل</span>')+'</div>'}).join('');
+}
+async function refresh(){var d=await loadList(null);if(!d)return;LIST=d.items||[];$('recent').innerHTML=listHtml(LIST.slice().reverse().slice(0,40));}
+async function showDay(){var day=$('day').value;if(!day)return $('listMsg').innerHTML='<div class="msg err">اختر يوماً أولاً.</div>';var d=await loadList(day);if(!d)return;$('listMsg').innerHTML='<div class="msg ok">طلاب يوم '+esc(day)+': '+(d.items||[]).length+'</div>';$('recent').innerHTML=listHtml(d.items||[])}
+async function printList(day){
+  var d=await loadList(day||null);if(!d)return;var items=d.items||[];
+  if(!items.length){$('listMsg').innerHTML='<div class="msg err">لا توجد بطاقات '+(day?'في يوم '+esc(day):'')+' للطباعة.</div>';return}
+  $('listMsg').innerHTML='';
+  var rows=items.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td dir="ltr">'+esc(x.reg_no)+'</td><td>'+esc(x.full_name||'—')+'</td><td dir="ltr">'+esc(x.spec?x.spec+(SPEC[x.spec]?' — '+SPEC[x.spec]:''):'—')+'</td><td dir="ltr">'+esc(x.registered?lv(x):'—')+'</td><td dir="ltr">'+esc(x.card_code||'—')+'</td><td dir="ltr">'+esc(fmt(x.enabled_at))+'</td><td dir="ltr">'+esc(x.added_by||'—')+'</td><td>'+(x.registered?'مسجّل':'لم يسجل بعد')+'</td></tr>'}).join('');
+  var title=day?'لائحة الطلاب الذين أُتيحت بطاقات انتسابهم — يوم '+day:'لائحة الطلاب الذين أُتيحت بطاقات انتسابهم — كل الأيام';
+  var doc='<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Tajawal,Cairo,Arial,sans-serif;color:#0f172a;margin:0}h1{font-size:16pt;margin:0 0 4px;color:#0f5132}p{margin:2px 0 10px;color:#475569;font-size:10pt}table{width:100%;border-collapse:collapse;font-size:9pt}th,td{border:1px solid #94a3b8;padding:5px 6px;text-align:start;vertical-align:top}th{background:#0f5132;color:#fff}tr:nth-child(even) td{background:#f1f5f9}.hd{display:flex;align-items:center;gap:12px;margin-bottom:8px}.hd img{width:54px;height:54px}.ft{margin-top:12px;font-size:9pt;color:#334155;display:flex;justify-content:space-between}</style></head><body><div class="hd"><img src="/logo.png" alt=""><div><h1>'+esc(title)+'</h1><p>الاتحاد الوطني لطلبة موريتانيا — المعهد العالي للمحاسبة وإدارة المؤسسات · مرتبة حسب تاريخ ووقت الإضافة · طُبعت في '+esc(fmt(new Date().toISOString()))+'</p></div></div><table><thead><tr><th>#</th><th>رقم التسجيل</th><th>الاسم الكامل</th><th>التخصص</th><th>المستوى</th><th>رقم البطاقة</th><th>أُضيف بتاريخ/وقت</th><th>أضافه</th><th>الحالة</th></tr></thead><tbody>'+rows+'</tbody></table><div class="ft"><span>العدد: '+items.length+'</span><span>التوقيع: ................................</span></div></body></html>';
+  var f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
+  var w=f.contentWindow;w.document.open();w.document.write(doc);w.document.close();
+  setTimeout(function(){try{w.focus()}catch(e){}try{w.print()}catch(e){var u=URL.createObjectURL(new Blob([doc],{type:'text/html'}));window.open(u,'_blank')}setTimeout(function(){f.remove()},60000)},500);
 }
 function rowHtml(x,extra){
-  if(!x.found)return '<div class="it"><div><b dir="ltr">'+esc(x.reg_no)+'</b><small>رقم التسجيل غير موجود</small></div><span class="tag na">غير موجود</span></div>';
-  var st=x.approved===false||x.status&&x.status!=='approved'?'<span class="tag na">الحساب غير معتمد</span>':x.enabled?'<span class="tag on">البطاقة متاحة</span>':'<span class="tag off">غير متاحة</span>';
-  return '<div class="it"><div><b dir="auto">'+esc(x.full_name)+'</b><small dir="ltr">'+esc(x.reg_no)+(x.spec?' · '+esc(x.spec)+(SPEC[x.spec]?' — '+esc(SPEC[x.spec]):''):'')+(x.level?' · '+esc(lv(x)):'')+(x.card_code?' · '+esc(x.card_code):'')+'</small>'+(extra||'')+'</div>'+st+'</div>';
+  if(x.found===false&&!x.pending&&x.registered!==false&&!x.roster_name)return '<div class="it"><div><b dir="ltr">'+esc(x.reg_no)+'</b><small>لم يُعثر على حساب بهذا الرقم'+(x.pending?'':' ولم تُتَح له بطاقة')+'</small></div><span class="tag na">غير مسجل</span></div>';
+  var name=x.full_name||x.roster_name||'';
+  var st=x.registered===false||x.found===false?(x.pending?'<span class="tag wait">أُتيحت — بانتظار تسجيله</span>':'<span class="tag na">لم يسجل</span>'):(x.approved===false||x.status&&x.status!=='approved')?'<span class="tag na">الحساب غير معتمد</span>':x.enabled?'<span class="tag on">البطاقة متاحة</span>':'<span class="tag off">غير متاحة</span>';
+  return '<div class="it"><div><b dir="auto">'+esc(name||'—')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.spec?' · '+esc(x.spec)+(SPEC[x.spec]?' — '+esc(SPEC[x.spec]):''):'')+(x.level?' · '+esc(lv(x)):'')+(x.card_code?' · '+esc(x.card_code):'')+'</small>'+(extra||'')+'</div>'+st+'</div>';
 }
 async function find(){
   var regs=parseRegs();if(!regs.length)return msg('أدخل رقم تسجيل صحيح (مثل I21567).','err');
-  BUSY=true;msg('⏳ جاري البحث...');var html='';
-  for(var i=0;i<regs.length;i++){var r=await sb.rpc('student_card_admin_lookup',{p_reg:regs[i]});if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');msg('تعذر الاتصال بالخادم.','err');BUSY=false;return}
+  msg('⏳ جاري البحث...');var html='';
+  for(var i=0;i<regs.length;i++){var r=await sb.rpc('student_card_admin_lookup',{p_reg:regs[i]});if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');return msg('تعذر الاتصال بالخادم.','err')}
     var d=r.data||{found:false};d.reg_no=d.reg_no||regs[i];html+=rowHtml(d,d.found?'<br><small>أجهزة الإشعارات: '+(d.devices||0)+'</small>':'')}
-  msg('');$('out').innerHTML=html;BUSY=false;
+  msg('');$('out').innerHTML=html;
+}
+async function notifyStudents(okRegs){
+  var s=(await sb.auth.getSession()).data.session;
+  try{
+    var pr=await fetch('/api/public/push/activity',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+s.access_token},body:JSON.stringify({kind:'card',regs:okRegs})});
+    var pj=await pr.json().catch(function(){return{}});
+    if(pr.status===404||pr.status===405)return ' ⚠️ خدمة الإشعارات غير منشورة على الخادم (404): ارفع الملف src/routes/api/public/push/activity.ts مع src/routeTree.gen.ts وأعد النشر. ستظهر البطاقة للطالب داخل المجتمع مع تنبيه «جديد».';
+    if(!pr.ok)return ' ⚠️ تعذر إرسال الإشعار ('+esc(pj.error||pr.status)+'). ستظهر البطاقة للطالب داخل المجتمع مع تنبيه «جديد».';
+    if(pj.reason==='push_not_configured')return ' ⚠️ مفاتيح الإشعارات غير مضبوطة على الخادم؛ سيصل التنبيه داخل المجتمع فقط.';
+    if(pj.sent>0)return ' 🔔 أُرسل الإشعار إلى '+pj.sent+' جهاز.';
+    if(pj.accounts>0)return ' ℹ️ لا يوجد جهاز مفعّل للإشعارات لدى الطالب؛ سيرى تنبيه «جديد» عند فتح المجتمع.';
+    return ' ℹ️ لم يُرسل إشعار جديد (أُبلغ الطالب سابقاً).';
+  }catch(e){return ' ⚠️ تعذر الاتصال بخدمة الإشعارات؛ ستظهر البطاقة للطالب داخل المجتمع.'}
 }
 async function setCards(on){
   var regs=parseRegs();if(!regs.length)return msg('أدخل رقم تسجيل صحيح (مثل I21567).','err');
@@ -71,25 +109,14 @@ async function setCards(on){
     var r=await sb.rpc('student_card_set',{p_regs:regs,p_enabled:on});
     if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');throw r.error}
     var list=r.data||[];$('out').innerHTML=list.map(function(x){return rowHtml(x)}).join('');
-    var okRegs=list.filter(function(x){return x.found&&x.approved!==false}).map(function(x){return x.reg_no});
-    var note=on?('✅ أُظهرت البطاقة لـ '+okRegs.length+' طالب.'):('✅ أُخفيت البطاقة لـ '+okRegs.length+' طالب.');
-    if(on&&okRegs.length){
-      var tok=(await sb.auth.getSession()).data.session;
-      try{
-        var pr=await fetch('/api/public/push/card',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+tok.access_token},body:JSON.stringify({regs:okRegs})});
-        var pj=await pr.json().catch(function(){return{}});
-        if(!pr.ok)note+=' ⚠️ تعذر إرسال الإشعار ('+esc(pj.error||pr.status)+'). ستظهر البطاقة للطالب عند فتح المجتمع مع تنبيه داخل التطبيق.';
-        else if(pj.reason==='push_not_configured')note+=' ⚠️ إشعارات الخادم غير مضبوطة؛ سيصل التنبيه داخل التطبيق فقط.';
-        else if(pj.sent>0)note+=' 🔔 أُرسل الإشعار إلى '+pj.sent+' جهاز.';
-        else if(pj.accounts>0)note+=' ℹ️ لا يوجد جهاز مفعّل للإشعارات لدى الطالب؛ سيرى تنبيه «جديد» عند فتح المجتمع.';
-        else note+=' ℹ️ لم يُرسل إشعار جديد (أُبلغ الطالب سابقاً).';
-      }catch(e){note+=' ⚠️ تعذر إرسال الإشعار؛ ستظهر البطاقة للطالب عند فتح المجتمع.'}
-    }
-    msg(note,'ok');loadRecent();
+    var reg=list.filter(function(x){return x.registered}),wait=list.filter(function(x){return x.pending});
+    var note=on?('✅ أُظهرت البطاقة لـ '+reg.length+' طالب مسجّل'+(wait.length?' وأُتيحت مسبقاً لـ '+wait.length+' طالب لم يسجل بعد (تظهر له عند تسجيله)':'')+'.'):('✅ أُخفيت البطاقة لـ '+list.length+' طالب.');
+    if(on&&reg.length)note+=await notifyStudents(reg.map(function(x){return x.reg_no}));
+    msg(note,'ok');refresh();
   }catch(e){msg('تعذر التنفيذ: '+esc(e&&e.message||e),'err')}
   finally{$('bShow').disabled=$('bHide').disabled=$('bFind').disabled=false}
 }
-async function checkAccess(){var r=await sb.rpc('student_card_admin_list');if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid'),false;$('loginMsg').innerHTML='<div class="msg err">تعذر الاتصال بالخادم.</div>';show('login');return false}show('app');loadRecent();return true}
+async function checkAccess(){var r=await sb.rpc('student_card_admin_list',{p_day:null});if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid'),false;$('loginMsg').innerHTML='<div class="msg err">تعذر الاتصال بالخادم.</div>';show('login');return false}show('app');refresh();return true}
 async function login(){
   var e=$('email').value.trim(),p=$('pass').value;if(!e||!p){$('loginMsg').innerHTML='<div class="msg err">أدخل البريد وكلمة المرور.</div>';return}
   $('loginBtn').disabled=true;
@@ -99,5 +126,6 @@ async function login(){
 async function logout(){try{await sb.auth.signOut()}catch(e){}$('out').innerHTML='';show('login')}
 $('loginBtn').onclick=login;$('pass').addEventListener('keydown',function(e){if(e.key==='Enter')login()});
 $('logout').onclick=logout;$('forbidOut').onclick=logout;$('bFind').onclick=find;$('bShow').onclick=function(){setCards(true)};$('bHide').onclick=function(){setCards(false)};
+$('pAll').onclick=function(){printList(null)};$('pDay').onclick=function(){var d=$('day').value;if(!d)return $('listMsg').innerHTML='<div class="msg err">اختر يوماً أولاً.</div>';printList(d)};$('pShow').onclick=showDay;
 (async function(){try{var r=await sb.auth.getSession();if(r&&r.data&&r.data.session)await checkAccess();else show('login')}catch(e){show('login')}})();
 </script></body></html>

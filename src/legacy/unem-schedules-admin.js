@@ -208,7 +208,7 @@ function renderList(){
     '<div class="usa-li-main"><b>'+esc(x.title||'جدول')+'</b><small>'+esc(x.specialization)+' · '+esc(x.level)+(x.group_name?' · '+esc(x.group_name):'')+' · '+esc(x.academic_year||'')+' · '+n+' حصة'+(x.is_active?'':' · 🚫 مخفي')+'</small></div>'+
     '<div class="usa-li-act"><button type="button" class="usa-btn b s" data-act="edit">✏️ تعديل</button><button type="button" class="usa-btn g s" data-act="view">👁️ معاينة</button>'+
     (x.file_url?'<button type="button" class="usa-btn s" data-act="pdf">📄 PDF</button>':'')+
-    '<button type="button" class="usa-btn s" data-act="toggle">'+(x.is_active?'🙈 إخفاء':'👀 إظهار')+'</button><button type="button" class="usa-btn d s" data-act="del">🗑️</button></div>'+
+    '<button type="button" class="usa-btn s" data-act="toggle">'+(x.is_active?'إخفاء':'👀 إظهار')+'</button><button type="button" class="usa-btn d s" data-act="del">🗑️</button></div>'+
     '<div class="usa-view" style="flex:1 1 100%;display:none"></div></div>';
   }).join('');
   box.onclick=listClick;box.onchange=function(e){var li=e.target.closest('.usa-li');if(li&&e.target.dataset.act==='sel')state.selected[li.dataset.id]=e.target.checked;};
