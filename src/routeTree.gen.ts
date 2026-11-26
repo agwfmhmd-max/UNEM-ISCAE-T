@@ -23,7 +23,6 @@ import { Route as ApiPublicCloudinaryDestroyRouteImport } from './routes/api/pub
 import { Route as ApiPublicCloudinarySignRouteImport } from './routes/api/public/cloudinary/sign'
 import { Route as ApiPublicFcmRegisterRouteImport } from './routes/api/public/fcm/register'
 import { Route as ApiPublicPushActivityRouteImport } from './routes/api/public/push/activity'
-import { Route as ApiPublicPushCardRouteImport } from './routes/api/public/push/card'
 import { Route as ApiPublicPushMentionRouteImport } from './routes/api/public/push/mention'
 import { Route as ApiPublicPushRelayRouteImport } from './routes/api/public/push/relay'
 import { Route as ApiPublicPushSendRouteImport } from './routes/api/public/push/send'
@@ -101,11 +100,6 @@ const ApiPublicPushActivityRoute = ApiPublicPushActivityRouteImport.update({
   path: '/api/public/push/activity',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicPushCardRoute = ApiPublicPushCardRouteImport.update({
-  id: '/api/public/push/card',
-  path: '/api/public/push/card',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicPushMentionRoute = ApiPublicPushMentionRouteImport.update({
   id: '/api/public/push/mention',
   path: '/api/public/push/mention',
@@ -142,7 +136,6 @@ export interface FileRoutesByFullPath {
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
-  '/api/public/push/card': typeof ApiPublicPushCardRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
@@ -163,7 +156,6 @@ export interface FileRoutesByTo {
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
-  '/api/public/push/card': typeof ApiPublicPushCardRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
@@ -185,7 +177,6 @@ export interface FileRoutesById {
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
   '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/activity': typeof ApiPublicPushActivityRoute
-  '/api/public/push/card': typeof ApiPublicPushCardRoute
   '/api/public/push/mention': typeof ApiPublicPushMentionRoute
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
@@ -208,7 +199,6 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
-    | '/api/public/push/card'
     | '/api/public/push/mention'
     | '/api/public/push/relay'
     | '/api/public/push/send'
@@ -229,7 +219,6 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
-    | '/api/public/push/card'
     | '/api/public/push/mention'
     | '/api/public/push/relay'
     | '/api/public/push/send'
@@ -250,7 +239,6 @@ export interface FileRouteTypes {
     | '/api/public/cloudinary/sign'
     | '/api/public/fcm/register'
     | '/api/public/push/activity'
-    | '/api/public/push/card'
     | '/api/public/push/mention'
     | '/api/public/push/relay'
     | '/api/public/push/send'
@@ -272,7 +260,6 @@ export interface RootRouteChildren {
   ApiPublicCloudinarySignRoute: typeof ApiPublicCloudinarySignRoute
   ApiPublicFcmRegisterRoute: typeof ApiPublicFcmRegisterRoute
   ApiPublicPushActivityRoute: typeof ApiPublicPushActivityRoute
-  ApiPublicPushCardRoute: typeof ApiPublicPushCardRoute
   ApiPublicPushMentionRoute: typeof ApiPublicPushMentionRoute
   ApiPublicPushRelayRoute: typeof ApiPublicPushRelayRoute
   ApiPublicPushSendRoute: typeof ApiPublicPushSendRoute
@@ -379,13 +366,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/push/card': {
-      id: '/api/public/push/card'
-      path: '/api/public/push/card'
-      fullPath: '/api/public/push/card'
-      preLoaderRoute: typeof ApiPublicPushCardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/push/mention': {
       id: '/api/public/push/mention'
       path: '/api/public/push/mention'
@@ -432,7 +412,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCloudinarySignRoute: ApiPublicCloudinarySignRoute,
   ApiPublicFcmRegisterRoute: ApiPublicFcmRegisterRoute,
   ApiPublicPushActivityRoute: ApiPublicPushActivityRoute,
-  ApiPublicPushCardRoute: ApiPublicPushCardRoute,
   ApiPublicPushMentionRoute: ApiPublicPushMentionRoute,
   ApiPublicPushRelayRoute: ApiPublicPushRelayRoute,
   ApiPublicPushSendRoute: ApiPublicPushSendRoute,
