@@ -97,7 +97,7 @@
 <div class="hw-hi"><span class="hw-emoji" id="hw-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.2V16c0 1.3 2.7 3 6 3s6-1.7 6-3v-4.8"/><path d="M22 9v6"/></svg></span><div class="hw-text"><span class="hw-kicker" id="hw-kicker"></span><b id="hw-line">مرحباً بك في منصة UNEM ISCAE</b><div class="hw-chips" id="hw-chips"></div><small id="hw-sub"></small></div></div>
 <div class="hw-stats" id="hw-stats" style="display:none"><div class="hw-visits" id="hw-visits" style="display:none" title="إجمالي زوار المنصة"><i class="fas fa-users" aria-hidden="true"></i><div><b id="hw-visits-n">0</b><small id="hw-visits-l">إجمالي زوار المنصة</small></div></div><div class="hw-visits" id="hw-regs" style="display:none" title="عدد المسجّلين في المنصة"><i class="fas fa-user-check" aria-hidden="true"></i><div><b id="hw-regs-n">0</b><small id="hw-regs-l">عدد المسجّلين في المنصة</small></div></div></div>
 </section>
-<a class="membership-top-cta" id="membership-top-cta" href="/membership"><span class="membership-top-icon"><i class="fas fa-id-card"></i></span><span><b>الانتساب السنوي</b><small>تحقق من حالتك وأكمل بيانات بطاقة الانتساب</small></span><i class="fas fa-chevron-left"></i></a>
+<a class="membership-top-cta" id="membership-top-cta" href="/membership"><span class="membership-top-icon"><i class="fas fa-id-card"></i></span><span><b data-i18n="membership_cta_title">الانتساب السنوي</b><small data-i18n="membership_cta_desc">تحقق من حالتك وأكمل بيانات بطاقة الانتساب</small></span><i class="fas fa-chevron-left"></i></a>
 <button type="button" class="fav-home-bar" id="fav-home-bar" onclick="openFavorites()" aria-label="المفضلة">
 <span class="fav-bar-icon"><i class="fas fa-heart"></i></span>
 <span class="fav-bar-text"><b data-i18n="card_favorites">المفضلة</b><small data-i18n="card_favorites_desc">ملخصاتك وأرشيفك وجداولك المحفوظة في مكان واحد</small></span>
@@ -134,7 +134,7 @@
 <div class="icon-box"><i class="fas fa-calculator"></i></div>
 <h3 data-i18n="card_gpa">حساب المعدل</h3>
 <p data-i18n="card_gpa_desc">احسب معدلك الفصلي مسبقاً</p>
-</div><div class="semester-card wide-card" onclick="window.location.href='/membership'" style="--theme-color:#15803d; --theme-light:rgba(21,128,61,.18); background-color:rgba(21,128,61,.05);"><div class="icon-box" style="color:#15803d;"><i class="fas fa-id-card"></i></div><h3>الانتساب السنوي</h3><p>تحقق من حالتك وأكمل بيانات بطاقة الانتساب</p></div><div class="semester-card wide-card community-card" onclick="(async()=>{try{await logSupabaseAnalytics('دخول قسم','مجتمع الطلاب');}catch(e){} window.location.href='/community';})()" style="--theme-color:#f59e0b; --theme-light:rgba(245,158,11,0.2); background-color:rgba(245,158,11,0.05);">
+</div><div class="semester-card wide-card community-card" onclick="(async()=>{try{await logSupabaseAnalytics('دخول قسم','مجتمع الطلاب');}catch(e){} window.location.href='/community';})()" style="--theme-color:#f59e0b; --theme-light:rgba(245,158,11,0.2); background-color:rgba(245,158,11,0.05);">
 <div class="icon-box" style="color:#f59e0b;"><i class="fas fa-people-group"></i></div>
 <h3 data-i18n="card_community">مجتمع الطلاب</h3>
 <p data-i18n="card_community_desc">نقاش، أسئلة ومجموعات دراسة مع زملائك</p>
@@ -852,7 +852,7 @@
 <div class="mda-sign" title="MDA" aria-label="MDA — Mohamed Dah Agove"><svg class="mda-seal" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="rgba(0,0,0,.22)" stroke="#f5b942" stroke-width="3"/><circle cx="50" cy="50" r="43" fill="none" stroke="#f5b942" stroke-width=".9" stroke-dasharray="1.2 2.6"/><circle cx="50" cy="50" r="38.5" fill="none" stroke="#f5b942" stroke-width="1"/><path d="M50 21l2.6 4.2L50 29.4l-2.6-4.2z" fill="#f5b942"/><text x="50" y="61" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="27" font-weight="700" fill="#fff7e0" letter-spacing="-.5">MDA</text><path d="M30 70h40" stroke="#f5b942" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="77" r="1.7" fill="#f5b942"/></svg></div>
 </footer>
 <!-- سكربت الترجمة والوضع الليلي -->
-<script src="/legacy/app/02-i18n.js?v=2381514f3f"></script>
+<script src="/legacy/app/02-i18n.js?v=membership-20261126"></script>
 <script src="/legacy/app/03-main-01-functions.js?v=083f3f1de5"></script>
 <script src="/legacy/app/03-main-02-functions.js?v=5968b6045d"></script>
 <script src="/legacy/app/03-main-03-functions.js?v=dc5a42a5ea"></script>
