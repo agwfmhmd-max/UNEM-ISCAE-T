@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardAdminRouteImport } from './routes/card-admin'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as EmploisRouteImport } from './routes/emplois'
+import { Route as MembershipRouteImport } from './routes/membership'
+import { Route as MembershipAdminRouteImport } from './routes/membership-admin'
 import { Route as MoyenneRouteImport } from './routes/moyenne'
 import { Route as ResultatsRouteImport } from './routes/resultats'
 import { Route as ScanCardRouteImport } from './routes/scan-card'
@@ -46,6 +48,16 @@ const CommunityRoute = CommunityRouteImport.update({
 const EmploisRoute = EmploisRouteImport.update({
   id: '/emplois',
   path: '/emplois',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipRoute = MembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipAdminRoute = MembershipAdminRouteImport.update({
+  id: '/membership-admin',
+  path: '/membership-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MoyenneRoute = MoyenneRouteImport.update({
@@ -126,6 +138,8 @@ export interface FileRoutesByFullPath {
   '/card-admin': typeof CardAdminRoute
   '/community': typeof CommunityRoute
   '/emplois': typeof EmploisRoute
+  '/membership': typeof MembershipRoute
+  '/membership-admin': typeof MembershipAdminRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/scan-card': typeof ScanCardRoute
@@ -146,6 +160,8 @@ export interface FileRoutesByTo {
   '/card-admin': typeof CardAdminRoute
   '/community': typeof CommunityRoute
   '/emplois': typeof EmploisRoute
+  '/membership': typeof MembershipRoute
+  '/membership-admin': typeof MembershipAdminRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/scan-card': typeof ScanCardRoute
@@ -167,6 +183,8 @@ export interface FileRoutesById {
   '/card-admin': typeof CardAdminRoute
   '/community': typeof CommunityRoute
   '/emplois': typeof EmploisRoute
+  '/membership': typeof MembershipRoute
+  '/membership-admin': typeof MembershipAdminRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/scan-card': typeof ScanCardRoute
@@ -189,6 +207,8 @@ export interface FileRouteTypes {
     | '/card-admin'
     | '/community'
     | '/emplois'
+    | '/membership'
+    | '/membership-admin'
     | '/moyenne'
     | '/resultats'
     | '/scan-card'
@@ -209,6 +229,8 @@ export interface FileRouteTypes {
     | '/card-admin'
     | '/community'
     | '/emplois'
+    | '/membership'
+    | '/membership-admin'
     | '/moyenne'
     | '/resultats'
     | '/scan-card'
@@ -229,6 +251,8 @@ export interface FileRouteTypes {
     | '/card-admin'
     | '/community'
     | '/emplois'
+    | '/membership'
+    | '/membership-admin'
     | '/moyenne'
     | '/resultats'
     | '/scan-card'
@@ -250,6 +274,8 @@ export interface RootRouteChildren {
   CardAdminRoute: typeof CardAdminRoute
   CommunityRoute: typeof CommunityRoute
   EmploisRoute: typeof EmploisRoute
+  MembershipRoute: typeof MembershipRoute
+  MembershipAdminRoute: typeof MembershipAdminRoute
   MoyenneRoute: typeof MoyenneRoute
   ResultatsRoute: typeof ResultatsRoute
   ScanCardRoute: typeof ScanCardRoute
@@ -294,6 +320,20 @@ declare module '@tanstack/react-router' {
       path: '/emplois'
       fullPath: '/emplois'
       preLoaderRoute: typeof EmploisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membership': {
+      id: '/membership'
+      path: '/membership'
+      fullPath: '/membership'
+      preLoaderRoute: typeof MembershipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membership-admin': {
+      id: '/membership-admin'
+      path: '/membership-admin'
+      fullPath: '/membership-admin'
+      preLoaderRoute: typeof MembershipAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/moyenne': {
@@ -402,6 +442,8 @@ const rootRouteChildren: RootRouteChildren = {
   CardAdminRoute: CardAdminRoute,
   CommunityRoute: CommunityRoute,
   EmploisRoute: EmploisRoute,
+  MembershipRoute: MembershipRoute,
+  MembershipAdminRoute: MembershipAdminRoute,
   MoyenneRoute: MoyenneRoute,
   ResultatsRoute: ResultatsRoute,
   ScanCardRoute: ScanCardRoute,

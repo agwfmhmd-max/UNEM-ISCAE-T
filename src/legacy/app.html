@@ -133,7 +133,7 @@
 <div class="icon-box"><i class="fas fa-calculator"></i></div>
 <h3 data-i18n="card_gpa">حساب المعدل</h3>
 <p data-i18n="card_gpa_desc">احسب معدلك الفصلي مسبقاً</p>
-</div><div class="semester-card wide-card community-card" onclick="(async()=>{try{await logSupabaseAnalytics('دخول قسم','مجتمع الطلاب');}catch(e){} window.location.href='/community';})()" style="--theme-color:#f59e0b; --theme-light:rgba(245,158,11,0.2); background-color:rgba(245,158,11,0.05);">
+</div><div class="semester-card wide-card" onclick="window.location.href='/membership'" style="--theme-color:#15803d; --theme-light:rgba(21,128,61,.18); background-color:rgba(21,128,61,.05);"><div class="icon-box" style="color:#15803d;"><i class="fas fa-id-card"></i></div><h3>الانتساب السنوي</h3><p>تحقق من حالتك وأكمل بيانات بطاقة الانتساب</p></div><div class="semester-card wide-card community-card" onclick="(async()=>{try{await logSupabaseAnalytics('دخول قسم','مجتمع الطلاب');}catch(e){} window.location.href='/community';})()" style="--theme-color:#f59e0b; --theme-light:rgba(245,158,11,0.2); background-color:rgba(245,158,11,0.05);">
 <div class="icon-box" style="color:#f59e0b;"><i class="fas fa-people-group"></i></div>
 <h3 data-i18n="card_community">مجتمع الطلاب</h3>
 <p data-i18n="card_community_desc">نقاش، أسئلة ومجموعات دراسة مع زملائك</p>
@@ -367,7 +367,7 @@
 <button class="admin-dash-card admin-schedules-card" data-dash-key="schedules" onclick="openSchedulesAdmin()"><b>📅 الجداول الدراسية</b><span>رفع وتحديث وإدارة الجداول الدراسية</span></button>
 <button class="admin-dash-card" data-dash-key="platform-settings" onclick="adminDashOpen('platform-settings')"><b>⚙️ إعدادات المنصة</b><span>إدارة الإعدادات العامة الممنوحة لك</span></button>
 <button class="admin-dash-card" data-dash-key="file-order" onclick="adminDashOpen('file-order')"><b>↕️ ترتيب ملفات المواد</b><span>إعادة ترتيب الملفات من قوائم المواد</span></button>
-<button class="admin-dash-card" data-dash-key="community" onclick="window.location.href='/community'"><b>💬 إشراف المجتمع</b><span>الدخول إلى المجتمع كمشرف: حذف المحتوى ومراجعة البلاغات</span></button>
+<button class="admin-dash-card" data-dash-key="community" onclick="window.location.href='/community'"><b>💬 إشراف المجتمع</b><span>الدخول إلى المجتمع كمشرف: حذف المحتوى ومراجعة البلاغات</span></button><button class="admin-dash-card" data-dash-key="membership" onclick="window.location.href='/membership-admin'"><b>🪪 إدارة الانتساب السنوي</b><span>جدولة زر المجتمع وإظهار بطاقات الانتساب ورفع أرقام التسجيل</span></button>
 </div>
 <div id="admin-dashboard-page" style="display:none;padding:22px;">
 <button class="back-btn" onclick="adminDashHome()" style="margin-bottom:15px">← لوحة التحكم</button>
@@ -886,6 +886,8 @@
 <script id="mda-layer-js" src="/legacy/app/11-mda-layer.js?v=6b19006e3e"></script>
 <script id="unem-favorites" src="/legacy/app/12-favorites.js?v=471b260979"></script>
 <script id="unem-search-visibility" src="/legacy/app/13-search-visibility.js?v=e42ff26244"></script>
+<style id="community-schedule-guard">.community-card{display:none!important}.community-card.community-scheduled-on{display:block!important}</style>
+<script id="community-schedule-loader">(function(){var U='https://cbaswqaufawdsvadizyi.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';function go(){var c=document.querySelector('.community-card');if(!c)return;fetch(U+'/rest/v1/rpc/community_visibility',{method:'POST',headers:{'Content-Type':'application/json',apikey:K,Authorization:'Bearer '+K},body:JSON.stringify({p_year:null})}).then(function(r){return r.json()}).then(function(d){if(d&&d.visible)c.classList.add('community-scheduled-on')}).catch(function(){})}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go()})();</script>
 <script id="unem-header-menu" src="/legacy/app/14-header-menu.js?v=29e50ced64"></script>
 <script id="unem-file-reliability" src="/legacy/app/15-file-reliability.js?v=b755f60fc2"></script>
 <script id="unem-push-selfheal" src="/legacy/app/16-push-selfheal.js?v=c6da16e15c"></script>
