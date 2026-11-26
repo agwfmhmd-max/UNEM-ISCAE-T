@@ -6,7 +6,7 @@ const PRECACHE = ['/', '/manifest.json', '/icon-192.png'];
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)).catch(() => {})
-      .then(() => self.skipWaiting())
+      .then(() => self.skipWaiting()),
   );
 });
 
