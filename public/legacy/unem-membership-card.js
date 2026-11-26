@@ -20,6 +20,7 @@
       year: "السنة الدراسية",
       spec: "التخصص",
       level: "المستوى",
+      phone: "رقم الهاتف",
       band: "بطاقة الانتساب الرقمية",
       bandYear: "السنة الدراسية",
       specs: {
@@ -53,6 +54,7 @@
       year: "Année universitaire",
       spec: "Filière",
       level: "Niveau",
+      phone: "Téléphone",
       band: "Carte d’adhésion numérique",
       bandYear: "Année universitaire",
       specs: {
@@ -238,25 +240,48 @@
       ["📅", T.year, yearText],
       ["🎓", T.spec, specText],
       ["📚", T.level, levelText],
+      ...(data.phone ? [["☎️", T.phone, data.phone]] : []),
     ];
+    const compactRows = rows.length > 5;
     rows.forEach((row, index) => {
-      const y = 226 + index * 60;
+      const y = (compactRows ? 222 : 226) + index * (compactRows ? 48 : 60);
+      const rowHeight = compactRows ? 44 : 52;
       ctx.fillStyle = "#fff";
-      rounded(ctx, 272, y, 470, 52, 14);
+      rounded(ctx, 272, y, 470, rowHeight, 14);
       ctx.fill();
       ctx.lineWidth = 1.5;
       ctx.strokeStyle = "#efe6c4";
       ctx.stroke();
       ctx.fillStyle = colors.gold;
-      rounded(ctx, 698, y + 6, 38, 40, 11);
+      rounded(ctx, 698, y + (compactRows ? 5 : 6), 38, compactRows ? 34 : 40, 11);
       ctx.fill();
       ctx.font = '22px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
       ctx.textAlign = "center";
       ctx.direction = "ltr";
       ctx.fillStyle = "#3b2a00";
-      ctx.fillText(row[0], 717, y + 34);
-      text(ctx, row[1], 688, y + 19, 300, 14.5, 11, "700", colors.muted);
-      text(ctx, row[2], 688, y + 43, 408, 26, 13, "800", colors.ink);
+      ctx.fillText(row[0], 717, y + (compactRows ? 27 : 34));
+      text(
+        ctx,
+        row[1],
+        688,
+        y + (compactRows ? 15 : 19),
+        300,
+        compactRows ? 12 : 14.5,
+        10,
+        "700",
+        colors.muted,
+      );
+      text(
+        ctx,
+        row[2],
+        688,
+        y + (compactRows ? 36 : 43),
+        408,
+        compactRows ? 21 : 26,
+        12,
+        "800",
+        colors.ink,
+      );
     });
     ctx.fillStyle = "#fff";
     rounded(ctx, 764, 222, 222, 236, 20);

@@ -8,6 +8,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/unem-qr.js"></script>
+<script src="/legacy/unem-membership-card.js?v=membership-card-2"></script>
 <style>
 :root{--g:#0f5132;--g2:#15803d;--gold:#f5b942;--bg:#f1f5f4;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--soft:#f8fafc;--mine:#fef3c7}
 body.dark-mode{--bg:#0f172a;--card:#1e293b;--ink:#f1f5f9;--mut:#94a3b8;--line:#334155;--soft:#0f172a;--mine:#5b4a12}
@@ -539,85 +540,10 @@ function muteBar(key){if(!me||me.admin)return '';const m=MUTED.has(key);return `
 const ALL_RE=/^(الكل|الجميع|all|everyone|tous|toutes)/i;
 function withAllItem(items,prefix){const list=Array.isArray(items)?items.slice():[];if(!(me&&me.admin)&&!ROOM_CAN_ALL&&!ROOM_CAN_MANAGE)return list;const p=String(prefix||'').toLowerCase();const cands=['الكل','all'];const hit=cands.find(c=>c.startsWith(p));if(p===''||hit)list.unshift({name:hit||'الكل',all:true});return list}
 function focusPost(id,tries){const box=document.getElementById('c'+id);if(box){try{box.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}if(!box.innerHTML)cms(id);return}if((tries||0)<10)setTimeout(()=>focusPost(id,(tries||0)+1),600)}
-/* ===== بطاقة الطالب الرقمية (ISCAE): رسم على canvas → PNG / PDF بحجم البطاقة الحقيقي ===== */
-const CARD_SPEC={BA:'Banques et Assurances',FC:'Finance et Comptabilité',TCM:'Techniques Commerciales et Marketing',GRH:'Gestion des Ressources Humaines',SAE:"Statistique Appliquée à l'Économie",IG:'Informatique de Gestion',DI:'Développement Informatique',RIT:'Réseaux Informatiques et Télécoms',MASTER_FC:'Master Finance et Comptabilité',MASTER_IG:'Master Informatique de Gestion'};
-const cardImg=src=>new Promise(res=>{if(!src)return res(null);const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src});
-const cardArabic=t=>/[\u0600-\u06FF]/.test(t||'');
-function cardRR(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-function cardText(c,txt,x,y,maxW,px,minPx,weight,color,align){
-  txt=String(txt==null?'':txt);let f=px;const fam='Tajawal,Cairo,"Segoe UI",Arial,sans-serif';
-  c.direction=cardArabic(txt)?'rtl':'ltr';c.textAlign=align||'right';c.fillStyle=color||'#0f172a';c.textBaseline='alphabetic';
-  do{c.font=weight+' '+f+'px '+fam;if(c.measureText(txt).width<=maxW||f<=minPx)break;f-=1}while(f>minPx);
-  if(c.measureText(txt).width>maxW){while(txt.length>3&&c.measureText(txt+'…').width>maxW)txt=txt.slice(0,-1);txt+='…'}
-  c.fillText(txt,x,y);c.direction='ltr';
-}
-const CARD_PARTS=new Set(['el','al','ed','es','en','er','ez','ould','oul','ben','bin','ibn','bint','mint','abd','abdel','abdou','abdoul','abdul','abou','abu','oum','ummu','sidi','sid','sidy','moulaye','ag','ait','ahl']);
-function cardShortName(full){
-  const toks=String(full||'').trim().split(/\s+/).filter(Boolean);if(toks.length<2)return toks[0]||'';
-  const groups=[];for(let i=0;i<toks.length;i++){let g=toks[i];while(CARD_PARTS.has(g.split(' ').pop().toLowerCase().replace(/[.'’-]/g,''))&&i+1<toks.length){i++;g+=' '+toks[i]}groups.push(g)}
-  return groups.length>1?groups[0]+' '+groups[groups.length-1]:groups[0];
-}
-const CARD_L={
- ar:{title:'بطاقة انتساب',org:'الاتحاد الوطني لطلبة موريتانيا',sub:'UNEM',inst:'المعهد العالي للمحاسبة وإدارة المؤسسات (ISCAE)',pill:'منتسب',
-  name:'الاسم الكامل',reg:'رقم التسجيل',year:'السنة الدراسية',spec:'التخصص',level:'المستوى',band:'بطاقة الانتساب الرقمية',bandYear:'السنة الدراسية',grad:'خريج — الدفعة ',
-  specs:{BA:'البنوك والتأمينات',FC:'المالية والمحاسبة',TCM:'التقنيات التجارية والتسويق',GRH:'تسيير الموارد البشرية',SAE:'الإحصاء التطبيقي للاقتصاد',IG:'معلوماتية التسيير',DI:'تطوير المعلوماتية',RIT:'الشبكات المعلوماتية والاتصالات',MASTER_FC:'ماستر المالية والمحاسبة',MASTER_IG:'ماستر معلوماتية التسيير'},
-  levels:{L1:'السنة الأولى',L2:'السنة الثانية',L3:'السنة الثالثة',M1:'ماستر 1',M2:'ماستر 2'}},
- fr:{title:'CARTE D’ADHÉSION',org:'UNION NATIONALE DES ÉTUDIANTS DE MAURITANIE',sub:'UNEM',inst:'Institut Supérieur de Comptabilité et d’Administration d’Entreprises (ISCAE)',pill:'Adhérent',
-  name:'Nom complet',reg:'N° d’inscription',year:'Année universitaire',spec:'Filière',level:'Niveau',band:'Carte d’adhésion numérique',bandYear:'Année universitaire',grad:'Sortant — Promotion ',
-  specs:{BA:'Banques et Assurances',FC:'Finance et Comptabilité',TCM:'Techniques Commerciales et Marketing',GRH:'Gestion des Ressources Humaines',SAE:"Statistique Appliquée à l'Économie",IG:'Informatique de Gestion',DI:'Développement Informatique',RIT:'Réseaux Informatiques et Télécoms',MASTER_FC:'Master Finance et Comptabilité',MASTER_IG:'Master Informatique de Gestion'},
-  levels:{L1:'1re année',L2:'2e année',L3:'3e année',M1:'Master 1',M2:'Master 2'}}};
-async function cardRender(cv,d,lang){const T=CARD_L[lang==='fr'?'fr':'ar'];
-  try{await Promise.all([document.fonts.load('800 36px Tajawal'),document.fonts.load('500 20px Tajawal'),document.fonts.load('700 20px Tajawal')])}catch(e){}
-  const [logo,photo]=await Promise.all([cardImg('/logo.png'),cardImg(me&&me.avatar_data)]);
-  const W=1011,H=638,c=cv.getContext('2d');cv.width=W;cv.height=H;
-  const yearTxt=d.academic_year+'-'+(+d.academic_year+1),grad=!!d.promo,specName=T.specs[d.spec]||'';
-  const levelTxt=grad?T.grad+d.promo:d.level+(T.levels[d.level]?' — '+T.levels[d.level]:''),specTxt=d.spec+(specName?' — '+specName:'');
-  const code=d.code||('UNEM-ISCAE-'+d.academic_year+'-'+d.token);
-  c.clearRect(0,0,W,H);c.save();cardRR(c,0,0,W,H,34);c.clip();
-  c.fillStyle='#fffdf4';c.fillRect(0,0,W,H);
-  /* زخارف الزوايا */
-  c.fillStyle='#f5c400';c.beginPath();c.moveTo(0,0);c.lineTo(320,0);c.lineTo(0,160);c.closePath();c.fill();
-  c.fillStyle='#fde68a';c.beginPath();c.moveTo(0,0);c.lineTo(200,0);c.lineTo(0,100);c.closePath();c.fill();
-  c.fillStyle='#15803d';c.beginPath();c.moveTo(690,0);c.lineTo(W,0);c.lineTo(W,64);c.lineTo(900,22);c.closePath();c.fill();
-  c.fillStyle='#0b3d26';c.beginPath();c.moveTo(820,0);c.lineTo(W,0);c.lineTo(W,26);c.closePath();c.fill();
-  /* الشعار */
-  c.save();c.beginPath();c.arc(130,128,96,0,Math.PI*2);c.fillStyle='#fff';c.fill();c.lineWidth=7;c.strokeStyle='#15803d';c.stroke();c.clip();if(logo)c.drawImage(logo,34,32,192,192);c.restore();
-  /* الترويسة */
-  cardText(c,T.org,985,76,690,lang==='fr'?27:40,20,'800','#0f5132');
-  c.fillStyle='#1f2937';c.font='800 21px Arial';c.textAlign='right';c.direction='ltr';if('letterSpacing' in c)c.letterSpacing='6px';c.fillText(T.sub,985,106);if('letterSpacing' in c)c.letterSpacing='0px';
-  c.fillStyle='#f5c400';c.beginPath();c.moveTo(300,122);c.lineTo(985,122);c.lineTo(960,174);c.lineTo(275,174);c.closePath();c.fill();
-  cardText(c,T.title,945,162,630,lang==='fr'?33:38,22,'800','#3b2a00');
-  cardText(c,T.inst,985,200,690,lang==='fr'?16.5:20,11,'700','#334155');
-  /* الصورة والاسم المختصر */
-  c.save();cardRR(c,42,236,176,190,22);c.clip();
-  if(photo){const r=Math.max(176/photo.width,190/photo.height),w=photo.width*r,h=photo.height*r;c.drawImage(photo,42+(176-w)/2,236+(190-h)/2,w,h)}
-  else{c.fillStyle='#e7efe3';c.fillRect(42,236,176,190);c.fillStyle='#15803d';c.font='800 104px Tajawal,Arial';c.textAlign='center';c.direction='ltr';c.textBaseline='alphabetic';c.fillText(((d.full_name||'?').trim()[0]||'?').toUpperCase(),130,360)}
-  c.restore();c.lineWidth=5;c.strokeStyle='#f5c400';cardRR(c,42,236,176,190,22);c.stroke();
-  const short=cardShortName(d.full_name);
-  c.fillStyle='#0b3d26';cardRR(c,34,436,192,48,16);c.fill();cardText(c,short,130,468,172,24,13,'800','#fff','center');
-  c.fillStyle='#f5c400';cardRR(c,60,490,140,30,15);c.fill();cardText(c,T.pill,130,512,124,19,12,'800','#3b2a00','center');
-  c.fillStyle='#475569';c.font='700 12px Arial';c.textAlign='center';c.direction='ltr';if('letterSpacing' in c)c.letterSpacing='3px';c.fillText('UNEM · ISCAE',130,543);if('letterSpacing' in c)c.letterSpacing='0px';
-  /* الحقول */
-  const rows=[['👤',T.name,d.full_name],['🆔',T.reg,d.reg_no],['📅',T.year,yearTxt],['🎓',T.spec,specTxt],['📚',T.level,levelTxt]];
-  rows.forEach((r,i)=>{const y=226+i*60;
-    c.fillStyle='#fff';cardRR(c,272,y,470,52,14);c.fill();c.lineWidth=1.5;c.strokeStyle='#efe6c4';c.stroke();
-    c.fillStyle='#f5c400';cardRR(c,698,y+6,38,40,11);c.fill();c.font='22px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';c.textAlign='center';c.direction='ltr';c.fillStyle='#3b2a00';c.fillText(r[0],717,y+34);
-    cardText(c,r[1],688,y+19,300,14.5,11,'700','#64748b');
-    cardText(c,r[2],688,y+43,408,26,13,'800','#0f172a');
-  });
-  /* رمز QR */
-  const url=location.origin+'/verify-card?c='+encodeURIComponent(d.token);
-  c.fillStyle='#fff';cardRR(c,764,222,222,236,20);c.fill();c.lineWidth=4;c.strokeStyle='#f5c400';c.stroke();
-  try{const q=qrcode(0,'M');q.addData(url);q.make();const n=q.getModuleCount(),cell=Math.floor(196/(n+4)),tot=cell*(n+4),ox=764+(222-tot)/2,oy=222+14+(196-tot)/2;c.fillStyle='#fff';c.fillRect(ox,oy,tot,tot);c.fillStyle='#0b3d26';for(let a=0;a<n;a++)for(let b=0;b<n;b++)if(q.isDark(a,b))c.fillRect(ox+(b+2)*cell,oy+(a+2)*cell,cell,cell)}catch(e){c.fillStyle='#94a3b8';c.font='700 18px Arial';c.textAlign='center';c.fillText('QR',875,340)}
-  c.fillStyle='#0b3d26';cardRR(c,764,468,222,36,18);c.fill();cardText(c,code,875,492,206,15,9,'800','#fff','center');
-  /* الشريط السفلي */
-  const g=c.createLinearGradient(0,560,W,560);g.addColorStop(0,'#0b3d26');g.addColorStop(1,'#15803d');c.fillStyle=g;c.fillRect(0,556,W,82);c.fillStyle='#f5c400';c.fillRect(0,556,W,5);
-  cardText(c,'UNEM ISCAE',46,598,360,30,18,'800','#f5c400','left');
-  cardText(c,location.host,46,623,360,15,10,'600','#cbd5e1','left');
-  cardText(c,T.band,985,598,560,26,15,'800','#fff');
-  cardText(c,yearTxt,985,624,200,19,12,'700','#f5c400');
-  cardText(c,T.bandYear,985-(c.measureText(yearTxt).width||0)-14,624,300,17,11,'600','#e2e8f0');
-  c.restore();
+/* ===== بطاقة الطالب الرقمية: نفس التصميم الموحد المستخدم في صفحة الانتساب ===== */
+async function cardRender(cv,d,lang){
+  if(!window.UNEM_MEMBERSHIP_CARD)throw Error('تعذر تحميل تصميم البطاقة. أعد تحميل الصفحة.');
+  return window.UNEM_MEMBERSHIP_CARD.render(cv,{...d,card_code:d.code||d.card_code,photo:me&&me.avatar_data},lang);
 }
 function cardDownload(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
 function cardPdf(jpeg,pxW,pxH){
