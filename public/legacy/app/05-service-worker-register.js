@@ -2,7 +2,7 @@
       let newWorker;
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').then(reg => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg => {
             console.log('SW Registered');
             
             // 1. فحص التحديث فور تشغيل التطبيق المثبت
@@ -112,7 +112,7 @@
 
         document.getElementById('update-btn').addEventListener('click', () => {
           document.getElementById('update-toast').classList.remove('show');
-          if (newWorker) { newWorker.postMessage({ action: 'skipWaiting' }); } 
+          if (newWorker) { newWorker.postMessage({ type: 'SKIP_WAITING' }); }
           else { window.location.reload(); }
         });
       }
