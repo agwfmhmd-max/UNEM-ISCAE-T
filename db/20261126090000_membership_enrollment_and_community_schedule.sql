@@ -96,3 +96,41 @@ end $$;
 revoke all on function public.student_membership_admin_set(text[],int,boolean) from public, anon;
 grant execute on function public.student_membership_admin_set(text[],int,boolean) to authenticated;
 notify pgrst, 'reload schema';
+
+-- Independent top-of-page membership CTA controls.
+create table if not exists public.membership_visibility_schedule (
+  id boolean primary key default true,
+  enabled boolean not null default true,
+  show_at timestamptz,
+  hide_at timestamptz,
+  updated_at timestamptz not null default now(),
+  updated_by uuid
+);
+insert into public.membership_visibility_schedule(id,enabled) values(true,true) on conflict(id) do nothing;
+alter table public.membership_visibility_schedule enable row level security;
+drop policy if exists membership_visibility_schedule_none on public.membership_visibility_schedule;
+create policy membership_visibility_schedule_none on public.membership_visibility_schedule for all to anon, authenticated using(false) with check(false);
+
+create or replace function public.membership_visibility() returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare s public.membership_visibility_schedule; v_now timestamptz := now();
+begin
+  select * into s from membership_visibility_schedule where id=true;
+  return jsonb_build_object('enabled',coalesce(s.enabled,true),'show_at',s.show_at,'hide_at',s.hide_at,
+    'visible',coalesce(s.enabled,true) and (s.show_at is null or v_now >= s.show_at) and (s.hide_at is null or v_now < s.hide_at));
+end $$;
+revoke all on function public.membership_visibility() from public;
+grant execute on function public.membership_visibility() to anon, authenticated;
+
+create or replace function public.membership_visibility_set(p_enabled boolean, p_show_at timestamptz, p_hide_at timestamptz) returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null or not public.has_role(auth.uid(),'admin'::app_role) then raise exception 'forbidden'; end if;
+  if p_show_at is not null and p_hide_at is not null and p_hide_at <= p_show_at then raise exception 'bad_schedule'; end if;
+  update membership_visibility_schedule set enabled=coalesce(p_enabled,true),show_at=p_show_at,hide_at=p_hide_at,updated_at=now(),updated_by=auth.uid() where id=true;
+  return public.membership_visibility();
+end $$;
+revoke all on function public.membership_visibility_set(boolean,timestamptz,timestamptz) from public, anon;
+grant execute on function public.membership_visibility_set(boolean,timestamptz,timestamptz) to authenticated;
+
+notify pgrst, 'reload schema';
