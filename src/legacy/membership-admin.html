@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <meta name="robots" content="noindex,nofollow">
   <title>إدارة الانتساب والمجتمع</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
@@ -28,7 +29,7 @@
     .small{font-size:.88rem;color:var(--mut);line-height:1.75;margin-top:0}
     .request-item{border:1px solid #dbe7df;border-radius:15px;padding:13px;margin-top:10px;background:#fbfdfb}
     .request-title{font-weight:900;color:var(--g);font-size:1rem}.request-meta{color:#475569;line-height:1.8;margin-top:5px}
-    .empty{padding:14px;border-radius:12px;background:#f8fafc;color:#64748b;font-weight:700}
+    .empty{padding:14px;border-radius:12px;background:#f8fafc;color:#64748b;font-weight:700}.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{border:1px solid #dbe7df;border-radius:15px;padding:13px;background:linear-gradient(135deg,#f8fafc,#ecfdf5)}.stat small{display:block;color:#64748b;font-weight:700}.stat b{display:block;color:var(--g);font-size:1.6rem;margin-top:4px}.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.chart-card{border:1px solid #dbe7df;border-radius:15px;padding:12px}.bar{display:grid;grid-template-columns:96px 1fr 38px;align-items:center;gap:7px;margin:9px 0;font-size:.82rem}.bar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}.bar-track{height:14px;background:#e2e8f0;border-radius:99px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,#15803d,#f5c400);border-radius:99px}.bar-count{font-weight:900;color:var(--g);text-align:left}@media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}}
     @media(max-width:560px){.grid{grid-template-columns:1fr}}
     @media(max-width:620px){body{padding:18px 16px}.wrap{max-width:520px}.top{gap:10px;margin-bottom:18px}.top img{width:48px;height:48px;object-fit:contain}.top h1{font-size:1.15rem;line-height:1.35}.card{padding:20px 18px;border-radius:22px;margin:14px 0}.grid{grid-template-columns:1fr;gap:8px}.field{margin-top:8px}.field input{min-height:54px;padding:13px 14px;font-size:1rem}.row{margin-top:16px}.row .btn{min-width:0}.btn{padding:12px 20px}}
     @media(max-width:380px){body{padding:12px}.top h1{font-size:1rem}.card{padding:17px 14px}}
@@ -82,6 +83,22 @@
         </div>
         <div class="row"><button class="btn" id="saveSchedule" type="button">حفظ الجدولة</button></div>
         <div id="scheduleMsg" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <h2>إحصائيات التسجيل والانتساب</h2>
+        <p class="small">الأرقام هنا محسوبة مباشرة من الحسابات المعتمدة والبطاقات المفعّلة للسنة الدراسية الحالية، وليست تقديرات من المتصفح.</p>
+        <div id="membershipStats"><div class="empty">جارٍ تحميل الإحصائيات...</div></div>
+        <div id="membershipStatsMsg" aria-live="polite"></div>
+      </section>
+
+      <section class="card">
+        <h2>استيراد أرقام التسجيل من Excel لإظهار البطاقات</h2>
+        <p class="small">ارفع ملف XLS أو XLSX يحتوي على أرقام التسجيل. يتعرف النظام على العمود من عنوانه أو من القيم، يزيل التكرار، يعرض المعاينة، ثم يطبق العملية بعد التأكيد. لا يتم تغيير أي طالب آخر.</p>
+        <div class="field"><label for="cardExcel">ملف Excel</label><input id="cardExcel" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"></div>
+        <div id="cardExcelPreview" class="small" style="margin-top:10px"></div>
+        <div class="row"><button class="btn" id="importCards" type="button" disabled>إظهار البطاقات للأرقام الموجودة</button><button class="btn alt" id="clearCardExcel" type="button">مسح المعاينة</button></div>
+        <div id="cardExcelMsg" aria-live="polite"></div>
       </section>
 
       <section class="card">
@@ -146,9 +163,41 @@
         if(!d.reviewed)throw Error(d.reason==='stale_request'?'انتهت السنة الدراسية لهذا الطلب؛ حدّث القائمة.':d.reason==='account_not_approved'?'حساب الطالب لم يعد معتمدًا؛ راجع حالة الحساب.':'الطلب لم يعد قيد المراجعة.');
         msg('membershipRequestsMsg',decision==='approved'?'تم قبول طلب الانتساب. سيُطلب من الطالب إكمال بياناته قبل تفعيل البطاقة.':'تم رفض طلب الانتساب.');
         await loadMembershipRequests();
+        await loadMembershipStats();
       }catch(e){msg('membershipRequestsMsg',e.message||'تعذر حفظ القرار.',true)}
       finally{button.disabled=false}
     }
+    function renderBars(rows, title){
+      rows=Array.isArray(rows)?rows:[];
+      if(!rows.length)return '<div class="empty">لا توجد بيانات للسنة الحالية.</div>';
+      var max=Math.max.apply(null,rows.map(function(x){return Number(x.count)||0}))||1;
+      return '<h3 style="margin:0 0 10px;color:var(--g);font-size:.95rem">'+esc(title)+'</h3>'+rows.map(function(x){var n=Number(x.count)||0;return '<div class="bar"><span class="bar-label" title="'+esc(x.key)+'">'+esc(x.key)+'</span><span class="bar-track"><span class="bar-fill" style="display:block;width:'+Math.round(n/max*100)+'%"></span></span><span class="bar-count">'+n+'</span></div>'}).join('');
+    }
+    async function loadMembershipStats(){
+      var el=$('membershipStats'); if(!el)return;
+      try{
+        var d=await rpc('student_membership_stats',{});
+        var total=Number(d.total_members)||0;
+        el.innerHTML='<div class="stats-grid"><div class="stat"><small>إجمالي المسجلين للانتساب</small><b>'+total+'</b></div><div class="stat"><small>حسابات معتمدة</small><b>'+Number(d.approved_accounts||0)+'</b></div><div class="stat"><small>طلبات معلّقة</small><b>'+Number(d.pending_accounts||0)+'</b></div><div class="stat"><small>السنة الدراسية</small><b style="font-size:1.1rem">'+esc(d.academic_year)+'–'+esc(Number(d.academic_year)+1)+'</b></div></div><div class="charts"><div class="chart-card">'+renderBars(d.by_specialization,'المسجلون حسب التخصص')+'</div><div class="chart-card">'+renderBars(d.by_level,'المسجلون حسب المستوى')+'</div></div>';
+        msg('membershipStatsMsg','');
+      }catch(e){el.innerHTML='<div class="empty">تعذر تحميل الإحصائيات.</div>';msg('membershipStatsMsg',e.message||'تعذر تحميل الإحصائيات.',true)}
+    }
+    var cardExcelRegs=[];
+    function normalizeReg(v){var x=String(v==null?'':v).trim().toUpperCase().replace(/\s+/g,'');return /^I[0-9]{5}$/.test(x)?x:''}
+    function parseCardExcel(file){
+      if(!file)return;
+      var reader=new FileReader();reader.onload=function(){try{
+        var wb=XLSX.read(reader.result,{type:'array',raw:false}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''}),regs=[],seen={};
+        rows.forEach(function(row){row.forEach(function(v){var r=normalizeReg(v);if(r&&!seen[r]){seen[r]=1;regs.push(r)}})});
+        cardExcelRegs=regs.slice(0,3000);
+        $('cardExcelPreview').innerHTML=cardExcelRegs.length?'<div class="notice">تم العثور على <b>'+cardExcelRegs.length+'</b> رقم تسجيل صالح'+(regs.length>3000?' (تم اعتماد أول 3000 فقط)':'')+'<br><span dir="ltr">'+cardExcelRegs.slice(0,18).map(esc).join(' · ')+(cardExcelRegs.length>18?' …':'')+'</span></div>':'<div class="notice err">لم يتم العثور على أرقام بالشكل Ixxxxx.</div>';
+        $('importCards').disabled=!cardExcelRegs.length;
+      }catch(e){cardExcelRegs=[];$('importCards').disabled=true;$('cardExcelPreview').innerHTML='<div class="notice err">تعذر قراءة ملف Excel.</div>'}};reader.readAsArrayBuffer(file);
+    }
+    $('cardExcel').onchange=function(){parseCardExcel(this.files&&this.files[0])};
+    $('clearCardExcel').onclick=function(){cardExcelRegs=[];$('cardExcel').value='';$('cardExcelPreview').innerHTML='';$('importCards').disabled=true;msg('cardExcelMsg','')};
+    $('importCards').onclick=async function(){var b=this;if(!cardExcelRegs.length)return;b.disabled=true;try{var d=await rpc('student_membership_admin_set',{p_regs:cardExcelRegs,p_year:Number($('year').value),p_enabled:true});var found=d.filter(function(x){return x.found}).length;var missing=d.length-found;msg('cardExcelMsg','تمت معالجة '+d.length+' رقماً: تم العثور على '+found+'، وغير موجود في الحسابات '+missing+'.');await loadMembershipStats()}catch(e){msg('cardExcelMsg',e.message||'تعذر استيراد الأرقام.',true)}finally{b.disabled=false}};
+
     $('membershipRequests').addEventListener('click',e=>{
       const button=e.target.closest('[data-review]');
       if(!button)return;
@@ -168,6 +217,7 @@
         $('pass').value='';
         $('login').classList.add('hidden');$('app').classList.remove('hidden');
         await loadMembershipRequests();
+        await loadMembershipStats();
       }catch(e){msg('loginMsg',e.message||'تعذر تسجيل الدخول. تحقق من بيانات الحساب وحاول مجددًا.',true)}
       finally{btn.disabled=false}
     };
@@ -183,7 +233,7 @@
       try{
         const d=await rpc('student_membership_admin_set',{p_regs:r,p_year:Number($('year').value),p_enabled:on});
         const ok=d.filter(x=>x.found).length;
-        msg('cardMsg','تم '+(on?'إظهار':'إخفاء')+' البطاقات لـ '+ok+' رقم تسجيل.');
+        msg('cardMsg','تم '+(on?'إظهار':'إخفاء')+' البطاقات لـ '+ok+' رقم تسجيل.');await loadMembershipStats();
       }catch(e){msg('cardMsg',e.message,true)}
     }
     $('showCards').onclick=()=>cards(true);$('hideCards').onclick=()=>cards(false);

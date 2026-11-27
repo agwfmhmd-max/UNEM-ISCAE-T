@@ -353,7 +353,7 @@
     await page.render({ canvasContext: canvas.getContext("2d"), viewport: viewport }).promise;
     return canvas.toDataURL("image/jpeg", 0.88);
   }
-  async function askVision(file, extension) {
+  async function askVision(file, extension, contextText) {
     var mime = "", dataUrl = "";
     if (/^(jpe?g|png|webp)$/.test(extension)) {
       // Android/Samsung may report image/jpg or an empty MIME for a .jpg file.
@@ -370,7 +370,7 @@
     var timeout = setTimeout(function () { controller.abort(); }, 40000);
     var response;
     try {
-      response = await fetch(apiUrl, { method: "POST", headers: { "content-type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify({ mime: mime, data: dataUrl }), signal: controller.signal });
+      response = await fetch(apiUrl, { method: "POST", headers: { "content-type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify({ mime: mime, data: dataUrl, filename: file && file.name ? file.name : "", text: String(contextText || "").slice(0, 18000) }), signal: controller.signal });
     } catch (requestError) {
       if (controller.signal.aborted) throw new Error("انتهت مهلة الاتصال بمساعد التصنيف؛ تحقق من الإنترنت ثم أعد المحاولة.");
       throw requestError;
@@ -407,7 +407,7 @@
         if (!item.smart.confidence && /^(jpe?g|png|webp)$/.test(ext)) {
           try {
             status("يتصل المساعد الذكي لتحليل الصورة…");
-            var imageResult = await askVision(file, ext);
+            var imageResult = await askVision(file, ext, text);
             item.smart = { spec: imageResult.specialization, level: imageResult.level, semester: imageResult.semester, subject: imageResult.subject, type: imageResult.type === "td_tp" ? "td" : imageResult.type, confidence: true, aiConfidence: imageResult.confidence, source: "vision" };
           } catch (imageError) {
             item.smartError = imageError && imageError.message ? imageError.message : "تعذر الاتصال بالمساعد البصري.";
@@ -438,7 +438,7 @@
         }
         if (!item.smart.confidence && !item.smartError && ext === "pdf") {
           try {
-            var visual = await askVision(file, ext);
+            var visual = await askVision(file, ext, text);
             if (visual) item.smart = { spec: visual.specialization, level: visual.level, semester: visual.semester, subject: visual.subject, type: visual.type === "td_tp" ? "td" : visual.type, confidence: true, aiConfidence: visual.confidence, source: "vision" };
           } catch (visionError) {
             console.warn("smart upload vision fallback", visionError);

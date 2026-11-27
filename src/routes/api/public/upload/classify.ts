@@ -90,6 +90,8 @@ export const Route = createFileRoute("/api/public/upload/classify")({
         }
         const mime = String(body["mime"] ?? "").toLowerCase();
         const data = String(body["data"] ?? "");
+        const filename = String(body["filename"] ?? "").slice(0, 240);
+        const extractedText = String(body["text"] ?? "").slice(0, 18000);
         const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(data);
         if (
           !match ||
@@ -103,7 +105,7 @@ export const Route = createFileRoute("/api/public/upload/classify")({
         if (bytes <= 0 || bytes > MAX_IMAGE_BYTES)
           return json({ error: "حجم الصورة أكبر من الحد المسموح للتحليل." }, 413);
         const visionPrompt =
-          "صنّف الورقة الجامعية الظاهرة فقط. التخصص يُستدل عليه من رمز/اسم الشعبة، المستوى والفصل من العناوين. لا تخمّن عند غياب الدليل؛ استخدم confidence منخفضاً. اختر subject حرفياً من القائمة المتاحة. الأنواع: examen للامتحان/الاستدراك، devoir للتكليف/الفرض، td_tp للأعمال التطبيقية/الموجهة، cours لما عدا ذلك. أعد JSON مطابقاً للمخطط فقط.";
+          "صنّف الملف الجامعي بدقة محافظة. استخدم الأدلة المستقلة بالترتيب: اسم الملف، النص المستخرج، ثم الصورة. التخصص يُستدل عليه من رمز/اسم الشعبة، والمستوى والفصل من العناوين. لا تعتمد على رقم عابر أو كلمة عامة، ولا تخمّن عند تعارض الأدلة؛ استخدم confidence منخفضاً. المادة يجب أن تطابق حرفياً القائمة المتاحة، ولا تضع مادة إلا إذا ظهر اسمها أو مرادف واضح لها. الأنواع: examen للامتحان/الاستدراك، devoir للتكليف/الفرض، td_tp للأعمال التطبيقية/الموجهة، cours لما عدا ذلك. أعد JSON مطابقاً للمخطط فقط.";
         let output: unknown;
         try {
           const response = await fetch("https://api.openai.com/v1/responses", {
@@ -118,7 +120,7 @@ export const Route = createFileRoute("/api/public/upload/classify")({
                   content: [
                     {
                       type: "input_text",
-                      text: `${visionPrompt}\nالمواد الممكنة: ${schema.properties.subject.enum.join(" | ")}`,
+                      text: `${visionPrompt}\nاسم الملف: ${filename || "غير متاح"}\nالنص المستخرج من الملف: ${extractedText || "غير متاح"}\nالمواد الممكنة: ${schema.properties.subject.enum.join(" | ")}`,
                     },
                     { type: "input_image", image_url: data, detail: "high" },
                   ],
