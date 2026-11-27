@@ -367,7 +367,9 @@
     var apiUrl = typeof unemApi === "function" ? unemApi("/api/public/upload/classify") : "/api/public/upload/classify";
     var response = await fetch(apiUrl, { method: "POST", headers: { "content-type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify({ mime: mime, data: dataUrl }) });
     var result = await response.json();
-    return !response.ok || result.error || !result.confidence || result.confidence < 0.75 ? null : result;
+    if (!response.ok) throw new Error(result.error || "فشل طلب التحليل البصري (HTTP " + response.status + ").");
+    if (result.error) throw new Error(result.error);
+    return !result.confidence || result.confidence < 0.75 ? null : result;
   }
   function analyzeQueuedFile(file) {
     var item = getQueue().find(function (q) {
@@ -410,7 +412,10 @@
           try {
             var visual = await askVision(file, ext);
             if (visual) item.smart = { spec: visual.specialization, level: visual.level, semester: visual.semester, subject: visual.subject, type: visual.type === "td_tp" ? "td" : visual.type, confidence: true, aiConfidence: visual.confidence, source: "vision" };
-          } catch (visionError) { console.warn("smart upload vision fallback", visionError); }
+          } catch (visionError) {
+            console.warn("smart upload vision fallback", visionError);
+            item.smartError = visionError && visionError.message ? visionError.message : "تعذر الاتصال بالمساعد البصري.";
+          }
         }
         item.smartState = item.smart.confidence ? "done" : "partial";
         item.smartMessage = item.smart.confidence
@@ -424,7 +429,9 @@
             item.smart.semester +
             " · " +
             item.smart.subject
-          : "لم تكتمل القراءة التلقائية؛ اختر البيانات يدوياً أو أعد تسمية الملف باسم المادة والتخصص والفصل.";
+          : item.smartError
+            ? "تعذر التحليل البصري: " + item.smartError + " اختر البيانات يدوياً أو أعد المحاولة."
+            : "لم تكتمل القراءة التلقائية؛ اختر البيانات يدوياً أو أعد تسمية الملف باسم المادة والتخصص والفصل.";
       } catch (e) {
         item.smartState = "failed";
         item.smartMessage = "تعذّر التحليل الذكي؛ يمكنك متابعة الرفع بالاختيار اليدوي.";

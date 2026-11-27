@@ -59,12 +59,12 @@ function rewriteSrcset(value: string, base: URL): string {
   return value.split(",").map((part) => {
     const m = part.trim().match(/^(\S+)(.*)$/);
     if (!m) return part;
-    return `${rewriteOne(m[1], base)}${m[2]}`;
+    return `${rewriteOne(m[1] ?? "", base)}${m[2] ?? ""}`;
   }).join(", ");
 }
 
 function rewriteCssUrls(value: string, base: URL): string {
-  return value.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (_m, quote, raw) => {
+  return value.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (_m: string, quote: string, raw: string) => {
     return `url(${quote}${rewriteOne(raw, base)}${quote})`;
   });
 }
@@ -74,7 +74,7 @@ function rewriteHtml(html: string, base: URL): string {
     (_m, prefix, attr, quote, value) => {
       let next = value;
       if (attr.toLowerCase() === "content" && /^\s*\d+\s*;/i.test(value)) {
-        next = value.replace(/^(\s*\d+\s*;\s*)(.*)$/is, (_x, delay, url) => `${delay}${rewriteOne(url, base)}`);
+        next = value.replace(/^(\s*\d+\s*;\s*)(.*)$/is, (_x: string, delay: string, url: string) => `${delay}${rewriteOne(url, base)}`);
       } else {
         next = rewriteOne(value, base);
       }
@@ -125,7 +125,7 @@ function parseSetCookie(headers: Headers, host: string): string[] {
     : (headers.get("set-cookie") ? [headers.get("set-cookie") as string] : []);
   const encodedHost = b64url(host);
   return values.flatMap((line) => {
-    const first = line.split(";", 1)[0];
+    const first = line.split(";", 1)[0] ?? "";
     const i = first.indexOf("=");
     if (i < 1) return [];
     const name = first.slice(0, i).trim();
@@ -164,12 +164,15 @@ async function handleProxy({ request }: { request: Request }): Promise<Response>
 
   let upstream: Response;
   try {
-    upstream = await fetch(target.href, {
+    const upstreamInit: RequestInit = {
       method: request.method,
       headers,
-      body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body,
       redirect: "manual",
-    });
+    };
+    if (!["GET", "HEAD"].includes(request.method) && request.body) {
+      upstreamInit.body = request.body;
+    }
+    upstream = await fetch(target.href, upstreamInit);
   } catch (error) {
     console.error("web proxy fetch failed", error);
     return new Response("تعذر الاتصال بالموقع المطلوب.", { status: 502 });
