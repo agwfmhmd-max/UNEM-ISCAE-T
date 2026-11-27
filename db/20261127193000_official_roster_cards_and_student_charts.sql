@@ -140,3 +140,16 @@ end $$;
 revoke all on function public.student_card_admin_list_payload(date) from public, anon;
 grant execute on function public.student_card_admin_list_payload(date) to authenticated;
 notify pgrst,'reload schema';
+
+
+drop function if exists public.student_card_admin_list(date);
+create function public.student_card_admin_list(p_day date) returns jsonb
+language sql security definer set search_path=public as $$ select public.student_card_admin_list_payload(p_day) $$;
+revoke all on function public.student_card_admin_list(date) from public, anon;
+grant execute on function public.student_card_admin_list(date) to authenticated;
+
+create or replace function public.student_card_admin_list() returns jsonb
+language sql security definer set search_path=public as $$ select public.student_card_admin_list_payload(null) $$;
+revoke all on function public.student_card_admin_list() from public, anon;
+grant execute on function public.student_card_admin_list() to authenticated;
+notify pgrst,'reload schema';
