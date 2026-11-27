@@ -31,7 +31,7 @@
       gtag('js', new Date());
       gtag('config', 'G-PDTFN9Y84M');
     </script>
-<link rel="stylesheet" href="/legacy/app/css/01-base-and-layout.css?v=a25dc066ce"/>
+<link rel="stylesheet" href="/legacy/app/css/01-base-and-layout.css?v=20261127-preview-1"/>
 <script id="unem-search-early">try{document.documentElement.classList.add("unem-search-off")}catch(e){}</script>
 <link rel="stylesheet" href="/legacy/app/css/02-favorites-header-home.css?v=aea04db986"/>
 </head>
@@ -495,7 +495,6 @@
 <span class="dz-btn">اختيار الملفات</span>
 </div>
 <input accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.webp" id="upload-file" multiple="" style="display:none;" type="file"/>
-<div class="status-msg" id="upload-smart-status" style="display:none;margin-top:8px;" role="status" aria-live="polite"></div>
 <div id="upload-queue"></div>
 </div>
 <div class="status-msg" id="upload-status"></div>
@@ -859,10 +858,9 @@
 <script src="/legacy/app/03-main-03-functions.js?v=dc5a42a5ea"></script>
 <script src="/legacy/app/03-main-04-functions.js?v=0acceb81df"></script>
 <script src="/legacy/app/03-main-05-functions.js?v=eca53c6905"></script>
-<script src="/legacy/app/03-main-06-functions.js?v=20261127-smart-upload-2"></script>
-<script src="/legacy/app/03-main-07-functions.js?v=20261127-smart-upload-3"></script>
-<script src="/legacy/app/09-smart-upload.js?v=20261127-smart-upload-6"></script>
-<script src="/legacy/app/03-main-08-init.js?v=20261127-smart-upload-2"></script>
+<script src="/legacy/app/03-main-06-functions.js?v=20261127-preview-1"></script>
+<script src="/legacy/app/03-main-07-functions.js?v=20261127-preview-1"></script>
+<script src="/legacy/app/03-main-08-init.js?v=20261127-preview-1"></script>
 <script src="/legacy/app/04-welcome-splash.js?v=a0a36c6be6"></script>
 <!-- نظام Service Worker -->
 <script src="/legacy/app/05-service-worker-register.js?v=f1f4d3501f"></script>
@@ -971,5 +969,12 @@ html:not([data-push-prompt="on"]) #push-onboarding-modal{display:none!important}
 }
 </style>
 <script id="home-welcome-script" src="/legacy/app/18-home-welcome.js?v=20261127-smart-upload-2"></script>
+<div id="upload-preview-overlay" class="upload-preview-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="upload-preview-title">
+  <section class="upload-preview-dialog">
+    <header class="upload-preview-header"><h2 id="upload-preview-title">معاينة الملف</h2><button type="button" id="upload-preview-close" aria-label="إغلاق المعاينة">إغلاق</button></header>
+    <iframe id="upload-preview-frame" title="معاينة الملف" src="about:blank"></iframe>
+    <footer><span>إذا لم يعرض المتصفح هذا النوع، استخدم «فتح الملف» لمعاينته بالتطبيق المناسب.</span><a id="upload-preview-open" href="#" target="_blank" rel="noopener">فتح الملف</a></footer>
+  </section>
+</div>
 </body>
 </html>

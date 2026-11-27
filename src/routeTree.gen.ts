@@ -29,7 +29,6 @@ import { Route as ApiPublicPushMentionRouteImport } from './routes/api/public/pu
 import { Route as ApiPublicPushRelayRouteImport } from './routes/api/public/push/relay'
 import { Route as ApiPublicPushSendRouteImport } from './routes/api/public/push/send'
 import { Route as ApiPublicPushVapidKeyRouteImport } from './routes/api/public/push/vapid-key'
-import { Route as ApiPublicUploadClassifyRouteImport } from './routes/api/public/upload/classify'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -133,11 +132,6 @@ const ApiPublicPushVapidKeyRoute = ApiPublicPushVapidKeyRouteImport.update({
   path: '/api/public/push/vapid-key',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicUploadClassifyRoute = ApiPublicUploadClassifyRouteImport.update({
-  id: '/api/public/upload/classify',
-  path: '/api/public/upload/classify',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,7 +154,6 @@ export interface FileRoutesByFullPath {
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
-  '/api/public/upload/classify': typeof ApiPublicUploadClassifyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -183,7 +176,6 @@ export interface FileRoutesByTo {
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
-  '/api/public/upload/classify': typeof ApiPublicUploadClassifyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -207,7 +199,6 @@ export interface FileRoutesById {
   '/api/public/push/relay': typeof ApiPublicPushRelayRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
-  '/api/public/upload/classify': typeof ApiPublicUploadClassifyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -232,7 +223,6 @@ export interface FileRouteTypes {
     | '/api/public/push/relay'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
-    | '/api/public/upload/classify'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -255,7 +245,6 @@ export interface FileRouteTypes {
     | '/api/public/push/relay'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
-    | '/api/public/upload/classify'
   id:
     | '__root__'
     | '/'
@@ -278,7 +267,6 @@ export interface FileRouteTypes {
     | '/api/public/push/relay'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
-    | '/api/public/upload/classify'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -302,7 +290,6 @@ export interface RootRouteChildren {
   ApiPublicPushRelayRoute: typeof ApiPublicPushRelayRoute
   ApiPublicPushSendRoute: typeof ApiPublicPushSendRoute
   ApiPublicPushVapidKeyRoute: typeof ApiPublicPushVapidKeyRoute
-  ApiPublicUploadClassifyRoute: typeof ApiPublicUploadClassifyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -447,13 +434,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushVapidKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/upload/classify': {
-      id: '/api/public/upload/classify'
-      path: '/api/public/upload/classify'
-      fullPath: '/api/public/upload/classify'
-      preLoaderRoute: typeof ApiPublicUploadClassifyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -478,7 +458,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPushRelayRoute: ApiPublicPushRelayRoute,
   ApiPublicPushSendRoute: ApiPublicPushSendRoute,
   ApiPublicPushVapidKeyRoute: ApiPublicPushVapidKeyRoute,
-  ApiPublicUploadClassifyRoute: ApiPublicUploadClassifyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

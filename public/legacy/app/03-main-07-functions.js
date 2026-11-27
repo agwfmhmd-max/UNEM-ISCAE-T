@@ -121,10 +121,6 @@
                 });
             });
             renderUploadQueue();
-            if (window.UNEMSmartUpload) files.forEach(file => {
-                const item = uploadQueue.find(q => q.file === file);
-                if (item && item.state === 'pending') window.UNEMSmartUpload.analyzeQueuedFile(file);
-            });
         }
 
         function removeFromQueue(id) {
@@ -147,6 +143,13 @@
                     <span class="up-size">${formatFileSize(item.file.size)}</span>`;
                 head.querySelector('.up-name').textContent = item.file.name;
                 if (item.state === 'pending' || item.state === 'failed') {
+                    const preview = document.createElement('button');
+                    preview.type = 'button';
+                    preview.className = 'up-preview';
+                    preview.textContent = 'معاينة';
+                    preview.setAttribute('aria-label', 'معاينة الملف ' + item.file.name);
+                    preview.onclick = () => openUploadPreview(item.file);
+                    head.appendChild(preview);
                     const rm = document.createElement('button');
                     rm.type = 'button'; rm.className = 'up-remove'; rm.innerHTML = '<i class="fas fa-xmark"></i>';
                     rm.onclick = () => removeFromQueue(item.id);
@@ -168,24 +171,39 @@
                 const state = document.createElement('div'); state.className = 'up-state';
                 state.textContent = (item.state === 'uploading' ? `جاري الرفع... ${item.progress}%` : item.message);
                 div.appendChild(head); div.appendChild(nameWrap);
-                if (item.smartMessage) {
-                    const smart = document.createElement('div'); smart.className = 'up-state';
-                    smart.style.cssText = 'margin-top:6px;color:' + (item.smartState === 'done' ? '#15803d' : item.smartState === 'failed' ? '#b91c1c' : '#64748b') + ';';
-                    smart.textContent = item.smartMessage; div.appendChild(smart);
-                }
-                if (item.state === 'pending' && ['partial', 'failed'].includes(item.smartState) && window.UNEMSmartUpload) {
-                    const retry = document.createElement('button');
-                    retry.type = 'button'; retry.className = 'up-retry-smart';
-                    retry.textContent = 'إعادة التحليل بالذكاء الاصطناعي';
-                    retry.style.cssText = 'margin-top:7px;padding:6px 10px;border:1px solid #0d6846;border-radius:8px;background:transparent;color:#0d6846;font:inherit;font-size:13px;font-weight:700;cursor:pointer;';
-                    retry.onclick = () => window.UNEMSmartUpload.retryAnalysis(item.file);
-                    div.appendChild(retry);
-                }
                 div.appendChild(bar); div.appendChild(state);
                 box.appendChild(div);
             });
         }
 
+        let uploadPreviewUrl = null;
+        function closeUploadPreview() {
+            const overlay = document.getElementById('upload-preview-overlay');
+            if (overlay) { overlay.classList.add('hidden'); overlay.setAttribute('aria-hidden', 'true'); }
+            const frame = document.getElementById('upload-preview-frame');
+            if (frame) frame.src = 'about:blank';
+            if (uploadPreviewUrl) { URL.revokeObjectURL(uploadPreviewUrl); uploadPreviewUrl = null; }
+        }
+        function openUploadPreview(file) {
+            const overlay = document.getElementById('upload-preview-overlay');
+            const frame = document.getElementById('upload-preview-frame');
+            const title = document.getElementById('upload-preview-title');
+            const link = document.getElementById('upload-preview-open');
+            if (!overlay || !frame || !file) return;
+            closeUploadPreview();
+            uploadPreviewUrl = URL.createObjectURL(file);
+            title.textContent = file.name + ' — ' + formatFileSize(file.size);
+            link.href = uploadPreviewUrl;
+            link.download = file.name;
+            frame.title = 'معاينة ' + file.name;
+            frame.src = uploadPreviewUrl;
+            overlay.classList.remove('hidden');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+        document.addEventListener('click', event => {
+            if (event.target.closest('#upload-preview-close') || event.target.id === 'upload-preview-overlay') closeUploadPreview();
+        });
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') closeUploadPreview(); });
         function updateQueueItem(item, patch) {
             Object.assign(item, patch);
             renderUploadQueue();
