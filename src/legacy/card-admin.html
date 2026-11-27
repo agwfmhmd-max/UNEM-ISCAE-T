@@ -28,13 +28,13 @@ label{display:block;font-weight:700;font-size:.85rem;margin:8px 0 4px;color:#334
 
 <div id="app" class="hidden">
  <div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h2 style="margin:0">أرقام تسجيل الطلاب</h2><button class="chip" id="logout" type="button">خروج</button></div>
-  <p style="margin:8px 0 0;color:var(--mut);font-size:.86rem;line-height:1.7">أدخل رقم تسجيل طالب (أو عدة أرقام يفصلها سطر أو فراغ). عند «إظهار» تصبح بطاقة انتسابه متاحة في المجتمع ويصله إشعار: «بطاقة انتسابك الرقمية للاتحاد الوطني لطلبة موريتانيا بالمعهد العالي للمحاسبة وإدارة المؤسسات أصبحت متاحة الآن». يجب أن يكون الطالب موجوداً في صفحة تسجيل الطلاب وحسابه معتمداً؛ لا تُحفظ أي إتاحة مستقبلية لرقم غير موجود أو لحساب غير معتمد.</p>
+  <p style="margin:8px 0 0;color:var(--mut);font-size:.86rem;line-height:1.7">أدخل رقم تسجيل طالب (أو عدة أرقام يفصلها سطر أو فراغ). عند «إظهار» تصبح بطاقة انتسابه متاحة في المجتمع ويصله إشعار عند وجود حسابه. يكفي أن يكون الطالب موجوداً في اللائحة الرسمية بصفحة تسجيل الطلاب؛ لا يُشترط أن يكون قد سجّل الدخول أو أنشأ حساباً بعد، ولا تُحفظ إتاحة لرقم غير موجود في اللائحة.</p>
   <textarea id="regs" dir="ltr" placeholder="I21567"></textarea>
   <div class="row"><button class="btn alt" id="bFind" type="button">🔍 بحث</button><button class="btn gold" id="bShow" type="button">👁️ إظهار البطاقة</button><button class="btn red" id="bHide" type="button">إخفاء</button></div>
   <div id="msg"></div><div id="out"></div>
  </div>
  <div class="card"><h2>اللائحة والطباعة</h2>
-  <div class="stats"><div><b id="stOn">0</b><small>بطاقات مفعّلة</small></div><div><b id="stWait">0</b><small>غير قابلة للإتاحة قبل التسجيل</small></div><div><b id="stAll">0</b><small>طلاب معتمدون</small></div></div>
+  <div class="stats"><div><b id="stOn">0</b><small>بطاقات مفعّلة</small></div><div><b id="stWait">0</b><small>من اللائحة دون حساب بعد</small></div><div><b id="stAll">0</b><small>طلاب اللائحة الرسمية</small></div></div>
   <label>اختر يوماً لطباعة طلاب ذلك اليوم</label><input id="day" type="date" dir="ltr">
   <div class="row"><button class="btn blue" id="pDay" type="button">🖨️ طباعة لائحة اليوم المحدد</button><button class="btn alt" id="pAll" type="button">🖨️ طباعة كل اللائحة</button><button class="btn alt" id="pShow" type="button">عرض اليوم هنا</button></div>
   <div id="listMsg"></div><div id="recent"></div>
@@ -60,7 +60,7 @@ async function loadList(day){
 }
 function listHtml(items){
   if(!items.length)return '<div style="color:var(--mut);margin-top:8px">لا توجد بطاقات في هذه اللائحة.</div>';
-  return items.map(function(x,i){return '<div class="it"><div><b dir="auto">'+(i+1)+'. '+esc(x.full_name||'—')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.card_code?' · '+esc(x.card_code):'')+' · '+esc(fmt(x.enabled_at))+'</small></div><span class="tag on">'+esc((x.spec||'')+' · '+lv(x))+'</span></div>'}).join('');
+  return items.map(function(x,i){return '<div class="it"><div><b dir="auto">'+(i+1)+'. '+esc(x.full_name||'—')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.card_code?' · '+esc(x.card_code):'')+' · '+esc(fmt(x.enabled_at))+'</small></div><span class="tag '+(x.registered?'on':'wait')+'">'+esc((x.spec||'')+' · '+lv(x)+(x.registered?'':' · في اللائحة الرسمية'))+'</span></div>'}).join('');
 }
 async function refresh(){var d=await loadList(null);if(!d)return;LIST=d.items||[];$('recent').innerHTML=listHtml(LIST.slice().reverse().slice(0,40));}
 async function showDay(){var day=$('day').value;if(!day)return $('listMsg').innerHTML='<div class="msg err">اختر يوماً أولاً.</div>';var d=await loadList(day);if(!d)return;$('listMsg').innerHTML='<div class="msg ok">طلاب يوم '+esc(day)+': '+(d.items||[]).length+'</div>';$('recent').innerHTML=listHtml(d.items||[])}
@@ -68,7 +68,7 @@ async function printList(day){
   var d=await loadList(day||null);if(!d)return;var items=d.items||[];
   if(!items.length){$('listMsg').innerHTML='<div class="msg err">لا توجد بطاقات '+(day?'في يوم '+esc(day):'')+' للطباعة.</div>';return}
   $('listMsg').innerHTML='';
-  var rows=items.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td dir="ltr">'+esc(x.reg_no)+'</td><td>'+esc(x.full_name||'—')+'</td><td dir="ltr">'+esc(x.spec?x.spec+(SPEC[x.spec]?' — '+SPEC[x.spec]:''):'—')+'</td><td dir="ltr">'+esc(x.registered?lv(x):'—')+'</td><td dir="ltr">'+esc(x.card_code||'—')+'</td><td dir="ltr">'+esc(fmt(x.enabled_at))+'</td><td dir="ltr">'+esc(x.added_by||'—')+'</td><td>'+(x.registered?'مسجّل':'لم يسجل بعد')+'</td></tr>'}).join('');
+  var rows=items.map(function(x,i){return '<tr><td>'+(i+1)+'</td><td dir="ltr">'+esc(x.reg_no)+'</td><td>'+esc(x.full_name||'—')+'</td><td dir="ltr">'+esc(x.spec?x.spec+(SPEC[x.spec]?' — '+SPEC[x.spec]:''):'—')+'</td><td dir="ltr">'+esc(x.registered?lv(x):'—')+'</td><td dir="ltr">'+esc(x.card_code||'—')+'</td><td dir="ltr">'+esc(fmt(x.enabled_at))+'</td><td dir="ltr">'+esc(x.added_by||'—')+'</td><td>'+(x.registered?'حساب مسجل':'في اللائحة الرسمية — لم ينشئ حساباً بعد')+'</td></tr>'}).join('');
   var title=day?'لائحة الطلاب الذين أُتيحت بطاقات انتسابهم — يوم '+day:'لائحة الطلاب الذين أُتيحت بطاقات انتسابهم — كل الأيام';
   var doc='<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Tajawal,Cairo,Arial,sans-serif;color:#0f172a;margin:0}h1{font-size:16pt;margin:0 0 4px;color:#0f5132}p{margin:2px 0 10px;color:#475569;font-size:10pt}table{width:100%;border-collapse:collapse;font-size:9pt}th,td{border:1px solid #94a3b8;padding:5px 6px;text-align:start;vertical-align:top}th{background:#0f5132;color:#fff}tr:nth-child(even) td{background:#f1f5f9}.hd{display:flex;align-items:center;gap:12px;margin-bottom:8px}.hd img{width:54px;height:54px}.ft{margin-top:12px;font-size:9pt;color:#334155;display:flex;justify-content:space-between}</style></head><body><div class="hd"><img src="/logo.png" alt=""><div><h1>'+esc(title)+'</h1><p>الاتحاد الوطني لطلبة موريتانيا — المعهد العالي للمحاسبة وإدارة المؤسسات · مرتبة حسب تاريخ ووقت الإضافة · طُبعت في '+esc(fmt(new Date().toISOString()))+'</p></div></div><table><thead><tr><th>#</th><th>رقم التسجيل</th><th>الاسم الكامل</th><th>التخصص</th><th>المستوى</th><th>رقم البطاقة</th><th>أُضيف بتاريخ/وقت</th><th>أضافه</th><th>الحالة</th></tr></thead><tbody>'+rows+'</tbody></table><div class="ft"><span>العدد: '+items.length+'</span><span>التوقيع: ................................</span></div></body></html>';
   var f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
@@ -78,7 +78,7 @@ async function printList(day){
 function rowHtml(x,extra){
   if(x.found===false)return '<div class="it"><div><b dir="ltr">'+esc(x.reg_no)+'</b><small>رقم التسجيل غير موجود في صفحة تسجيل الطلاب؛ لا يمكن إتاحة البطاقة.</small></div><span class="tag na">غير مسجل</span></div>';
   var name=x.full_name||x.roster_name||'';
-  var st=(x.approved===false||x.status&&x.status!=='approved')?'<span class="tag na">الحساب غير معتمد</span>':x.enabled?'<span class="tag on">البطاقة متاحة</span>':'<span class="tag off">غير متاحة</span>';
+  var st=(x.official&&!x.registered)?'<span class="tag wait">في اللائحة الرسمية — دون حساب</span>':(x.approved===false||x.status&&x.status!=='approved')?'<span class="tag na">الحساب غير معتمد</span>':x.enabled?'<span class="tag on">البطاقة متاحة</span>':'<span class="tag off">غير متاحة</span>';
   return '<div class="it"><div><b dir="auto">'+esc(name||'—')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.spec?' · '+esc(x.spec)+(SPEC[x.spec]?' — '+esc(SPEC[x.spec]):''):'')+(x.level?' · '+esc(lv(x)):'')+(x.card_code?' · '+esc(x.card_code):'')+'</small>'+(extra||'')+'</div>'+st+'</div>';
 }
 async function find(){
@@ -109,8 +109,8 @@ async function setCards(on){
     var r=await sb.rpc('student_card_set',{p_regs:regs,p_enabled:on});
     if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');throw r.error}
     var list=r.data||[];$('out').innerHTML=list.map(function(x){return rowHtml(x)}).join('');
-    var reg=list.filter(function(x){return x.registered&&x.approved}),bad=list.filter(function(x){return !x.approved});
-    var note=on?('✅ أُظهرت البطاقة لـ '+reg.filter(function(x){return x.enabled}).length+' طالب معتمد. '+(bad.length?'تم رفض '+bad.length+' رقم غير موجود أو غير معتمد.':'')):('✅ أُخفيت البطاقة لـ '+reg.length+' طالب.');
+    var eligible=list.filter(function(x){return x.approved}),reg=eligible.filter(function(x){return x.registered}),bad=list.filter(function(x){return !x.approved});
+    var note=on?('✅ أُتيحت البطاقة لـ '+eligible.filter(function(x){return x.enabled}).length+' طالب من اللائحة الرسمية، منهم '+reg.length+' لديهم حساب. '+(bad.length?'تم رفض '+bad.length+' رقم غير موجود في اللائحة الرسمية.':'')):('✅ أُخفيت البطاقة لـ '+eligible.length+' طالب من اللائحة الرسمية.');
     if(on&&reg.length)note+=await notifyStudents(reg.map(function(x){return x.reg_no}));
     msg(note,'ok');refresh();
   }catch(e){msg('تعذر التنفيذ: '+esc(e&&e.message||e),'err')}
