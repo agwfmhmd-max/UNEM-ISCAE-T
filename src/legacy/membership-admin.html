@@ -87,7 +87,7 @@
 
       <section class="card">
         <h2>إحصائيات التسجيل والانتساب</h2>
-        <p class="small">الأرقام هنا محسوبة مباشرة من الحسابات المعتمدة والبطاقات المفعّلة للسنة الدراسية الحالية، وليست تقديرات من المتصفح.</p>
+        <p class="small">الأرقام هنا محسوبة مباشرة من اللائحة الرسمية والبطاقات المفعّلة: تشمل المنتسبين من اللائحة، ومن لم ينشئوا حساباً بعد، وتكشف أي بطاقة مفعّلة خارج اللائحة، وليست تقديرات من المتصفح.</p>
         <div id="membershipStats"><div class="empty">جارٍ تحميل الإحصائيات...</div></div>
         <div id="membershipStatsMsg" aria-live="polite"></div>
       </section>
@@ -173,12 +173,21 @@
       var max=Math.max.apply(null,rows.map(function(x){return Number(x.count)||0}))||1;
       return '<h3 style="margin:0 0 10px;color:var(--g);font-size:.95rem">'+esc(title)+'</h3>'+rows.map(function(x){var n=Number(x.count)||0;return '<div class="bar"><span class="bar-label" title="'+esc(x.key)+'">'+esc(x.key)+'</span><span class="bar-track"><span class="bar-fill" style="display:block;width:'+Math.round(n/max*100)+'%"></span></span><span class="bar-count">'+n+'</span></div>'}).join('');
     }
+    function renderCoverageBars(rows,title){
+      rows=Array.isArray(rows)?rows:[];
+      if(!rows.length)return '<div class="empty">لا توجد بيانات للسنة الحالية.</div>';
+      return '<h3 style="margin:0 0 10px;color:var(--g);font-size:.95rem">'+esc(title)+'</h3>'+rows.map(function(x){var rate=Number(x.rate)||0;return '<div class="bar"><span class="bar-label" title="'+esc(x.key)+'">'+esc(x.key)+'</span><span class="bar-track"><span class="bar-fill" style="display:block;width:'+Math.min(100,Math.max(0,rate))+'%;background:linear-gradient(90deg,#7c3aed,#c084fc)"></span></span><span class="bar-count" title="'+Number(x.members||0)+' من '+Number(x.total||0)+'">'+rate.toFixed(2)+'%</span></div>'}).join('');
+    }
+    function renderCoverageRows(rows,empty){
+      rows=Array.isArray(rows)?rows:[];if(!rows.length)return '<div class="empty">'+empty+'</div>';
+      return '<div style="overflow:auto;max-height:280px"><table style="width:100%;border-collapse:collapse;font-size:.82rem"><thead><tr style="background:#f1f5f9"><th style="padding:7px;text-align:start">الاسم</th><th style="padding:7px;text-align:start">رقم التسجيل</th><th style="padding:7px;text-align:start">التخصص</th><th style="padding:7px;text-align:start">المستوى</th></tr></thead><tbody>'+rows.map(function(x){return '<tr><td style="padding:7px;border-top:1px solid #e2e8f0">'+esc(x.full_name||'—')+'</td><td dir="ltr" style="padding:7px;border-top:1px solid #e2e8f0">'+esc(x.reg_no||'—')+'</td><td style="padding:7px;border-top:1px solid #e2e8f0">'+esc(x.spec||'—')+'</td><td style="padding:7px;border-top:1px solid #e2e8f0">'+esc(x.level||'—')+'</td></tr>'}).join('')+'</tbody></table></div>';
+    }
     async function loadMembershipStats(){
       var el=$('membershipStats'); if(!el)return;
       try{
         var d=await rpc('student_membership_stats',{});
         var total=Number(d.total_members)||0;
-        el.innerHTML='<div class="stats-grid"><div class="stat"><small>إجمالي المسجلين للانتساب</small><b>'+total+'</b></div><div class="stat"><small>حسابات معتمدة</small><b>'+Number(d.approved_accounts||0)+'</b></div><div class="stat"><small>طلبات معلّقة</small><b>'+Number(d.pending_accounts||0)+'</b></div><div class="stat"><small>السنة الدراسية</small><b style="font-size:1.1rem">'+esc(d.academic_year)+'–'+esc(Number(d.academic_year)+1)+'</b></div></div><div class="charts"><div class="chart-card">'+renderBars(d.by_specialization,'المسجلون حسب التخصص')+'</div><div class="chart-card">'+renderBars(d.by_level,'المسجلون حسب المستوى')+'</div></div>';
+        el.innerHTML='<div class="stats-grid"><div class="stat"><small>إجمالي البطاقات المفعّلة</small><b>'+total+'</b></div><div class="stat"><small>طلاب اللائحة الرسمية</small><b>'+Number(d.official_roster_total||0)+'</b></div><div class="stat"><small>منتسبون من اللائحة</small><b>'+Number(d.official_roster_members||0)+'</b></div><div class="stat"><small>نسبة الانتساب من اللائحة</small><b>'+Number(d.membership_rate||0).toFixed(2)+'%</b></div><div class="stat"><small>منتسبون بلا حساب</small><b>'+Number(d.members_without_account||0)+'</b></div><div class="stat"><small>منتسبون خارج اللائحة</small><b>'+Number(d.members_not_in_roster||0)+'</b></div></div><div class="charts"><div class="chart-card">'+renderCoverageBars(d.membership_by_specialization||d.by_specialization,'نسبة الانتساب حسب التخصص')+'</div><div class="chart-card">'+renderCoverageBars(d.membership_by_level||d.by_level,'نسبة الانتساب حسب المستوى')+'</div></div><div class="charts"><div class="chart-card"><h3 style="margin:0 0 10px;color:var(--g);font-size:.95rem">منتسبون من اللائحة لم ينشئوا حساباً بعد</h3>'+renderCoverageRows(d.members_without_account_rows,'لا يوجد منتسبون من اللائحة بلا حساب.')+'</div><div class="chart-card"><h3 style="margin:0 0 10px;color:var(--g);font-size:.95rem">منتسبون لا توجد أرقامهم في اللائحة الرسمية</h3>'+renderCoverageRows(d.members_not_in_roster_rows,'لا توجد بطاقات مفعّلة خارج اللائحة الرسمية.')+'</div></div>';
         msg('membershipStatsMsg','');
       }catch(e){el.innerHTML='<div class="empty">تعذر تحميل الإحصائيات.</div>';msg('membershipStatsMsg',e.message||'تعذر تحميل الإحصائيات.',true)}
     }
