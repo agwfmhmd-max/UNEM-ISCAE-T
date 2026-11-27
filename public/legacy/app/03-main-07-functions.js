@@ -177,29 +177,151 @@
         }
 
         let uploadPreviewUrl = null;
+        let uploadPreviewPdf = null;
+        let uploadPreviewRenderTask = null;
+        let uploadPreviewPage = 1;
+        let uploadPreviewGeneration = 0;
+        let uploadPdfJsPromise = null;
+        function loadUploadPdfJs() {
+            if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+            if (uploadPdfJsPromise) return uploadPdfJsPromise;
+            uploadPdfJsPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = '/legacy/vendor/pdfjs/pdf.min.js';
+                script.onload = () => window.pdfjsLib ? resolve(window.pdfjsLib) : reject(new Error('تعذر تهيئة عارض PDF.'));
+                script.onerror = () => { uploadPdfJsPromise = null; reject(new Error('تعذر تحميل عارض PDF المحلي.')); };
+                document.head.appendChild(script);
+            });
+            return uploadPdfJsPromise;
+        }
         function closeUploadPreview() {
+            uploadPreviewGeneration++;
+            if (uploadPreviewRenderTask) { try { uploadPreviewRenderTask.cancel(); } catch (_) {} uploadPreviewRenderTask = null; }
+            if (uploadPreviewPdf) { try { uploadPreviewPdf.destroy(); } catch (_) {} uploadPreviewPdf = null; }
             const overlay = document.getElementById('upload-preview-overlay');
             if (overlay) { overlay.classList.add('hidden'); overlay.setAttribute('aria-hidden', 'true'); }
             const frame = document.getElementById('upload-preview-frame');
-            if (frame) frame.src = 'about:blank';
+            if (frame) { frame.src = 'about:blank'; frame.classList.remove('hidden'); }
+            const img = document.getElementById('upload-preview-image');
+            if (img) img.removeAttribute('src');
+            document.getElementById('upload-preview-image-wrap')?.classList.add('hidden');
+            document.getElementById('upload-preview-pdf')?.classList.add('hidden');
+            document.getElementById('upload-preview-pdf-controls')?.classList.add('hidden');
+            document.getElementById('upload-preview-canvas')?.classList.add('hidden');
             if (uploadPreviewUrl) { URL.revokeObjectURL(uploadPreviewUrl); uploadPreviewUrl = null; }
         }
-        function openUploadPreview(file) {
+        async function renderUploadPdfPage(pageNumber, generation) {
+            if (!uploadPreviewPdf || generation !== uploadPreviewGeneration) return;
+            const canvas = document.getElementById('upload-preview-canvas');
+            const message = document.getElementById('upload-preview-message');
+            const counter = document.getElementById('upload-preview-page-count');
+            const previous = document.getElementById('upload-preview-prev');
+            const next = document.getElementById('upload-preview-next');
+            const pdfArea = document.getElementById('upload-preview-pdf');
+            try {
+                if (uploadPreviewRenderTask) { try { uploadPreviewRenderTask.cancel(); } catch (_) {} }
+                const page = await uploadPreviewPdf.getPage(pageNumber);
+                if (generation !== uploadPreviewGeneration) return;
+                const base = page.getViewport({ scale: 1 });
+                const available = Math.max(240, (pdfArea.clientWidth || window.innerWidth) - 24);
+                const scale = Math.min(2, available / base.width);
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                const cssViewport = page.getViewport({ scale });
+                const renderViewport = page.getViewport({ scale: scale * dpr });
+                const context = canvas.getContext('2d', { alpha: false });
+                canvas.width = Math.ceil(renderViewport.width);
+                canvas.height = Math.ceil(renderViewport.height);
+                canvas.style.width = Math.ceil(cssViewport.width) + 'px';
+                canvas.style.height = Math.ceil(cssViewport.height) + 'px';
+                canvas.classList.remove('hidden');
+                message.textContent = 'جارٍ عرض الصفحة ' + pageNumber + '…';
+                message.classList.remove('hidden');
+                pdfArea.scrollTop = 0;
+                uploadPreviewRenderTask = page.render({ canvasContext: context, viewport: renderViewport });
+                await uploadPreviewRenderTask.promise;
+                if (generation !== uploadPreviewGeneration) return;
+                uploadPreviewRenderTask = null;
+                message.classList.add('hidden');
+                counter.textContent = 'الصفحة ' + pageNumber + ' من ' + uploadPreviewPdf.numPages;
+                previous.disabled = pageNumber <= 1;
+                next.disabled = pageNumber >= uploadPreviewPdf.numPages;
+            } catch (error) {
+                if (error && error.name === 'RenderingCancelledException') return;
+                if (generation !== uploadPreviewGeneration) return;
+                message.textContent = 'تعذّر عرض هذه الصفحة. استخدم «فتح الملف» لتنزيل PDF وفتحه بتطبيق مناسب.';
+                message.classList.remove('hidden');
+                canvas.classList.add('hidden');
+            }
+        }
+        async function openUploadPreview(file) {
             const overlay = document.getElementById('upload-preview-overlay');
             const frame = document.getElementById('upload-preview-frame');
             const title = document.getElementById('upload-preview-title');
             const link = document.getElementById('upload-preview-open');
+            const imageWrap = document.getElementById('upload-preview-image-wrap');
+            const image = document.getElementById('upload-preview-image');
+            const pdfWrap = document.getElementById('upload-preview-pdf');
+            const pdfControls = document.getElementById('upload-preview-pdf-controls');
             if (!overlay || !frame || !file) return;
             closeUploadPreview();
+            const generation = uploadPreviewGeneration;
             uploadPreviewUrl = URL.createObjectURL(file);
             title.textContent = file.name + ' — ' + formatFileSize(file.size);
             link.href = uploadPreviewUrl;
-            link.download = file.name;
+            link.removeAttribute('download');
             frame.title = 'معاينة ' + file.name;
-            frame.src = uploadPreviewUrl;
             overlay.classList.remove('hidden');
             overlay.setAttribute('aria-hidden', 'false');
+            document.getElementById('upload-preview-hint').textContent = 'افتح الملف في المعاينة قبل رفعه.';
+            const ext = String(file.name || '').split('.').pop().toLowerCase();
+            if (file.type === 'application/pdf' || ext === 'pdf') {
+                frame.classList.add('hidden');
+                pdfWrap.classList.remove('hidden');
+                pdfControls.classList.remove('hidden');
+                document.getElementById('upload-preview-message').textContent = 'جارٍ تجهيز معاينة PDF…';
+                document.getElementById('upload-preview-message').classList.remove('hidden');
+                try {
+                    const pdfjs = await loadUploadPdfJs();
+                    if (generation !== uploadPreviewGeneration) return;
+                    pdfjs.GlobalWorkerOptions.workerSrc = '/legacy/vendor/pdfjs/pdf.worker.min.js';
+                    const loadingTask = pdfjs.getDocument({
+                        data: new Uint8Array(await file.arrayBuffer()),
+                        cMapUrl: '/legacy/vendor/pdfjs/cmaps/',
+                        cMapPacked: true,
+                        standardFontDataUrl: '/legacy/vendor/pdfjs/standard_fonts/'
+                    });
+                    const pdf = await loadingTask.promise;
+                    if (generation !== uploadPreviewGeneration) { pdf.destroy(); return; }
+                    uploadPreviewPdf = pdf;
+                    uploadPreviewPage = 1;
+                    await renderUploadPdfPage(uploadPreviewPage, generation);
+                } catch (error) {
+                    if (generation !== uploadPreviewGeneration) return;
+                    document.getElementById('upload-preview-message').textContent = 'تعذّر فتح هذا الملف كـ PDF. قد يكون الملف تالفاً أو محمياً بكلمة مرور. يمكنك فتح الملف مباشرة.';
+                    document.getElementById('upload-preview-message').classList.remove('hidden');
+                }
+            } else if (String(file.type || '').startsWith('image/') || /^(png|jpe?g|webp)$/.test(ext)) {
+                frame.classList.add('hidden');
+                imageWrap.classList.remove('hidden');
+                image.src = uploadPreviewUrl;
+                document.getElementById('upload-preview-hint').textContent = 'معاينة الصورة قبل رفعها.';
+            } else {
+                frame.src = uploadPreviewUrl;
+                document.getElementById('upload-preview-hint').textContent = 'إذا لم يعرض المتصفح هذا النوع، استخدم «فتح الملف» لمعاينته بالتطبيق المناسب.';
+            }
         }
+        document.getElementById('upload-preview-prev')?.addEventListener('click', () => {
+            if (uploadPreviewPage > 1) { uploadPreviewPage--; renderUploadPdfPage(uploadPreviewPage, uploadPreviewGeneration); }
+        });
+        document.getElementById('upload-preview-next')?.addEventListener('click', () => {
+            if (uploadPreviewPdf && uploadPreviewPage < uploadPreviewPdf.numPages) { uploadPreviewPage++; renderUploadPdfPage(uploadPreviewPage, uploadPreviewGeneration); }
+        });
+        let uploadPreviewResizeTimer;
+        window.addEventListener('resize', () => {
+            if (!uploadPreviewPdf || document.getElementById('upload-preview-overlay')?.classList.contains('hidden')) return;
+            clearTimeout(uploadPreviewResizeTimer);
+            uploadPreviewResizeTimer = setTimeout(() => renderUploadPdfPage(uploadPreviewPage, uploadPreviewGeneration), 120);
+        });
         document.addEventListener('click', event => {
             if (event.target.closest('#upload-preview-close') || event.target.id === 'upload-preview-overlay') closeUploadPreview();
         });
