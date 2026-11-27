@@ -26,3 +26,16 @@ PGURL=postgres://postgres@localhost/postgres npm test     # + اختبارات �
 متغير `CHROME_PATH` اختياري لتحديد متصفح Chromium موجود مسبقاً.
 
 **تلقائياً على GitHub:** `.github/workflows/ci.yml` يشغّل هذه الاختبارات (واختبارات القاعدة) عند كل رفع — انظر `README.md` في الجذر.
+
+## اختبار حي لواجهة تصنيف الصور
+
+هذا اختبار تكاملي يرسل صورة دراسية حقيقية إلى واجهة التصنيف، ويتحقق من HTTP والاستجابة والحقول وثقة التصنيف. يحتاج رمز جلسة Supabase صالحاً لحساب يملك دور `uploader` أو `admin`، ولا يُشغّل ضمن الاختبارات العامة لأن بيانات الدخول والصورة يجب أن يقدمهما المشغّل.
+
+```bash
+cd tests
+CLASSIFIER_TOKEN='رمز_جلسة_Supabase' \
+CLASSIFIER_IMAGE='/path/to/study-document.jpg' \
+npm run test:classifier
+```
+
+يُستخدم رابط الإنتاج `https://unem-iscae2-test.vercel.app/api/public/upload/classify` افتراضياً. يمكن اختبار نشر آخر عبر `CLASSIFIER_API_URL`. الصيغ المقبولة JPG وPNG وWebP، والحد الأقصى 6 MiB. لا تُدرج رمز الجلسة في الأوامر المحفوظة أو السجلات؛ استخدم متغير بيئة آمن.

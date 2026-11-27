@@ -20,6 +20,8 @@ const LEVELS = ["L1", "L2", "L3"] as const;
 const SEMESTERS = ["S1", "S2", "S3", "S4", "S5", "S6"] as const;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const BASE_TYPES = ["cours", "td_tp", "devoir", "examen"] as const;
+// Allow deployments to select an enabled vision model; use a compatible default.
+const CLASSIFIER_MODEL = process.env["OPENAI_CLASSIFIER_MODEL"] || "gpt-4o-mini";
 const schema = {
   type: "object",
   properties: {
@@ -108,7 +110,7 @@ export const Route = createFileRoute("/api/public/upload/classify")({
             method: "POST",
             headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "gpt-6-luna",
+              model: CLASSIFIER_MODEL,
               store: false,
               input: [
                 {
@@ -118,7 +120,7 @@ export const Route = createFileRoute("/api/public/upload/classify")({
                       type: "input_text",
                       text: `${visionPrompt}\nالمواد الممكنة: ${schema.properties.subject.enum.join(" | ")}`,
                     },
-                    { type: "input_image", image_url: data, detail: "original" },
+                    { type: "input_image", image_url: data, detail: "high" },
                   ],
                 },
               ],
