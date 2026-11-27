@@ -315,13 +315,20 @@
             e.preventDefault();
             if (isUploading) return;
             if (window.UNEMSmartUpload && !(await window.UNEMSmartUpload.prepareBatch())) return;
+            const manualUploadTarget = {
+                spec: document.getElementById('upload-spec').value,
+                level: document.getElementById('upload-level').value,
+                semester: document.getElementById('upload-semester').value,
+                subject: document.getElementById('upload-subject').value,
+                type: document.getElementById('upload-type').value
+            };
             if (!supabaseClient) { statusDiv.textContent = '❌ تعذر الاتصال بقاعدة البيانات.'; statusDiv.className = 'status-msg error'; return; }
 
-            const spec = document.getElementById('upload-spec').value;
-            const level = document.getElementById('upload-level').value;
-            const semester = document.getElementById('upload-semester').value;
-            const subject = document.getElementById('upload-subject').value;
-            const type = document.getElementById('upload-type').value;
+            let spec = document.getElementById('upload-spec').value;
+            let level = document.getElementById('upload-level').value;
+            let semester = document.getElementById('upload-semester').value;
+            let subject = document.getElementById('upload-subject').value;
+            let type = document.getElementById('upload-type').value;
 
             const fail = (msg) => { statusDiv.textContent = msg; statusDiv.className = 'status-msg error'; };
             if (!spec) { fail('⚠️ يرجى اختيار التخصص.'); return; }
@@ -356,6 +363,40 @@
             let success = 0, failed = 0;
 
             for (const item of pending) {
+                // طبّق اقتراح هذا الملف وحده؛ يسمح ذلك بتوجيه دفعة واحدة إلى مواد وفصول مختلفة.
+                if (item.smart && item.smart.confidence) {
+                    const d = item.smart;
+                    const specSel = document.getElementById('upload-spec');
+                    if (specSel && Array.from(specSel.options).some(o => o.value === d.spec)) {
+                        specSel.value = d.spec; onUploadSpecChange();
+                        const levelSel = document.getElementById('upload-level'); if (levelSel) { levelSel.value = d.level; onUploadLevelChange(); }
+                        const semSel = document.getElementById('upload-semester'); if (semSel) { semSel.value = d.semester; onUploadSemesterChange(); }
+                        const subSel = document.getElementById('upload-subject');
+                        if (subSel && Array.from(subSel.options).some(o => o.value === d.subject)) {
+                            subSel.value = d.subject;
+                            await refreshUploadTypeOptions();
+                            const aliases = { examen: ['examen','exam'], devoir: ['devoir','assignment'], td: ['td_tp','td','travaux_diriges'], tp: ['td_tp','tp','travaux_pratiques'], cours: ['cours','course','lesson'] }[d.type] || [d.type];
+                            const typeSel = document.getElementById('upload-type');
+                            const found = typeSel && Array.from(typeSel.options).find(o => aliases.includes(String(o.value).toLowerCase()));
+                            if (found) typeSel.value = found.value;
+                        }
+                    }
+                    spec = document.getElementById('upload-spec').value;
+                    level = document.getElementById('upload-level').value;
+                    semester = document.getElementById('upload-semester').value;
+                    subject = document.getElementById('upload-subject').value;
+                    type = document.getElementById('upload-type').value;
+                } else {
+                    // ملف لم يُؤكّد آلياً: أعد اختيارات المستخدم الأصلية ولا ترث تصنيف الملف السابق.
+                    const specSel = document.getElementById('upload-spec');
+                    if (specSel) { specSel.value = manualUploadTarget.spec; onUploadSpecChange(); }
+                    const levelSel = document.getElementById('upload-level'); if (levelSel) { levelSel.value = manualUploadTarget.level; onUploadLevelChange(); }
+                    const semSel = document.getElementById('upload-semester'); if (semSel) { semSel.value = manualUploadTarget.semester; onUploadSemesterChange(); }
+                    const subSel = document.getElementById('upload-subject'); if (subSel) subSel.value = manualUploadTarget.subject;
+                    await refreshUploadTypeOptions();
+                    const typeSel = document.getElementById('upload-type'); if (typeSel) typeSel.value = manualUploadTarget.type;
+                    spec = manualUploadTarget.spec; level = manualUploadTarget.level; semester = manualUploadTarget.semester; subject = manualUploadTarget.subject; type = manualUploadTarget.type;
+                }
                 updateQueueItem(item, { state: 'uploading', progress: 0, message: 'جاري الرفع...' });
                 statusDiv.textContent = `⏳ جاري الرفع (${success + failed + 1}/${pending.length})...`;
                 statusDiv.className = 'status-msg';

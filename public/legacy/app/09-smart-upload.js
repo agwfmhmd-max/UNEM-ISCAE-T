@@ -336,6 +336,39 @@
       confidence: !!(spec && level && semester && subject),
     };
   }
+  async function pdfFirstPageDataUrl(file) {
+    if (!window.pdfjsLib) {
+      await new Promise(function (resolve, reject) {
+        var script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+        script.onload = resolve; script.onerror = function () { reject(new Error("PDF.js unavailable")); };
+        document.head.appendChild(script);
+      });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+    var pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    var page = await pdf.getPage(1), base = page.getViewport({ scale: 1 });
+    var viewport = page.getViewport({ scale: Math.min(2, 1800 / base.width) });
+    var canvas = document.createElement("canvas"); canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport: viewport }).promise;
+    return canvas.toDataURL("image/jpeg", 0.88);
+  }
+  async function askVision(file, extension) {
+    var mime = "", dataUrl = "";
+    if (/^(jpe?g|png|webp)$/.test(extension)) {
+      mime = file.type || (/png$/.test(extension) ? "image/png" : /webp$/.test(extension) ? "image/webp" : "image/jpeg");
+      if (!["image/jpeg", "image/png", "image/webp"].includes(mime)) return null;
+      dataUrl = await new Promise(function (resolve, reject) { var r = new FileReader(); r.onload = function () { resolve(String(r.result || "")); }; r.onerror = reject; r.readAsDataURL(file); });
+    } else if (extension === "pdf") { dataUrl = await pdfFirstPageDataUrl(file); mime = "image/jpeg"; }
+    else return null;
+    if (dataUrl.length > 8 * 1024 * 1024) throw new Error("Image too large for classification");
+    var token = typeof getAccessToken === "function" ? await getAccessToken() : "";
+    if (!token) throw new Error("Authentication required");
+    var apiUrl = typeof unemApi === "function" ? unemApi("/api/public/upload/classify") : "/api/public/upload/classify";
+    var response = await fetch(apiUrl, { method: "POST", headers: { "content-type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify({ mime: mime, data: dataUrl }) });
+    var result = await response.json();
+    return !response.ok || result.error || !result.confidence || result.confidence < 0.75 ? null : result;
+  }
   function analyzeQueuedFile(file) {
     var item = getQueue().find(function (q) {
       return q.file === file;
@@ -373,9 +406,15 @@
           }
         }
         item.smart = classify(text, file.name);
+        if (!item.smart.confidence) {
+          try {
+            var visual = await askVision(file, ext);
+            if (visual) item.smart = { spec: visual.specialization, level: visual.level, semester: visual.semester, subject: visual.subject, type: visual.type === "td_tp" ? "td" : visual.type, confidence: true, aiConfidence: visual.confidence, source: "vision" };
+          } catch (visionError) { console.warn("smart upload vision fallback", visionError); }
+        }
         item.smartState = item.smart.confidence ? "done" : "partial";
         item.smartMessage = item.smart.confidence
-          ? "اقتراح: " +
+          ? "اقتراح" + (item.smart.source === "vision" ? " بصري" : "") + ": " +
             item.smart.type.toUpperCase() +
             " · " +
             item.smart.spec +
@@ -418,19 +457,7 @@
       );
       return true;
     }
-    var signatures = new Set(
-      detected.map(function (i) {
-        var d = i.smart;
-        return [d.spec, d.level, d.semester, d.subject, d.type].join("|");
-      }),
-    );
-    if (signatures.size > 1) {
-      status(
-        "تبيّن أن الملفات المحددة لا تنتمي كلها إلى تصنيف واحد. ارفع كل مجموعة متجانسة على حدة لتجنّب حفظ ملف تحت مادة أو فصل خاطئ.",
-        true,
-      );
-      return false;
-    }
+    // كل ملف يُرفع باستخدام بياناته المستقلة داخل معالج الرفع؛ لا نرفض دفعة متعددة المواد.
     var d = detected[0].smart;
     var specSel = document.getElementById("upload-spec");
     if (
