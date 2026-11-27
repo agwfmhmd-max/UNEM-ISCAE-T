@@ -52,7 +52,10 @@ try {
     signal: AbortSignal.timeout(60_000),
   });
 } catch (error) {
-  fail("Request to classifier endpoint failed.", error instanceof Error ? error.message : String(error));
+  fail(
+    "Request to classifier endpoint failed.",
+    error instanceof Error ? error.message : String(error),
+  );
 }
 
 let result;
@@ -62,10 +65,13 @@ try {
   fail(`Endpoint returned non-JSON response (HTTP ${response.status}).`);
 }
 if (!response.ok) {
-  const explanation = typeof result?.error === "string" ? result.error : "No error details returned.";
-  fail(`Classifier API returned HTTP ${response.status}.`, explanation);
+  const explanation =
+    typeof result?.error === "string" ? result.error : "No error details returned.";
+  const diagnostic = result?.diagnostic ? `\n${JSON.stringify(result.diagnostic, null, 2)}` : "";
+  fail(`Classifier API returned HTTP ${response.status}.`, `${explanation}${diagnostic}`);
 }
-if (result?.error) fail("Classifier could not confidently classify this image.", String(result.error));
+if (result?.error)
+  fail("Classifier could not confidently classify this image.", String(result.error));
 
 const expectedFields = ["specialization", "level", "semester", "subject", "type", "confidence"];
 const missing = expectedFields.filter((key) => !(key in (result || {})));
@@ -74,10 +80,12 @@ const specs = new Set(["BA", "FC", "TCM", "GRH", "SAE", "IG"]);
 const levels = new Set(["L1", "L2", "L3"]);
 const semesters = new Set(["S1", "S2", "S3", "S4", "S5", "S6"]);
 const types = new Set(["cours", "td_tp", "devoir", "examen"]);
-if (!specs.has(result.specialization)) fail("Invalid specialization in response.", String(result.specialization));
+if (!specs.has(result.specialization))
+  fail("Invalid specialization in response.", String(result.specialization));
 if (!levels.has(result.level)) fail("Invalid level in response.", String(result.level));
 if (!semesters.has(result.semester)) fail("Invalid semester in response.", String(result.semester));
-if (typeof result.subject !== "string" || result.subject.trim() === "") fail("Response has no recognized subject.");
+if (typeof result.subject !== "string" || result.subject.trim() === "")
+  fail("Response has no recognized subject.");
 if (!types.has(result.type)) fail("Invalid document type in response.", String(result.type));
 if (typeof result.confidence !== "number" || result.confidence < 0.75 || result.confidence > 1)
   fail("Confidence is below the API acceptance threshold or invalid.", String(result.confidence));

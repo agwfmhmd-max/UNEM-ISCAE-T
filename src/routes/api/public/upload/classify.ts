@@ -138,11 +138,27 @@ export const Route = createFileRoute("/api/public/upload/classify")({
           });
           const result = (await response.json()) as {
             output?: Array<{ content?: Array<{ type?: string; text?: string }> }>;
-            error?: { message?: string };
+            error?: { message?: string; code?: string; type?: string };
           };
           if (!response.ok) {
-            console.error("OpenAI classifier error", response.status, result.error?.message);
-            return json({ error: "تعذر إكمال التحليل البصري حالياً." }, 502);
+            const rawCode = result.error?.code ?? result.error?.type ?? "unknown";
+            const providerCode = /^[a-zA-Z0-9_.-]{1,80}$/.test(rawCode) ? rawCode : "unknown";
+            const messageByStatus: Record<number, string> = {
+              400: "رفض مزود التحليل صيغة الطلب؛ تحقق من توافق النموذج وإعداداته.",
+              401: "مفتاح خدمة التحليل غير صالح أو منتهي؛ يلزم تحديث OPENAI_API_KEY في إعدادات الإنتاج.",
+              403: "مفتاح خدمة التحليل لا يملك صلاحية استخدام النموذج المحدد.",
+              404: "نموذج التحليل المحدد غير متاح؛ تحقق من OPENAI_CLASSIFIER_MODEL.",
+              429: "تم رفض التحليل بسبب حد الاستخدام أو معدل الطلبات لدى المزود.",
+            };
+            const error = messageByStatus[response.status] ?? "رفض مزود التحليل الطلب مؤقتاً.";
+            console.error("OpenAI classifier error", response.status, providerCode);
+            return json(
+              {
+                error,
+                diagnostic: { provider: "openai", status: response.status, code: providerCode },
+              },
+              502,
+            );
           }
           const text = result.output
             ?.flatMap((item) => item.content ?? [])
@@ -150,8 +166,15 @@ export const Route = createFileRoute("/api/public/upload/classify")({
           if (!text) return json({ error: "لم يُرجع التحليل نتيجة قابلة للاستخدام." }, 502);
           output = JSON.parse(text);
         } catch (error) {
-          console.error("OpenAI classifier request failed", error);
-          return json({ error: "تعذر الاتصال بمساعد التصنيف حالياً." }, 502);
+          const errorType = error instanceof Error ? error.name : "unknown";
+          console.error("OpenAI classifier request failed", errorType);
+          return json(
+            {
+              error: "تعذر الاتصال بمساعد التصنيف حالياً.",
+              diagnostic: { provider: "openai", errorType },
+            },
+            502,
+          );
         }
         const result = output as {
           specialization?: string;
