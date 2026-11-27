@@ -173,6 +173,14 @@
                     smart.style.cssText = 'margin-top:6px;color:' + (item.smartState === 'done' ? '#15803d' : item.smartState === 'failed' ? '#b91c1c' : '#64748b') + ';';
                     smart.textContent = item.smartMessage; div.appendChild(smart);
                 }
+                if (item.state === 'pending' && ['partial', 'failed'].includes(item.smartState) && window.UNEMSmartUpload) {
+                    const retry = document.createElement('button');
+                    retry.type = 'button'; retry.className = 'up-retry-smart';
+                    retry.textContent = 'إعادة التحليل بالذكاء الاصطناعي';
+                    retry.style.cssText = 'margin-top:7px;padding:6px 10px;border:1px solid #0d6846;border-radius:8px;background:transparent;color:#0d6846;font:inherit;font-size:13px;font-weight:700;cursor:pointer;';
+                    retry.onclick = () => window.UNEMSmartUpload.retryAnalysis(item.file);
+                    div.appendChild(retry);
+                }
                 div.appendChild(bar); div.appendChild(state);
                 box.appendChild(div);
             });

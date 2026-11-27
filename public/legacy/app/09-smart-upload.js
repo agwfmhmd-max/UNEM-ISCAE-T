@@ -356,20 +356,33 @@
   async function askVision(file, extension) {
     var mime = "", dataUrl = "";
     if (/^(jpe?g|png|webp)$/.test(extension)) {
-      mime = file.type || (/png$/.test(extension) ? "image/png" : /webp$/.test(extension) ? "image/webp" : "image/jpeg");
-      if (!["image/jpeg", "image/png", "image/webp"].includes(mime)) return null;
-      dataUrl = await new Promise(function (resolve, reject) { var r = new FileReader(); r.onload = function () { resolve(String(r.result || "")); }; r.onerror = reject; r.readAsDataURL(file); });
+      // Android/Samsung may report image/jpg or an empty MIME for a .jpg file.
+      // Derive the canonical MIME from the extension so vision is never skipped silently.
+      mime = /^(jpe?g)$/.test(extension) ? "image/jpeg" : extension === "png" ? "image/png" : "image/webp";
+      dataUrl = await new Promise(function (resolve, reject) { var r = new FileReader(); r.onload = function () { resolve(String(r.result || "").replace(/^data:[^;,]+;/, "data:" + mime + ";")); }; r.onerror = reject; r.readAsDataURL(file); });
     } else if (extension === "pdf") { dataUrl = await pdfFirstPageDataUrl(file); mime = "image/jpeg"; }
     else return null;
     if (dataUrl.length > 8 * 1024 * 1024) throw new Error("Image too large for classification");
     var token = typeof getAccessToken === "function" ? await getAccessToken() : "";
     if (!token) throw new Error("Authentication required");
     var apiUrl = typeof unemApi === "function" ? unemApi("/api/public/upload/classify") : "/api/public/upload/classify";
-    var response = await fetch(apiUrl, { method: "POST", headers: { "content-type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify({ mime: mime, data: dataUrl }) });
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 40000);
+    var response;
+    try {
+      response = await fetch(apiUrl, { method: "POST", headers: { "content-type": "application/json", Authorization: "Bearer " + token }, body: JSON.stringify({ mime: mime, data: dataUrl }), signal: controller.signal });
+    } catch (requestError) {
+      if (controller.signal.aborted) throw new Error("انتهت مهلة الاتصال بمساعد التصنيف؛ تحقق من الإنترنت ثم أعد المحاولة.");
+      throw requestError;
+    } finally {
+      clearTimeout(timeout);
+    }
     var result = await response.json();
     if (!response.ok) throw new Error(result.error || "فشل طلب التحليل البصري (HTTP " + response.status + ").");
     if (result.error) throw new Error(result.error);
-    return !result.confidence || result.confidence < 0.75 ? null : result;
+    if (typeof result.confidence !== "number") throw new Error("لم يُرجع المساعد درجة ثقة قابلة للاستخدام.");
+    if (result.confidence < 0.75) throw new Error("لم يتعرّف المساعد على الورقة بثقة كافية؛ اختر البيانات يدوياً أو أعد المحاولة بصورة أوضح.");
+    return result;
   }
   function analyzeQueuedFile(file) {
     var item = getQueue().find(function (q) {
@@ -388,27 +401,42 @@
             .pop()
             .toLowerCase(),
           text = "";
-        if (ext === "pdf") {
+        item.smart = classify("", file.name);
+        // للصور نبدأ بالمساعد البصري مباشرة؛ OCR على بعض هواتف Android قد
+        // يتأخر بعد وصول شريط التقدم إلى 100% ويمنع طلب التصنيف من البدء.
+        if (!item.smart.confidence && /^(jpe?g|png|webp)$/.test(ext)) {
+          try {
+            status("يتصل المساعد الذكي لتحليل الصورة…");
+            var imageResult = await askVision(file, ext);
+            item.smart = { spec: imageResult.specialization, level: imageResult.level, semester: imageResult.semester, subject: imageResult.subject, type: imageResult.type === "td_tp" ? "td" : imageResult.type, confidence: true, aiConfidence: imageResult.confidence, source: "vision" };
+          } catch (imageError) {
+            item.smartError = imageError && imageError.message ? imageError.message : "تعذر الاتصال بالمساعد البصري.";
+          }
+        }
+        if (!item.smart.confidence && ext === "pdf") {
           try {
             text = await extractPdf(file);
           } catch (e) {
             console.warn("smart upload PDF text", e);
           }
-        } else if (/^(jpe?g|png|webp|bmp)$/.test(ext)) {
+        } else if (!item.smart.confidence && /^(jpe?g|png|webp|bmp)$/.test(ext)) {
           try {
             text = await extractImage(file);
           } catch (e) {
             console.warn("smart upload OCR", e);
           }
-        } else if (/^(docx|pptx|xlsx)$/.test(ext)) {
+        } else if (!item.smart.confidence && /^(docx|pptx|xlsx)$/.test(ext)) {
           try {
             text = await extractOffice(file, ext);
           } catch (e) {
             console.warn("smart upload Office text", e);
           }
         }
-        item.smart = classify(text, file.name);
         if (!item.smart.confidence) {
+          var localResult = classify(text, file.name);
+          if (localResult.confidence) item.smart = localResult;
+        }
+        if (!item.smart.confidence && !item.smartError && ext === "pdf") {
           try {
             var visual = await askVision(file, ext);
             if (visual) item.smart = { spec: visual.specialization, level: visual.level, semester: visual.semester, subject: visual.subject, type: visual.type === "td_tp" ? "td" : visual.type, confidence: true, aiConfidence: visual.confidence, source: "vision" };
@@ -544,6 +572,16 @@
   }
   window.UNEMSmartUpload = {
     analyzeQueuedFile: analyzeQueuedFile,
+    retryAnalysis: function (file) {
+      var item = getQueue().find(function (q) { return q.file === file; });
+      if (!item || item.state !== "pending") return Promise.resolve(null);
+      item.smartPromise = null;
+      item.smart = null;
+      item.smartError = "";
+      item.smartState = "pending";
+      item.smartMessage = "ستُعاد المحاولة بالمساعد الذكي…";
+      return analyzeQueuedFile(file);
+    },
     prepareBatch: prepareBatch,
     classify: classify,
   };
