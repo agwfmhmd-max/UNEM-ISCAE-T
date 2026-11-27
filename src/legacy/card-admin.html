@@ -28,13 +28,13 @@ label{display:block;font-weight:700;font-size:.85rem;margin:8px 0 4px;color:#334
 
 <div id="app" class="hidden">
  <div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h2 style="margin:0">أرقام تسجيل الطلاب</h2><button class="chip" id="logout" type="button">خروج</button></div>
-  <p style="margin:8px 0 0;color:var(--mut);font-size:.86rem;line-height:1.7">أدخل رقم تسجيل طالب (أو عدة أرقام يفصلها سطر أو فراغ). عند «إظهار» تصبح بطاقة انتسابه متاحة في المجتمع ويصله إشعار: «بطاقة انتسابك الرقمية للاتحاد الوطني لطلبة موريتانيا بالمعهد العالي للمحاسبة وإدارة المؤسسات أصبحت متاحة الآن». <b>يمكنك إظهارها حتى لطالب لم يسجل بعد</b>: تُحفظ وتظهر له تلقائياً عند تسجيله.</p>
+  <p style="margin:8px 0 0;color:var(--mut);font-size:.86rem;line-height:1.7">أدخل رقم تسجيل طالب (أو عدة أرقام يفصلها سطر أو فراغ). عند «إظهار» تصبح بطاقة انتسابه متاحة في المجتمع ويصله إشعار: «بطاقة انتسابك الرقمية للاتحاد الوطني لطلبة موريتانيا بالمعهد العالي للمحاسبة وإدارة المؤسسات أصبحت متاحة الآن». يجب أن يكون الطالب موجوداً في صفحة تسجيل الطلاب وحسابه معتمداً؛ لا تُحفظ أي إتاحة مستقبلية لرقم غير موجود أو لحساب غير معتمد.</p>
   <textarea id="regs" dir="ltr" placeholder="I21567"></textarea>
   <div class="row"><button class="btn alt" id="bFind" type="button">🔍 بحث</button><button class="btn gold" id="bShow" type="button">👁️ إظهار البطاقة</button><button class="btn red" id="bHide" type="button">إخفاء</button></div>
   <div id="msg"></div><div id="out"></div>
  </div>
  <div class="card"><h2>اللائحة والطباعة</h2>
-  <div class="stats"><div><b id="stOn">0</b><small>مفعّلة</small></div><div><b id="stWait">0</b><small>بانتظار التسجيل</small></div><div><b id="stAll">0</b><small>طلاب معتمدون</small></div></div>
+  <div class="stats"><div><b id="stOn">0</b><small>بطاقات مفعّلة</small></div><div><b id="stWait">0</b><small>غير قابلة للإتاحة قبل التسجيل</small></div><div><b id="stAll">0</b><small>طلاب معتمدون</small></div></div>
   <label>اختر يوماً لطباعة طلاب ذلك اليوم</label><input id="day" type="date" dir="ltr">
   <div class="row"><button class="btn blue" id="pDay" type="button">🖨️ طباعة لائحة اليوم المحدد</button><button class="btn alt" id="pAll" type="button">🖨️ طباعة كل اللائحة</button><button class="btn alt" id="pShow" type="button">عرض اليوم هنا</button></div>
   <div id="listMsg"></div><div id="recent"></div>
@@ -60,7 +60,7 @@ async function loadList(day){
 }
 function listHtml(items){
   if(!items.length)return '<div style="color:var(--mut);margin-top:8px">لا توجد بطاقات في هذه اللائحة.</div>';
-  return items.map(function(x,i){return '<div class="it"><div><b dir="auto">'+(i+1)+'. '+esc(x.full_name||'— (لم يسجل بعد)')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.card_code?' · '+esc(x.card_code):'')+' · '+esc(fmt(x.enabled_at))+'</small></div>'+(x.registered?'<span class="tag on">'+esc((x.spec||'')+' · '+lv(x))+'</span>':'<span class="tag wait">بانتظار التسجيل</span>')+'</div>'}).join('');
+  return items.map(function(x,i){return '<div class="it"><div><b dir="auto">'+(i+1)+'. '+esc(x.full_name||'—')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.card_code?' · '+esc(x.card_code):'')+' · '+esc(fmt(x.enabled_at))+'</small></div><span class="tag on">'+esc((x.spec||'')+' · '+lv(x))+'</span></div>'}).join('');
 }
 async function refresh(){var d=await loadList(null);if(!d)return;LIST=d.items||[];$('recent').innerHTML=listHtml(LIST.slice().reverse().slice(0,40));}
 async function showDay(){var day=$('day').value;if(!day)return $('listMsg').innerHTML='<div class="msg err">اختر يوماً أولاً.</div>';var d=await loadList(day);if(!d)return;$('listMsg').innerHTML='<div class="msg ok">طلاب يوم '+esc(day)+': '+(d.items||[]).length+'</div>';$('recent').innerHTML=listHtml(d.items||[])}
@@ -76,9 +76,9 @@ async function printList(day){
   setTimeout(function(){try{w.focus()}catch(e){}try{w.print()}catch(e){var u=URL.createObjectURL(new Blob([doc],{type:'text/html'}));window.open(u,'_blank')}setTimeout(function(){f.remove()},60000)},500);
 }
 function rowHtml(x,extra){
-  if(x.found===false&&!x.pending&&x.registered!==false&&!x.roster_name)return '<div class="it"><div><b dir="ltr">'+esc(x.reg_no)+'</b><small>لم يُعثر على حساب بهذا الرقم'+(x.pending?'':' ولم تُتَح له بطاقة')+'</small></div><span class="tag na">غير مسجل</span></div>';
+  if(x.found===false)return '<div class="it"><div><b dir="ltr">'+esc(x.reg_no)+'</b><small>رقم التسجيل غير موجود في صفحة تسجيل الطلاب؛ لا يمكن إتاحة البطاقة.</small></div><span class="tag na">غير مسجل</span></div>';
   var name=x.full_name||x.roster_name||'';
-  var st=x.registered===false||x.found===false?(x.pending?'<span class="tag wait">أُتيحت — بانتظار تسجيله</span>':'<span class="tag na">لم يسجل</span>'):(x.approved===false||x.status&&x.status!=='approved')?'<span class="tag na">الحساب غير معتمد</span>':x.enabled?'<span class="tag on">البطاقة متاحة</span>':'<span class="tag off">غير متاحة</span>';
+  var st=(x.approved===false||x.status&&x.status!=='approved')?'<span class="tag na">الحساب غير معتمد</span>':x.enabled?'<span class="tag on">البطاقة متاحة</span>':'<span class="tag off">غير متاحة</span>';
   return '<div class="it"><div><b dir="auto">'+esc(name||'—')+'</b><small dir="ltr">'+esc(x.reg_no)+(x.spec?' · '+esc(x.spec)+(SPEC[x.spec]?' — '+esc(SPEC[x.spec]):''):'')+(x.level?' · '+esc(lv(x)):'')+(x.card_code?' · '+esc(x.card_code):'')+'</small>'+(extra||'')+'</div>'+st+'</div>';
 }
 async function find(){
@@ -109,8 +109,8 @@ async function setCards(on){
     var r=await sb.rpc('student_card_set',{p_regs:regs,p_enabled:on});
     if(r.error){if(/forbidden/i.test(r.error.message||''))return show('forbid');throw r.error}
     var list=r.data||[];$('out').innerHTML=list.map(function(x){return rowHtml(x)}).join('');
-    var reg=list.filter(function(x){return x.registered}),wait=list.filter(function(x){return x.pending});
-    var note=on?('✅ أُظهرت البطاقة لـ '+reg.length+' طالب مسجّل'+(wait.length?' وأُتيحت مسبقاً لـ '+wait.length+' طالب لم يسجل بعد (تظهر له عند تسجيله)':'')+'.'):('✅ أُخفيت البطاقة لـ '+list.length+' طالب.');
+    var reg=list.filter(function(x){return x.registered&&x.approved}),bad=list.filter(function(x){return !x.approved});
+    var note=on?('✅ أُظهرت البطاقة لـ '+reg.filter(function(x){return x.enabled}).length+' طالب معتمد. '+(bad.length?'تم رفض '+bad.length+' رقم غير موجود أو غير معتمد.':'')):('✅ أُخفيت البطاقة لـ '+reg.length+' طالب.');
     if(on&&reg.length)note+=await notifyStudents(reg.map(function(x){return x.reg_no}));
     msg(note,'ok');refresh();
   }catch(e){msg('تعذر التنفيذ: '+esc(e&&e.message||e),'err')}

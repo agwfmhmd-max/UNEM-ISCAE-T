@@ -17,6 +17,7 @@ function $(id){return document.getElementById(id)}
 function fmt(d){try{return new Date(d).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
 function canManageStudentRecords(){return typeof hasPermission==='function'&&hasPermission('manage_students')}
 function canManagePlatformSettings(){return typeof hasPermission==='function'&&hasPermission('manage_platform_settings')}
+function stBars(items,title,color){items=items||[];var max=items.reduce(function(m,x){return Math.max(m,Number(x.count)||0)},0);return '<div style="border:1px solid #dbe7df;border-radius:14px;padding:12px"><b>'+h(title)+'</b>'+(items.length?items.map(function(x){var n=Number(x.count)||0;return '<div style="display:grid;grid-template-columns:105px 1fr 34px;align-items:center;gap:7px;margin:9px 0;font-size:.82rem"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800" title="'+h(x.key)+'">'+h(x.key)+'</span><span style="height:14px;background:#e2e8f0;border-radius:99px;overflow:hidden"><i style="display:block;width:'+(max?Math.round(n*100/max):0)+'%;height:100%;background:'+color+';border-radius:99px"></i></span><b style="color:#0f5132;text-align:left">'+n+'</b></div>'}).join(''):'<small style="display:block;color:#64748b;margin-top:8px">لا توجد بيانات.</small>')+'</div>'}
 
 window.renderStudentsAdmin=async function(){
   var c=$('admin-dashboard-page-content');if(!c)return;
@@ -212,10 +213,12 @@ window.stSave=async function(){
 async function loadStats(){
   var el=$('st-stats');if(!el)return;
   try{
-    var d=await rpc('stats'),acc=d.accounts||{};st.curPromo=d.current_promo;
+    var pair=await Promise.all([rpc('stats'),supabaseClient.rpc('student_registration_stats')]);
+    if(pair[1].error)throw pair[1].error;
+    var d=pair[0],g=pair[1].data||{},acc=d.accounts||{};st.curPromo=d.current_promo;
     var canManage=canManageStudentRecords();
     var rows=(d.roster||[]).map(function(x){return '<tr><td style="padding:7px;border-top:1px solid #e2e8f0">'+h(SL[x.spec]||x.spec)+'</td><td style="padding:7px;border-top:1px solid #e2e8f0">'+(x.promo?'🎓 Sortants · Promo '+h(x.promo):h(x.level))+'</td><td style="padding:7px;border-top:1px solid #e2e8f0"><b>'+x.n+'</b></td><td style="padding:7px;border-top:1px solid #e2e8f0">'+(canManage?'<button class="wa-save" style="background:#dc2626;padding:5px 10px;font-size:.78rem" onclick="stClear(\''+x.spec+'\',\''+(x.promo?'S':x.level)+'\','+(x.promo||'null')+')">حذف اللائحة</button>':'')+'</td></tr>'}).join('');
-    el.innerHTML='<div style="margin-bottom:8px;color:#475569">السنة الدراسية الحالية: <b>'+h(d.academic_year)+'–'+h(d.academic_year+1)+'</b> · الدفعة الحالية للخريجين: <b>Promo '+h(d.current_promo)+'</b></div><div style="margin-bottom:8px;font-weight:700">حسابات: بانتظار الموافقة <b>'+(acc.pending||0)+'</b> · معتمدة <b>'+(acc.approved||0)+'</b> · مرفوضة <b>'+(acc.rejected||0)+'</b></div>'+
+    el.innerHTML='<div style="margin-bottom:8px;color:#475569">السنة الدراسية الحالية: <b>'+h(g.academic_year||d.academic_year)+'–'+h((g.academic_year||d.academic_year)+1)+'</b> · الدفعة الحالية للخريجين: <b>Promo '+h(d.current_promo)+'</b></div><div style="margin-bottom:8px;font-weight:700">حسابات: بانتظار الموافقة <b>'+Number(g.pending_accounts||acc.pending||0)+'</b> · معتمدة <b>'+Number(g.approved_accounts||acc.approved||0)+'</b> · مرفوضة <b>'+Number(g.rejected_accounts||acc.rejected||0)+'</b> · البطاقات المفعّلة <b>'+Number(g.active_cards||0)+'</b></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:12px 0">'+stBars(g.by_specialization,'الحسابات المعتمدة حسب التخصص','#15803d')+stBars(g.by_level,'الحسابات المعتمدة حسب المستوى','#d49b00')+stBars(g.cards_by_specialization,'البطاقات المفعّلة حسب التخصص','#0f766e')+stBars(g.cards_by_level,'البطاقات المفعّلة حسب المستوى','#b45309')+'</div>'+
       (rows?'<table style="width:100%;border-collapse:collapse;font-size:.88rem"><tr style="background:#f1f5f9"><th style="padding:7px;text-align:start">التخصص</th><th style="padding:7px;text-align:start">المستوى</th><th style="padding:7px;text-align:start">عدد الطلاب</th><th></th></tr>'+rows+'</table>':'<div style="color:#64748b">لا توجد لوائح محفوظة بعد.</div>');
     renderTabs(acc);
   }catch(e){el.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>'}

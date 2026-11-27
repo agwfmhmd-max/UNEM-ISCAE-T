@@ -196,7 +196,7 @@
     }
     $('cardExcel').onchange=function(){parseCardExcel(this.files&&this.files[0])};
     $('clearCardExcel').onclick=function(){cardExcelRegs=[];$('cardExcel').value='';$('cardExcelPreview').innerHTML='';$('importCards').disabled=true;msg('cardExcelMsg','')};
-    $('importCards').onclick=async function(){var b=this;if(!cardExcelRegs.length)return;b.disabled=true;try{var d=await rpc('student_membership_admin_set',{p_regs:cardExcelRegs,p_year:Number($('year').value),p_enabled:true});var found=d.filter(function(x){return x.found}).length;var missing=d.length-found;msg('cardExcelMsg','تمت معالجة '+d.length+' رقماً: تم العثور على '+found+'، وغير موجود في الحسابات '+missing+'.');await loadMembershipStats()}catch(e){msg('cardExcelMsg',e.message||'تعذر استيراد الأرقام.',true)}finally{b.disabled=false}};
+    $('importCards').onclick=async function(){var b=this;if(!cardExcelRegs.length)return;b.disabled=true;try{var d=await rpc('student_membership_admin_set',{p_regs:cardExcelRegs,p_year:Number($('year').value),p_enabled:true});var ok=d.filter(function(x){return x.found&&x.approved}).length;var rejected=d.length-ok;msg('cardExcelMsg','تمت معالجة '+d.length+' رقماً: فُعّلت '+ok+' بطاقات لحسابات معتمدة، ورُفضت '+rejected+' أرقام غير موجودة أو غير معتمدة.');await loadMembershipStats()}catch(e){msg('cardExcelMsg',e.message||'تعذر استيراد الأرقام.',true)}finally{b.disabled=false}};
 
     $('membershipRequests').addEventListener('click',e=>{
       const button=e.target.closest('[data-review]');
@@ -232,8 +232,9 @@
       const r=regs();if(!r.length)return msg('cardMsg','أدخل أرقام تسجيل صحيحة.',true);
       try{
         const d=await rpc('student_membership_admin_set',{p_regs:r,p_year:Number($('year').value),p_enabled:on});
-        const ok=d.filter(x=>x.found).length;
-        msg('cardMsg','تم '+(on?'إظهار':'إخفاء')+' البطاقات لـ '+ok+' رقم تسجيل.');await loadMembershipStats();
+        const ok=d.filter(x=>x.found&&x.approved).length;
+        const rejected=d.length-ok;
+        msg('cardMsg','تم '+(on?'إظهار':'إخفاء')+' البطاقات لـ '+ok+' حسابات معتمدة'+(rejected?'، ورُفضت '+rejected+' أرقام غير موجودة أو غير معتمدة':'')+'.');await loadMembershipStats();
       }catch(e){msg('cardMsg',e.message,true)}
     }
     $('showCards').onclick=()=>cards(true);$('hideCards').onclick=()=>cards(false);
