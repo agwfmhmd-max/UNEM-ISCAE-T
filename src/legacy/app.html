@@ -981,5 +981,23 @@ html:not([data-push-prompt="on"]) #push-onboarding-modal{display:none!important}
     <footer><span id="upload-preview-hint">إذا لم يعرض المتصفح هذا النوع، استخدم «فتح الملف» لمعاينته بالتطبيق المناسب.</span><a id="upload-preview-open" href="#" target="_blank" rel="noopener">فتح الملف</a></footer>
   </section>
 </div>
+<style id="copyright-year-touch-spacing">
+  /* مساحة لمس واضحة لفتح لوحة الإدارة، مع فصلها عن روابط التواصل وختم MDA. */
+  body .main-footer .social-buttons-container{margin-bottom:12px!important;}
+  body .main-footer .copyright{margin:12px auto 10px!important;line-height:1.8!important;}
+  #copyright-year{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:56px;min-height:44px;padding:8px 12px;margin-inline:8px;
+    border-radius:999px;vertical-align:middle;position:relative;z-index:1;
+    touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.2);
+  }
+  body .main-footer .mda-sign{margin-top:10px!important;padding:4px 16px;}
+  @media(max-width:600px){
+    body .main-footer .social-buttons-container{row-gap:10px;}
+    body .main-footer .copyright{margin:14px auto 12px!important;}
+    #copyright-year{min-width:64px;min-height:48px;padding:10px 14px;margin-inline:10px;}
+    body .main-footer .mda-sign{margin-top:12px!important;padding:6px 18px;}
+  }
+</style>
 </body>
 </html>
