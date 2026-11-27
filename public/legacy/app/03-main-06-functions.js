@@ -705,6 +705,8 @@ function escapeHtml(value){
         function closeUploadModal() {
             document.getElementById('upload-modal-overlay').classList.add('hidden');
             document.getElementById('upload-status').textContent = '';
+            const smartStatus = document.getElementById('upload-smart-status');
+            if (smartStatus) { smartStatus.textContent = ''; smartStatus.className = 'status-msg'; smartStatus.style.display = 'none'; }
             document.getElementById('upload-form').reset();
             resetUploadSelectors();
             uploadQueue = [];

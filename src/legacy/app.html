@@ -495,6 +495,7 @@
 <span class="dz-btn">اختيار الملفات</span>
 </div>
 <input accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png" id="upload-file" multiple="" style="display:none;" type="file"/>
+<div class="status-msg" id="upload-smart-status" style="display:none;margin-top:8px;" role="status" aria-live="polite"></div>
 <div id="upload-queue"></div>
 </div>
 <div class="status-msg" id="upload-status"></div>
@@ -858,9 +859,10 @@
 <script src="/legacy/app/03-main-03-functions.js?v=dc5a42a5ea"></script>
 <script src="/legacy/app/03-main-04-functions.js?v=0acceb81df"></script>
 <script src="/legacy/app/03-main-05-functions.js?v=eca53c6905"></script>
-<script src="/legacy/app/03-main-06-functions.js?v=5bd03b2f81"></script>
-<script src="/legacy/app/03-main-07-functions.js?v=a141ca32dc"></script>
-<script src="/legacy/app/03-main-08-init.js?v=85ce4089f3"></script>
+<script src="/legacy/app/03-main-06-functions.js?v=20261127-smart-upload-1"></script>
+<script src="/legacy/app/03-main-07-functions.js?v=20261127-smart-upload-1"></script>
+<script src="/legacy/app/09-smart-upload.js?v=20261127-smart-upload-1"></script>
+<script src="/legacy/app/03-main-08-init.js?v=20261127-smart-upload-1"></script>
 <script src="/legacy/app/04-welcome-splash.js?v=a0a36c6be6"></script>
 <!-- نظام Service Worker -->
 <script src="/legacy/app/05-service-worker-register.js?v=f1f4d3501f"></script>
@@ -968,6 +970,6 @@ html:not([data-push-prompt="on"]) #push-onboarding-modal{display:none!important}
   #main-menu>.home-welcome .hw-stats .hw-visits{flex:1 1 0!important;width:auto!important;min-width:0}
 }
 </style>
-<script id="home-welcome-script" src="/legacy/app/18-home-welcome.js?v=1185199c3b"></script>
+<script id="home-welcome-script" src="/legacy/app/18-home-welcome.js?v=20261127-smart-upload-1"></script>
 </body>
 </html>

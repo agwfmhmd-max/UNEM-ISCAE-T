@@ -314,6 +314,7 @@
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (isUploading) return;
+            if (window.UNEMSmartUpload && !(await window.UNEMSmartUpload.prepareBatch())) return;
             if (!supabaseClient) { statusDiv.textContent = '❌ تعذر الاتصال بقاعدة البيانات.'; statusDiv.className = 'status-msg error'; return; }
 
             const spec = document.getElementById('upload-spec').value;
@@ -711,4 +712,4 @@
         // =============================================================
 
         // =============================================================================
-    
+

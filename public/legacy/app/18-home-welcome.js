@@ -12,6 +12,7 @@ function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'n
 function $(i){return document.getElementById(i)}
 function initials(n){var w=String(n||'').trim().split(/\s+/).filter(Boolean);if(!w.length)return '?';var a=Array.from(w[0])[0]||'',b=w.length>1?(Array.from(w[w.length-1])[0]||''):'';return (a+b).toUpperCase()}
 function avatarFor(st){try{var a=JSON.parse(localStorage.getItem('unem_student_avatar')||'null');if(a&&a.data&&String(a.reg).trim().toLowerCase()===String(st.reg).trim().toLowerCase()&&/^data:image\/(jpeg|png|webp);base64,/.test(a.data))return a.data}catch(e){}return null}
+function guestPromptEnabled(){var community=Array.prototype.some.call(document.querySelectorAll('.community-card'),function(c){return c.classList.contains('community-scheduled-on')&&!c.hidden&&getComputedStyle(c).display!=='none'});var membership=$('membership-top-cta');var membershipEnabled=!!(membership&&!membership.classList.contains('is-hidden')&&!membership.hidden&&getComputedStyle(membership).display!=='none');return community||membershipEnabled}
 function isDeviceBanned(d){return !!(d&&(d.code==='device_banned'||d.error==='device_banned'||String(d.message||'').toLowerCase().indexOf('device_banned')>=0))}
 function clearBannedStudent(){
   try{localStorage.removeItem('unem_student');localStorage.removeItem('unem_student_avatar')}catch(e){}
@@ -65,7 +66,7 @@ function render(){
         if(!c[1])return;var s=document.createElement('span');s.className='hw-chip';var i=document.createElement('i');i.className='fas '+c[0];i.setAttribute('aria-hidden','true');s.appendChild(i);s.appendChild(document.createTextNode(String(c[1])));chips.appendChild(s)});}
   }
   else{
-    line.textContent=t.hello;sub.textContent=t.guestSub;if(kick)kick.textContent='';if(chips)chips.textContent='';
+    line.textContent=t.hello;sub.textContent=t.guestSub;sub.hidden=!guestPromptEnabled();if(kick)kick.textContent='';if(chips)chips.textContent='';
     if(av.classList.contains('is-student')){av.classList.remove('is-student','has-photo');av.innerHTML=av.__cap}
   }
   var rb=$('hw-report-status');
@@ -125,6 +126,8 @@ window.unemHomeStatsFlags=function(fv,fr){
 };
 function init(){
   render();loadVisits();syncAvatar();loadReportStatus();
+  var promptObserver=new MutationObserver(function(){var st=student(),sub=$('hw-sub');if(!st&&sub)sub.hidden=!guestPromptEnabled()});
+  promptObserver.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','hidden','style']});
   window.addEventListener('unem:student',function(){render();syncAvatar()});
   window.addEventListener('unem:avatar',function(){render()});
   window.addEventListener('pageshow',function(){render();syncAvatar();loadReportStatus()});

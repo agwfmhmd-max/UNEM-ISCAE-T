@@ -121,6 +121,10 @@
                 });
             });
             renderUploadQueue();
+            if (window.UNEMSmartUpload) files.forEach(file => {
+                const item = uploadQueue.find(q => q.file === file);
+                if (item && item.state === 'pending') window.UNEMSmartUpload.analyzeQueuedFile(file);
+            });
         }
 
         function removeFromQueue(id) {
@@ -163,7 +167,13 @@
                 bar.innerHTML = `<span style="width:${item.progress}%"></span>`;
                 const state = document.createElement('div'); state.className = 'up-state';
                 state.textContent = (item.state === 'uploading' ? `جاري الرفع... ${item.progress}%` : item.message);
-                div.appendChild(head); div.appendChild(nameWrap); div.appendChild(bar); div.appendChild(state);
+                div.appendChild(head); div.appendChild(nameWrap);
+                if (item.smartMessage) {
+                    const smart = document.createElement('div'); smart.className = 'up-state';
+                    smart.style.cssText = 'margin-top:6px;color:' + (item.smartState === 'done' ? '#15803d' : item.smartState === 'failed' ? '#b91c1c' : '#64748b') + ';';
+                    smart.textContent = item.smartMessage; div.appendChild(smart);
+                }
+                div.appendChild(bar); div.appendChild(state);
                 box.appendChild(div);
             });
         }
