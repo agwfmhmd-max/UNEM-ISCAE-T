@@ -100,7 +100,7 @@
         function validatePdfFile(file) {
             if (window.UNEMUpload) return window.UNEMUpload.validateFile(file);
             if (!file) return '❌ لم يتم اختيار ملف.';
-            if (!/\.(pdf|docx?|pptx?|xlsx?|jpe?g|png)$/i.test(file.name)) return '❌ نوع الملف غير مدعوم.';
+            if (!/\.(pdf|docx?|pptx?|xlsx?|jpe?g|png|webp)$/i.test(file.name)) return '❌ نوع الملف غير مدعوم.';
             if (file.size === 0) return '❌ الملف فارغ.';
             if (file.size > MAX_UPLOAD_SIZE) return '❌ حجم الملف كبير جداً (الحد الأقصى 60 ميغابايت).';
             if (file.name.length > 180) return '❌ اسم الملف طويل جداً.';

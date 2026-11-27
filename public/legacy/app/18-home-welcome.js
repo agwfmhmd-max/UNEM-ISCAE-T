@@ -1,8 +1,8 @@
 
 /* UNEM ISCAE — ترحيب الطالب بالاسم المسجَّل في المجتمع + إجمالي زوار المنصة. Developer: MDA */
 (function(){'use strict';
-var T={ar:{hello:'مرحباً بك في منصة UNEM ISCAE',helloName:'مرحباً بك',kick:'مرحباً بك',welcomeSub:'يسعدنا وجودك معنا — اطّلع على الملخصات والنتائج والجداول والمجتمع.',guestSub:'سجّل في مجتمع الطلاب ليظهر اسمك هنا.',visits:'إجمالي زوار المنصة',regs:'عدد المسجّلين في المنصة'},
-fr:{hello:'Bienvenue sur la plateforme UNEM ISCAE',helloName:'Bienvenue',kick:'Bienvenue',welcomeSub:'Ravis de vous revoir — résumés, résultats, emplois du temps et communauté.',guestSub:'Inscrivez-vous à la communauté pour voir votre nom ici.',visits:'Total des visiteurs de la plateforme',regs:'Étudiants inscrits sur la plateforme'}};
+var T={ar:{hello:'مرحباً بك في منصة UNEM ISCAE',helloName:'مرحباً بك',kick:'مرحباً بك',welcomeSub:'يسعدنا وجودك معنا — اطّلع على الملخصات والنتائج والجداول والمجتمع.',guestSub:'سجّل في مجتمع الطلاب ليظهر اسمك هنا.',membershipGuestSub:'تحقق من بطاقة انتسابك السنوية من زر الانتساب.',visits:'إجمالي زوار المنصة',regs:'عدد المسجّلين في المنصة'},
+fr:{hello:'Bienvenue sur la plateforme UNEM ISCAE',helloName:'Bienvenue',kick:'Bienvenue',welcomeSub:'Ravis de vous revoir — résumés, résultats, emplois du temps et communauté.',guestSub:'Inscrivez-vous à la communauté pour voir votre nom ici.',membershipGuestSub:'Vérifiez votre carte d’adhésion annuelle depuis le bouton d’adhésion.',visits:'Total des visiteurs de la plateforme',regs:'Étudiants inscrits sur la plateforme'}};
 var visits=null,regs=null,flags={v:true,r:true},reportStatus=null,reportLoading=false;
 function reportNoticeKey(r){return r&&r.id&&r.status?'unem_report_notice:'+String(r.id)+':'+String(r.status):''}
 function reportNoticeSeen(r){var k=reportNoticeKey(r);if(!k)return false;try{return localStorage.getItem(k)==='1'}catch(e){return false}}
@@ -12,7 +12,8 @@ function student(){try{var s=JSON.parse(localStorage.getItem('unem_student')||'n
 function $(i){return document.getElementById(i)}
 function initials(n){var w=String(n||'').trim().split(/\s+/).filter(Boolean);if(!w.length)return '?';var a=Array.from(w[0])[0]||'',b=w.length>1?(Array.from(w[w.length-1])[0]||''):'';return (a+b).toUpperCase()}
 function avatarFor(st){try{var a=JSON.parse(localStorage.getItem('unem_student_avatar')||'null');if(a&&a.data&&String(a.reg).trim().toLowerCase()===String(st.reg).trim().toLowerCase()&&/^data:image\/(jpeg|png|webp);base64,/.test(a.data))return a.data}catch(e){}return null}
-function guestPromptEnabled(){var community=Array.prototype.some.call(document.querySelectorAll('.community-card'),function(c){return c.classList.contains('community-scheduled-on')&&!c.hidden&&getComputedStyle(c).display!=='none'});var membership=$('membership-top-cta');var membershipEnabled=!!(membership&&!membership.classList.contains('is-hidden')&&!membership.hidden&&getComputedStyle(membership).display!=='none');return community||membershipEnabled}
+function guestPromptMode(){var community=Array.prototype.some.call(document.querySelectorAll('.community-card'),function(c){return c.classList.contains('community-scheduled-on')&&!c.hidden&&getComputedStyle(c).display!=='none'&&getComputedStyle(c).visibility!=='hidden'});if(community)return 'community';var membership=$('membership-top-cta');var membershipEnabled=!!(membership&&!membership.classList.contains('is-hidden')&&!membership.hidden&&getComputedStyle(membership).display!=='none'&&getComputedStyle(membership).visibility!=='hidden');return membershipEnabled?'membership':'none'}
+function syncGuestPrompt(sub,t){if(!sub)return;var mode=guestPromptMode();sub.textContent=mode==='membership'?t.membershipGuestSub:t.guestSub;sub.hidden=mode==='none'}
 function isDeviceBanned(d){return !!(d&&(d.code==='device_banned'||d.error==='device_banned'||String(d.message||'').toLowerCase().indexOf('device_banned')>=0))}
 function clearBannedStudent(){
   try{localStorage.removeItem('unem_student');localStorage.removeItem('unem_student_avatar')}catch(e){}
@@ -66,7 +67,7 @@ function render(){
         if(!c[1])return;var s=document.createElement('span');s.className='hw-chip';var i=document.createElement('i');i.className='fas '+c[0];i.setAttribute('aria-hidden','true');s.appendChild(i);s.appendChild(document.createTextNode(String(c[1])));chips.appendChild(s)});}
   }
   else{
-    line.textContent=t.hello;sub.textContent=t.guestSub;sub.hidden=!guestPromptEnabled();if(kick)kick.textContent='';if(chips)chips.textContent='';
+    line.textContent=t.hello;syncGuestPrompt(sub,t);if(kick)kick.textContent='';if(chips)chips.textContent='';
     if(av.classList.contains('is-student')){av.classList.remove('is-student','has-photo');av.innerHTML=av.__cap}
   }
   var rb=$('hw-report-status');
@@ -126,7 +127,7 @@ window.unemHomeStatsFlags=function(fv,fr){
 };
 function init(){
   render();loadVisits();syncAvatar();loadReportStatus();
-  var promptObserver=new MutationObserver(function(){var st=student(),sub=$('hw-sub');if(!st&&sub)sub.hidden=!guestPromptEnabled()});
+  var promptObserver=new MutationObserver(function(){var st=student(),sub=$('hw-sub');if(!st&&sub)syncGuestPrompt(sub,T[lang()])});
   promptObserver.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','hidden','style']});
   window.addEventListener('unem:student',function(){render();syncAvatar()});
   window.addEventListener('unem:avatar',function(){render()});

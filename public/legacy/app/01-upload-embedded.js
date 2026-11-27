@@ -46,17 +46,18 @@
     jpg: { mime: "image/jpeg", kind: "image", resourceType: "image", icon: "fa-file-image", color: "#7c3aed" },
     jpeg: { mime: "image/jpeg", kind: "image", resourceType: "image", icon: "fa-file-image", color: "#7c3aed" },
     png: { mime: "image/png", kind: "image", resourceType: "image", icon: "fa-file-image", color: "#7c3aed" },
+    webp: { mime: "image/webp", kind: "image", resourceType: "image", icon: "fa-file-image", color: "#7c3aed" },
   };
 
   var ACCEPT_ATTR =
-    ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png," +
+    ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.webp," +
     "application/pdf,application/msword," +
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document," +
     "application/vnd.ms-powerpoint," +
     "application/vnd.openxmlformats-officedocument.presentationml.presentation," +
     "application/vnd.ms-excel," +
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet," +
-    "image/jpeg,image/png";
+    "image/jpeg,image/png,image/webp";
 
   function extOf(name) {
     var m = /\.([A-Za-z0-9]+)$/.exec(String(name || ""));
@@ -76,7 +77,7 @@
     if (!file) return "❌ لم يتم اختيار ملف.";
     var info = infoFor(file.name);
     if (!info) {
-      return "❌ نوع الملف غير مدعوم. المسموح: PDF, Word, PowerPoint, Excel, JPG, PNG.";
+      return "❌ نوع الملف غير مدعوم. المسموح: PDF, Word, PowerPoint, Excel, JPG, PNG, WebP.";
     }
     if (file.size === 0) return "❌ الملف فارغ.";
     if (file.size > MAX_UPLOAD_SIZE) return "❌ حجم الملف كبير جداً (الحد الأقصى 60 ميغابايت).";
@@ -493,7 +494,8 @@
 
   /** ضغط ذكي للصور: لا يلمس الصور الصغيرة إطلاقاً */
   async function compressImage(file) {
-    if (file.size <= IMAGE_COMPRESS_THRESHOLD) return { blob: file, mime: file.type || infoFor(file.name).mime, ext: extOf(file.name) };
+    var isWebp = extOf(file.name) === "webp" || String(file.type || "").toLowerCase() === "image/webp";
+    if (file.size <= IMAGE_COMPRESS_THRESHOLD && !isWebp) return { blob: file, mime: file.type || infoFor(file.name).mime, ext: extOf(file.name) };
     var bitmap = await createImageBitmap(file);
     var scale = Math.min(1, IMAGE_MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
     var quality = 0.9;
@@ -509,9 +511,11 @@
       if (quality > 0.6) quality -= 0.08;
       else scale *= 0.85;
     }
-    if (!best || best.size >= file.size) {
+    if (!best) {
+      if (isWebp) throw new Error("تعذر تحويل صورة WebP إلى صيغة متوافقة.");
       return { blob: file, mime: file.type || infoFor(file.name).mime, ext: extOf(file.name) };
     }
+    if (!isWebp && best.size >= file.size) return { blob: file, mime: file.type || infoFor(file.name).mime, ext: extOf(file.name) };
     return { blob: best, mime: "image/jpeg", ext: "jpg" };
   }
 
@@ -705,4 +709,3 @@
     googleViewerUrl: googleViewerUrl,
   };
 })(window);
-

@@ -7,8 +7,15 @@
     return String(s || "")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[أإآ]/g, "ا")
+      .replace(/ى/g, "ي")
+      .replace(/ة/g, "ه")
+      .replace(/[\u064b-\u065f\u0670\u0640]/g, "")
+      .replace(/[٠-٩]/g, function (d) {
+        return String("٠١٢٣٤٥٦٧٨٩".indexOf(d));
+      })
       .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, " ")
+      .replace(/[^A-Z0-9\u0600-\u06ff]+/g, " ")
       .trim()
       .replace(/\s+/g, " ");
   };
@@ -72,22 +79,25 @@
       );
     }
     if (out.join(" ").trim().length < 35 && pdf.numPages) {
-      var scanPage = await pdf.getPage(1),
-        viewport = scanPage.getViewport({ scale: 1.7 });
-      var canvas = document.createElement("canvas");
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
-      await scanPage.render({ canvasContext: canvas.getContext("2d"), viewport: viewport }).promise;
-      out.push(await extractImage(canvas));
-      canvas.width = 0;
-      canvas.height = 0;
+      for (var scanNo = 1; scanNo <= Math.min(pdf.numPages, 3); scanNo++) {
+        var scanPage = await pdf.getPage(scanNo),
+          viewport = scanPage.getViewport({ scale: 1.7 });
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+        await scanPage.render({ canvasContext: canvas.getContext("2d"), viewport: viewport })
+          .promise;
+        out.push(await extractImage(canvas));
+        canvas.width = 0;
+        canvas.height = 0;
+      }
     }
     return out.join("\n");
   }
   async function extractImage(file) {
     var T = await loadOcr();
     if (!ocrWorkerPromise)
-      ocrWorkerPromise = T.createWorker("eng+fra", 1, {
+      ocrWorkerPromise = T.createWorker("eng+fra+ara", 1, {
         workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
         corePath:
           "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js",
@@ -150,11 +160,20 @@
   }
   function inferType(text) {
     var x = normalize(text);
-    if (/\b(EXAMEN|EXAM|RATTRAPAGE|SESSION NORMALE|SESSION DE REMPLACEMENT)\b/.test(x))
+    if (
+      /\b(EXAMEN|EXAM|RATTRAPAGE|SESSION NORMALE|SESSION DE REMPLACEMENT)\b/.test(x) ||
+      /امتحان|اختبار|دورة عاديه|استدراكي/.test(x)
+    )
       return "examen";
-    if (/\b(DEVOIR|INTERROGATION|INTERRO|CONTROLE CONTINU|CONTROLE)\b/.test(x)) return "devoir";
-    if (/\b(TRAVAUX? DIRIGES?|T D|TD)\b/.test(x)) return "td";
-    if (/\b(TRAVAUX? PRATIQUES?|T P|TP|PRATIQUE)\b/.test(x)) return "tp";
+    if (
+      /\b(DEVOIR|INTERROGATION|INTERRO|CONTROLE CONTINU|CONTROLE)\b/.test(x) ||
+      /واجب|فرض|مراقبه مستمره/.test(x)
+    )
+      return "devoir";
+    if (/\b(TRAVAUX? DIRIGES?|T D|TD)\b/.test(x) || /اعمال موجهه|اعمال توجيهيه/.test(x))
+      return "td";
+    if (/\b(TRAVAUX? PRATIQUES?|T P|TP|PRATIQUE)\b/.test(x) || /اعمال تطبيقيه|تطبيقي/.test(x))
+      return "tp";
     return "cours";
   }
   function inferSpec(text) {
@@ -164,7 +183,18 @@
       /(?:FILIERE|SPECIALITE|SPECIALISATION|PARCOURS)\s*[:\-]?\s*(?:(?:LICENCE|MASTER)\s*)?(?:[123]\s*)?(MASTER\s*FC|MASTER\s*IG|FC|IG|BA|TCM|GRH|SAE)\b/,
     );
     if (!m) m = t.match(/\b(MASTER\s*FC|MASTER\s*IG)\b/);
-    if (!m) return "";
+    if (!m && !/ماستر/.test(t)) m = t.match(/\b(FC|IG|BA|TCM|GRH|SAE)\b/);
+    if (!m) {
+      if (/ماستر.*(?:ماليه.*محاسبه|محاسبه.*ماليه)/.test(t)) return "MASTER_FC";
+      if (/ماستر.*(?:معلوماتيه.*تسيير|اعلام.*تسيير)/.test(t)) return "MASTER_IG";
+      if (/البنوك.*تامين|تامين.*البنوك/.test(t)) return "BA";
+      if (/تقنيات.*(?:بيع|مبيعات|تسويق)|تجاره.*تسويق/.test(t)) return "TCM";
+      if (/اداره.*(?:موارد.*بشريه|الموارد البشريه)|تسيير.*موارد.*بشريه/.test(t)) return "GRH";
+      if (/احصاء.*تطبيقي.*اقتصاد/.test(t)) return "SAE";
+      if (/معلوماتيه.*تسيير|المعلوماتيه المطبقه على التسيير/.test(t)) return "IG";
+      if (/ماليه.*محاسبه|محاسبه.*ماليه/.test(t)) return "FC";
+      return "";
+    }
     var v = m[1].replace(/\s+/g, "_");
     return v.indexOf("MASTER_") === 0 ? v : v;
   }
@@ -172,6 +202,21 @@
     var t = normalize(text),
       m = t.match(/\b(M[12]|L[123])\b/);
     if (m) return m[1];
+    m =
+      t.match(/\b(?:LICENCE|LICENSE|LICENCIAT?URE)\s*([123])\b/) ||
+      t.match(/\b(?:ANNEE|YEAR|NIVEAU|LEVEL)\s*([123])\b/);
+    if (m) return "L" + m[1];
+    m = t.match(
+      /(?:السنه|سنه|المستوي|مستوي)\s*(?:ال)?(الاولي|الاول|الثانيه|الثاني|الثالثه|الثالث|[123])/,
+    );
+    if (m)
+      return /^(?:الاولي|الاول|1)$/.test(m[1])
+        ? "L1"
+        : /^(?:الثانيه|الثاني|2)$/.test(m[1])
+          ? "L2"
+          : "L3";
+    m = t.match(/\b(?:LICENCE|LICENSE)\s*([123])\b/);
+    if (m) return "L" + m[1];
     m = t.match(
       /(?:FILIERE|NIVEAU|LEVEL|ANNEE|ANNEE D ETUDE)\s*[:\-]?\s*([123])\s*(?:ERE|ER|EME|E)?\b/,
     );
@@ -179,10 +224,36 @@
   }
   function inferSemester(text) {
     var t = normalize(text),
-      m = t.match(/\bS\s*([1-4])\b/) || t.match(/\bSEMESTRE\s*(?:N\s*)?([1-4])\b/);
+      m = t.match(/\bS\s*([1-6])\b/) || t.match(/\bSEMESTRE\s*(?:N\s*)?([1-6])\b/);
     if (m) return "S" + m[1];
     m = t.match(
-      /\bSEMESTRE\s+(PREMIER|PREMIERE|SECOND|DEUXIEME|TROISIEME|QUATRIEME|I|II|III|IV)\b/,
+      /الفصل\s*(?:الدراسي\s*)?(?:ال)?(اول|اولي|ثاني|ثانيه|ثالث|ثالثه|رابع|رابعه|خامس|خامسه|سادس|سادسه|[1-6])/,
+    );
+    if (m)
+      return (
+        {
+          اول: "S1",
+          اولي: "S1",
+          ثاني: "S2",
+          ثانيه: "S2",
+          ثالث: "S3",
+          ثالثه: "S3",
+          رابع: "S4",
+          رابعه: "S4",
+          خامس: "S5",
+          خامسه: "S5",
+          سادس: "S6",
+          سادسه: "S6",
+          1: "S1",
+          2: "S2",
+          3: "S3",
+          4: "S4",
+          5: "S5",
+          6: "S6",
+        }[m[1]] || ""
+      );
+    m = t.match(
+      /\bSEMESTRE\s+(PREMIER|PREMIERE|SECOND|DEUXIEME|TROISIEME|QUATRIEME|CINQUIEME|SIXIEME|I|II|III|IV|V|VI)\b/,
     );
     if (!m) return "";
     return (
@@ -197,6 +268,10 @@
         III: "S3",
         QUATRIEME: "S4",
         IV: "S4",
+        CINQUIEME: "S5",
+        V: "S5",
+        SIXIEME: "S6",
+        VI: "S6",
       }[m[1]] || ""
     );
   }
@@ -204,6 +279,7 @@
     if (!spec || !level) return null;
     var expectedSem = inferSemester(text),
       semesters = typeof semestersForLevel === "function" ? semestersForLevel(level) : [];
+    if (expectedSem && semesters.indexOf(expectedSem) < 0) return null;
     if (expectedSem && semesters.indexOf(expectedSem) >= 0)
       semesters = [expectedSem].concat(
         semesters.filter(function (s) {
@@ -222,13 +298,7 @@
         });
       } catch (_) {}
       names.forEach(function (name) {
-        if (
-          name &&
-          !options.some(function (o) {
-            return o.name === name;
-          })
-        )
-          options.push({ name: name, semester: sem });
+        if (name) options.push({ name: name, semester: sem });
       });
     });
     var hay = " " + normalize(text) + " ",
@@ -240,7 +310,15 @@
         .sort(function (a, b) {
           return normalize(b.name).length - normalize(a.name).length;
         });
-    return matches.length ? matches[0] : null;
+    if (!matches.length) return null;
+    if (
+      !expectedSem &&
+      matches.some(function (m) {
+        return m.name === matches[0].name && m.semester !== matches[0].semester;
+      })
+    )
+      return null;
+    return matches[0];
   }
   function classify(text, fileName) {
     var full = String(fileName || "") + "\n" + String(text || ""),
@@ -333,6 +411,13 @@
       status("لم يُستنتج تصنيف مؤكد. املأ الحقول يدوياً كما في السابق.", false);
       return true;
     }
+    if (detected.length !== items.length) {
+      status(
+        "تعذّر تأكيد تصنيف كل الملفات المحددة. لتجنّب حفظ ملف في مادة خاطئة، تُركت الحقول كما هي؛ راجعها واختر التصنيف يدوياً أو ارفع الملفات المقروءة وحدها.",
+        false,
+      );
+      return true;
+    }
     var signatures = new Set(
       detected.map(function (i) {
         var d = i.smart;
@@ -358,7 +443,7 @@
         "لم يتمكن النظام من مطابقة التخصص مع قائمة الموقع. راجع البيانات واخترها يدوياً.",
         true,
       );
-      return false;
+      return true;
     }
     specSel.value = d.spec;
     if (typeof onUploadSpecChange === "function") onUploadSpecChange();
@@ -383,7 +468,7 @@
         "استُخرج اسم المادة لكن لم تتم مطابقته بدقة مع قائمة هذا التخصص والفصل؛ اختر المادة يدوياً قبل الرفع.",
         true,
       );
-      return false;
+      return true;
     }
     subSel.value = d.subject;
     if (typeof refreshUploadTypeOptions === "function") await refreshUploadTypeOptions();
@@ -391,8 +476,8 @@
     var aliases = {
       examen: ["examen", "exam"],
       devoir: ["devoir", "assignment"],
-      td: ["td", "travaux_diriges"],
-      tp: ["tp", "travaux_pratiques"],
+      td: ["td_tp", "td", "travaux_diriges"],
+      tp: ["td_tp", "tp", "travaux_pratiques"],
       cours: ["cours", "course", "lesson"],
     }[d.type] || [d.type];
     var typeOption =
@@ -401,6 +486,13 @@
         return aliases.indexOf(String(o.value).toLowerCase()) >= 0;
       });
     if (typeSel && typeOption) typeSel.value = typeOption.value;
+    else if (typeSel && typeSel.options.length > 1) {
+      status(
+        "تعذّر مطابقة النوع المكتشف مع قائمة أنواع هذه المادة؛ اختر النوع يدوياً قبل الرفع.",
+        true,
+      );
+      return true;
+    }
     status(
       "اقتراح آلي من محتوى الملفات: " +
         d.type.toUpperCase() +
