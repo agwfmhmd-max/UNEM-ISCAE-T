@@ -150,7 +150,10 @@ export const Route = createFileRoute("/api/public/upload/classify")({
               404: "نموذج التحليل المحدد غير متاح؛ تحقق من OPENAI_CLASSIFIER_MODEL.",
               429: "تم رفض التحليل بسبب حد الاستخدام أو معدل الطلبات لدى المزود.",
             };
-            const error = messageByStatus[response.status] ?? "رفض مزود التحليل الطلب مؤقتاً.";
+            const error =
+              providerCode === "credit_balance_exhausted" || providerCode === "insufficient_quota"
+                ? "انتهى رصيد خدمة OpenAI المستخدم لتحليل الصور. أضف رصيداً أو حدّث OPENAI_API_KEY في إعدادات الإنتاج."
+                : (messageByStatus[response.status] ?? "رفض مزود التحليل الطلب مؤقتاً.");
             console.error("OpenAI classifier error", response.status, providerCode);
             return json(
               {
