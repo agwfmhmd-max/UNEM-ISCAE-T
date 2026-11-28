@@ -71,3 +71,4 @@ db/20261127193000_official_roster_cards_and_student_charts.sql
 db/20261127195000_membership_coverage_stats.sql
 db/20261127200000_membership_coverage_exclude_sortants.sql
 db/20261128100000_student_roster_atomic_replace.sql
+db/20261128110000_student_registration_sortants_stats.sql

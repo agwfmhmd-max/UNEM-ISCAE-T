@@ -52,6 +52,25 @@ begin
   select coalesce(sum((e->>'count')::int),0)::int into v_scopes from jsonb_array_elements(v_result->'by_level') e;
   if v_scopes <> (v_result->>'official_roster_total')::int then raise exception 'FAIL: level chart is not based on each canonical roster student exactly once'; end if;
 
+  -- Sortants يحتفظون بمستوى L3 في السجل لأغراض التوافق، لكن الرسم يفصلهم حسب الدفعة.
+  insert into public.student_roster(spec,level,promo,academic_year,full_name,name_norm,reg_no,reg_no_norm)
+  values('BA','L3',2024,v_year,'Graduated Student',public.student_norm_name('Graduated Student'),'I90005',public.student_norm_reg('I90005'));
+  v_result := public.student_registration_stats();
+  if not exists(select 1 from jsonb_array_elements(v_result->'by_level') e where e->>'key'='Sortants · Promo 2024' and (e->>'count')::int=1) then
+    raise exception 'FAIL: Sortant is missing from its separate promo category: %',v_result->'by_level';
+  end if;
+  if exists(select 1 from jsonb_array_elements(v_result->'by_level') e where e->>'key'='L3' and (e->>'count')::int > (select count(*) from public.student_roster where promo is null and level='L3')) then
+    raise exception 'FAIL: Sortant was included in the L3 level count';
+  end if;
+  if (select (e->>'count')::int from jsonb_array_elements(v_result->'by_specialization') e where e->>'key'='BA')
+     <> (select count(*) from public.student_roster where spec='BA' and promo is null) then
+    raise exception 'FAIL: specialization total includes Sortants';
+  end if;
+  if (select coalesce(sum((e->>'count')::int),0)::int from jsonb_array_elements(v_result->'by_specialization') e)
+     <> (select count(*) from public.student_roster where promo is null) then
+    raise exception 'FAIL: specialization chart includes Sortants or omits current students';
+  end if;
+
   -- اكتمال غير كافٍ: يرفض العملية ويبقي قائمة المستوى كما هي.
   v_result := public.student_roster_replace_admin('begin',jsonb_build_object('spec','BA','level','L1','expected_rows',2));
   v_upload := (v_result->>'upload_id')::uuid;
