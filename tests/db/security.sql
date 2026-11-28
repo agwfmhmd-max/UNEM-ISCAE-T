@@ -10,7 +10,8 @@ declare
   actual text[]; new_fns text[]; missing_fns text[]; bad text; t text; got text; n int;
   sensitive text[] := array['community_comments','community_groups','community_likes','community_members','community_messages','community_posts',
     'community_profiles','community_reports','community_search_log','student_accounts','student_devices','student_roster','student_sessions',
-    'supervisor_permissions','user_roles','fcm_tokens','push_notifications_log','whatsapp_groups','student_login_attempts','student_device_reports','student_device_bans'];
+    'supervisor_permissions','user_roles','fcm_tokens','push_notifications_log','whatsapp_groups','student_login_attempts','student_device_reports','student_device_bans',
+    'student_roster_import_batches','student_roster_import_rows'];
 begin
   -- 1) RLS مفعّل على كل جداول public
   select string_agg(c.relname, ', ') into bad from pg_class c join pg_namespace ns on ns.oid=c.relnamespace and ns.nspname='public'
@@ -82,6 +83,8 @@ begin
   if n <> 0 then reset role; raise exception 'SECURITY FAIL: مستخدم عادي يرى أدوار الآخرين'; end if;
   select count(*) into n from public.push_subscriptions;
   if n <> 0 then reset role; raise exception 'SECURITY FAIL: مستخدم عادي يرى اشتراكات الإشعارات'; end if;
+  got := 'نجح'; begin select count(*) into n from public.student_roster_import_rows; exception when insufficient_privilege then got := 'blocked'; end;
+  if got <> 'blocked' then reset role; raise exception 'SECURITY FAIL: مستخدم عادي قرأ صفوف استيراد اللوائح'; end if;
   got := 'نجح'; begin perform public.set_public_stat_visibility('show_visitors_count', false); exception when others then got := 'blocked'; end;
   if got <> 'blocked' then reset role; raise exception 'SECURITY FAIL: مستخدم عادي غيّر إعداداً عاماً'; end if;
   got := 'نجح'; begin insert into public.announcements(message,start_date,end_date) values ('x',now(),now()); exception when others then got := 'blocked'; end;

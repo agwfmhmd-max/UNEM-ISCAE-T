@@ -10,9 +10,10 @@ function specOpts(sel){return SPECS.map(function(s){return '<option value="'+s[0
 function lvlOptsImport(spec,sel){return lvlOpts(spec,sel)+'<option value="S"'+(sel==='S'?' selected':'')+'>🎓 Sortants (خريجون)</option>'}
 function lvlOpts(spec,sel){var l=lvls(spec);return l.map(function(x){return '<option'+(x===sel?' selected':'')+'>'+x+'</option>'}).join('')}
 function rpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
+function rosterReplaceRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_roster_replace_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function sessionRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_session_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
 function deviceRpc(a,args){if(!supabaseClient)return Promise.reject(new Error('offline'));return supabaseClient.rpc('student_device_admin',{p_action:a,p_args:args||{}}).then(function(r){if(r.error)throw r.error;return r.data})}
-function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|student_session_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ترحيلات الطلاب بالترتيب، بما فيها db/20261016090000_supervisor_delegation_and_student_admin.sql في Supabase.';if(/forbidden/.test(m))return 'ليست لديك الصلاحية الممنوحة لهذه العملية.';if(/bad_reg_format/.test(m))return 'يوجد رقم تسجيل غير صالح في اللائحة؛ يجب أن يكون بالشكل Ixxxxx (حرف I وخمسة أرقام).';return m}
+function errMsg(e){var m=String((e&&e.message)||e);if(/student_admin|student_roster_replace_admin|student_session_admin|schema cache|PGRST202/.test(m))return 'يلزم تنفيذ ترحيلات الطلاب بالترتيب، بما فيها db/20261128100000_student_roster_atomic_replace.sql في Supabase.';if(/forbidden/.test(m))return 'ليست لديك الصلاحية الممنوحة لهذه العملية.';if(/bad_reg_format/.test(m))return 'يوجد رقم تسجيل غير صالح في اللائحة؛ يجب أن يكون بالشكل Ixxxxx (حرف I وخمسة أرقام).';return m}
 function $(id){return document.getElementById(id)}
 function fmt(d){try{return new Date(d).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'})}catch(e){return ''}}
 function canManageStudentRecords(){return typeof hasPermission==='function'&&hasPermission('manage_students')}
@@ -34,7 +35,7 @@ window.renderStudentsAdmin=async function(){
   st.parsed=null;
   var canManage=canManageStudentRecords();
   c.innerHTML=(canManage?'<div class="admin-page-box" id="st-import"><h3>📥 رفع لائحة الطلاب (Excel أو PDF)</h3>'+
-  '<p>اختر التخصص والمستوى ثم ارفع ملف Excel أو PDF يحتوي على عمودين: <b>اسم الطالب</b> و<b>رقم التسجيل</b>. يمكنك رفع عدة ملفات PDF دفعة واحدة (مثل لوائح المجموعات الرسمية)، ويُحدَّد التخصص والمستوى تلقائياً إن ذُكرا في رأس الملف. السنة الدراسية تبدأ تلقائياً في 1 سبتمبر: يرتقي كل الطلاب مستوى واحداً مع كل سنة جديدة حتى يصبحوا خريجين في غرفة دفعتهم (UNEM ISCAE Sortants Promo N). لائحة السنة الجديدة هي المرجع: من تسجّله في مستوى أدنى (لم ينجح) يبقى فيه، ومن يتكرر في مستويين يظهر في غرفتيهما. لتسجيل الخريجين اختر «Sortants» ثم رقم الدفعة. الطالب الموجود في اللائحة يدخل مباشرة، وغير الموجود يظهر كحساب جديد للمراجعة.</p>'+
+  '<p>اختر التخصص والمستوى ثم ارفع ملف Excel أو PDF يحتوي على عمودين: <b>اسم الطالب</b> و<b>رقم التسجيل</b>. يمكنك رفع عدة ملفات PDF دفعة واحدة (مثل لوائح المجموعات الرسمية)، ويُحدَّد التخصص والمستوى تلقائياً إن ذُكرا في رأس الملف. السنة الدراسية تبدأ تلقائياً في 1 سبتمبر: يرتقي كل الطلاب مستوى واحداً مع كل سنة جديدة حتى يصبحوا خريجين في غرفة دفعتهم (UNEM ISCAE Sortants Promo N). عند رفع لائحة جديدة للتخصص والمستوى نفسيهما تُستبدل اللائحة السابقة بعد التحقق من اكتمال الجديدة؛ وإذا كان فيها خطأ تبقى السابقة كما هي. الطالب المتكرر في أكثر من مستوى يُحتسب في المستوى الأعلى، مع بقاء دخوله إلى غرف كل مستوياته. لتسجيل الخريجين اختر «Sortants» ثم رقم الدفعة. الطالب الموجود في اللائحة يدخل مباشرة، وغير الموجود يظهر كحساب جديد للمراجعة.</p>'+
   '<div class="wa-admin-row" style="grid-template-columns:1fr"><div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">'+
   '<select id="st-spec" onchange="stSpecChange()">'+specOpts('BA')+'</select><select id="st-level" onchange="stLevelChange()">'+lvlOptsImport('BA','L1')+'</select><input id="st-promo" type="number" min="1" max="99" placeholder="رقم الدفعة Promo" style="display:none">'+
   '<input id="st-file" type="file" multiple accept=".xlsx,.xls,.csv,.pdf,application/pdf" onchange="stFile(this)"></div><div id="st-prev" style="margin-top:10px"></div></div></div>':'')+
@@ -207,16 +208,19 @@ window.stSave=async function(){
   if(level==='S'&&!(promo>0)){alert('أدخل رقم الدفعة (Promo) للخريجين.');return}
   var where=level==='S'?'Sortants · Promo '+promo:level;
   if(!confirm('حفظ '+p.rows.length+' طالب في '+SL[spec]+' · '+where+' ؟'))return;
-  btn.disabled=true;var tot={added:0,upgraded:0,updated:0,skipped_higher:0,extra_levels:0,invalid:0,auto_approved:0},badRows=[];
+  btn.disabled=true;var uploadId=null;
   try{
+    var started=await rosterReplaceRpc('begin',{spec:spec,level:level,promo:promo,expected_rows:p.rows.length});
+    if(!started||!started.upload_id)throw new Error('تعذّر بدء رفع اللائحة الجديدة.');uploadId=started.upload_id;
     for(var i=0;i<p.rows.length;i+=400){
       res.innerHTML='⏳ جاري الحفظ... '+Math.min(i+400,p.rows.length)+' / '+p.rows.length;
-      var d=await rpc('import',{spec:spec,level:level,promo:promo,rows:p.rows.slice(i,i+400)});
-      Object.keys(tot).forEach(function(k){tot[k]+=(d&&d[k])||0});if(d&&d.invalid_rows&&badRows.length<10)badRows=badRows.concat(d.invalid_rows).slice(0,10);
+      await rosterReplaceRpc('chunk',{upload_id:uploadId,offset:i,rows:p.rows.slice(i,i+400)});
     }
-    res.innerHTML='<div class="status-msg success" style="display:block">✅ تم الحفظ — جديد: <b>'+tot.added+'</b> · ترقية لمستوى أعلى: <b>'+tot.upgraded+'</b> · محدّث: <b>'+tot.updated+'</b> · متجاهَل (موجود في مستوى أعلى): <b>'+tot.skipped_higher+'</b> · مستوى ثانٍ مُفعَّل: <b>'+tot.extra_levels+'</b> · غير صالح: <b>'+tot.invalid+'</b>'+(tot.auto_approved?' · حسابات اعتُمدت تلقائياً: <b>'+tot.auto_approved+'</b>':'')+'</div>'+(tot.invalid?'<div class="status-msg error" style="display:block;margin-top:8px">⚠️ لم يُحفظ '+tot.invalid+' صف بسبب رقم تسجيل أو اسم غير صالح (يجب أن يكون الرقم Ixxxxx):<br>'+badRows.map(function(x){return h(x.r||'—')+' — '+h(x.n||'—')}).join('<br>')+(tot.invalid>badRows.length?'<br>…':'')+'</div>':'');
+    var result=await rosterReplaceRpc('finish',{upload_id:uploadId});
+    if(result&&result.error)throw new Error(result.message||('تعذّر إكمال الاستبدال: '+result.error));
+    res.innerHTML='<div class="status-msg success" style="display:block">✅ تم استبدال اللائحة ذرياً — طلاب اللائحة الجديدة: <b>'+Number(result.imported_students||0)+'</b> · طلاب كانوا في النطاق السابق: <b>'+Number(result.replaced_students||0)+'</b> · تكرارات أُزيلت: <b>'+Number(result.duplicates_ignored||0)+'</b> · مستويات إضافية محفوظة لدخول الغرف: <b>'+Number(result.extra_levels||0)+'</b>'+(result.auto_approved?' · حسابات اعتُمدت تلقائياً: <b>'+result.auto_approved+'</b>':'')+'</div>';
     st.parsed=null;$('st-file').value='';loadStats();loadList();
-  }catch(e){res.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>';btn.disabled=false}
+  }catch(e){if(uploadId)try{await rosterReplaceRpc('abort',{upload_id:uploadId})}catch(ignore){}res.innerHTML='<div class="status-msg error" style="display:block">❌ '+h(errMsg(e))+'</div>';btn.disabled=false}
 };
 
 /* ---------- الإحصائيات ---------- */
